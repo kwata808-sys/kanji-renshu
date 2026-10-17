@@ -495,7 +495,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2344</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2347</p>
 </section>
 
 <!-- 書きとり -->
@@ -1268,16 +1268,29 @@ function renderStage() {
   $("xpFill").style.width = (lv.cur / lv.need * 100) + "%";
   $("xpNext").textContent = `つぎの レベルまで あと ${lv.need - lv.cur}`;
 }
+// 1つの ステージには いつも 同じ 問題を 出す。はじめて あそんだ ときに えらんで おぼえておく（学年ごと）
+function stageQs(s, pool, n) {
+  const key = "stageQ", k = gradeOf() + "-" + s;
+  let m = {};
+  try { m = JSON.parse(localStorage.getItem(key) || "{}"); } catch (e) {}
+  const has = new Map(pool.map(q => [q.w, q]));
+  const old = (m[k] || []).map(w => has.get(w)).filter(Boolean);
+  if (old.length && old.length === Math.min(n, pool.length)) return old;
+  const qs = pick(pool, n);
+  m[k] = qs.map(q => q.w);
+  try { localStorage.setItem(key, JSON.stringify(m)); } catch (e) {}
+  return qs;
+}
 function startStage(s) {
   if (stageType(s) === "boss") return startBoss(s);
   const T = targetsOf("all");
-  startDrill(pick(T.pool, S.settings.count || 5), "test", undefined, T.limit);
+  startDrill(stageQs(s, T.pool, S.settings.count || 5), "test", undefined, T.limit);
   D.stage = { s, t: stageType(s) }; D.title = `ステージ${s}`;
   $("drillProg").textContent = `ステージ${s}　1 / ${D.qs.length}`;
 }
 function startBoss(s) {
   const T = targetsOf("all"), b = BOSSES[s], i = BOSS_ORDER.indexOf(s) + 1, atk = attack(equipped());
-  startDrill(pick(T.pool, 20), "test", undefined, T.limit);
+  startDrill(stageQs(s, T.pool, 20), "test", undefined, T.limit);
   D.stage = { s, t: "boss" };
   D.boss = { s, name: b.name, hp: 4 + i * 2, max: 4 + i * 2, hearts: 3, atk, combo: 0, shownHp: 4 + i * 2, shownHearts: 3 };
   $("plAva").innerHTML = "";
@@ -1406,7 +1419,7 @@ function show(id) {
   if (id === "home") checkUpdate();
 }
 // 新しい版が出ていたら、ホームに いるときだけ 入れかえる（れんしゅうの とちゅうでは しない）
-const VER = "1017-2344";
+const VER = "1017-2347";
 function checkUpdate() {
   fetch("version.txt?" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : "").then(v => {
     v = v.trim();
