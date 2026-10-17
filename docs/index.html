@@ -246,6 +246,16 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .lookopt.swatch { height: 44px; border-width: 3px; }
 .lookopt[aria-pressed="true"] { border-color: var(--green); box-shadow: 0 0 0 2px var(--green); background: var(--ok); }
 #hello { gap: 12px; }
+#title { min-height: calc(100dvh - 60px); align-content: center; justify-items: center; text-align: center; gap: 14px; }
+.gate { width: 100%; max-width: 480px; }
+.gate svg { width: 100%; height: auto; display: block; border-radius: 18px; }
+.gate .flame { animation: flick .5s ease-in-out infinite alternate; transform-box: fill-box; transform-origin: center bottom; }
+.gate .glow { animation: glow 1.6s ease-in-out infinite alternate; }
+.gate .door { animation: doorglow 2.4s ease-in-out infinite alternate; }
+@keyframes doorglow { to { opacity: .55; } }
+.gtitle { font-family: var(--font-k); font-size: 38px; letter-spacing: .08em; color: #3a2a1a; text-shadow: 0 2px 0 #f2c230, 0 4px 0 #b88a12; }
+#enterBtn { width: min(100%, 360px); font-size: 22px; min-height: 64px; animation: pop 1.2s ease-in-out infinite; }
+.gnote { margin: 0; font-size: 13px; }
 .hellotop { display: flex; justify-content: space-between; align-items: center; }
 .hellotop .back { font-size: 12px; }
 .hellohero { display: flex; align-items: center; gap: 12px; background: #2a2026 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='14'%3E%3Cpath d='M0 .5H28M0 7.5H28M7 0V7M21 7V14' stroke='%23fff' stroke-opacity='.08' stroke-width='1.2'/%3E%3C/svg%3E"); border-radius: 16px; padding: 10px 14px; }
@@ -602,6 +612,14 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
   <p class="muted" id="storyNone" hidden>長文は いまは 2年生だけです。メニューで 2年を えらんでね。</p>
 </section>
 
+<!-- ダンジョンの いりぐち（アプリを ひらいたら ここ。タップで 音楽が はじまる） -->
+<section id="title" class="screen" hidden>
+  <div class="gate" id="gateArt"></div>
+  <h1 class="gtitle">かんじ ダンジョン</h1>
+  <button class="btn primary big" id="enterBtn">ダンジョンに はいる</button>
+  <p class="muted gnote">おとが でるよ</p>
+</section>
+
 <!-- アイテムを 手に入れた！ -->
 <div id="getItem" class="cover" hidden>
   <div class="dqwin">
@@ -705,7 +723,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1018-0108</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1018-0112</p>
 </section>
 
 <!-- ボス登場・たからばこ（全画面に かさねる） -->
@@ -1871,29 +1889,31 @@ function makeFoes(s) {
   }
   return out;
 }
-function startBattle(foes, fi, bossKey) {
+let BT = null;
+function startBattle(foes, fi, bossKey, host = "drill") {
   const P = me();
   foes.forEach(f => { f.max = f.hp; });
-  D.bt = { foes, k: 0, fi, php: P.hp, pmax: P.hp, atk: P.atk, def: P.def, win: false, dead: false, over: false };
-  D.mob = MB = null;
+  BT = { foes, k: 0, fi, php: P.hp, pmax: P.hp, atk: P.atk, def: P.def, win: false, dead: false, over: false, host };
+  if (host === "drill") { D.bt = BT; D.mob = null; }
+  MB = null;
   const bar = $("bossBar");
-  $("drill").insertBefore(bar, $("drill").querySelector(".sheet"));
+  $(host).insertBefore(bar, $(host).querySelector(".sheet"));
   bar.hidden = false; bar.className = "bossbar rpg" + (bossKey ? " boss" : "");
   $("dun").innerHTML = corridor(fi, bossKey ? (bossKey === LAST ? LAST : 1) : 0);
   $("plAva").innerHTML = avatar(equipped());
   showFoe(false);
   drawBt();
-  $("drillProg").textContent = `${D.title}　もんだい 1`;
+  if (host === "drill") $("drillProg").textContent = `${D.title}　もんだい 1`;
   if (bossKey) { bossIntro(bossKey, foes[0].boss === BOSSES[bossKey] ? undefined : foes[0].boss); bgmPlay("boss"); }
 }
 function showFoe(walk) {
-  const B = D.bt, f = B.foes[B.k], el = $("bossMon"), dn = $("dun"), myB = B, k = B.k;
+  const B = BT, f = B.foes[B.k], el = $("bossMon"), dn = $("dun"), myB = B, k = B.k;
   $("wave").textContent = `てき ${k + 1} / ${B.foes.length}`;
   $("bossName").textContent = f.name;
   el.className = "bossmon"; el.innerHTML = "";
   drawBt();
   const come = () => {
-    if (D.bt !== myB || myB.k !== k) return;
+    if (BT !== myB || myB.k !== k) return;
     dn.classList.remove("walk");
     el.innerHTML = f.boss ? bossFace(f.boss) : mobSVG(f.m, B.fi); el.classList.add("appear");
     say(f.boss ? f.boss.say : f.m === MIMIC ? "たからばこ…？ と おもったら ミミックだ！" : `${f.name}が あらわれた！（HP ${f.max}）`);
@@ -1902,18 +1922,18 @@ function showFoe(walk) {
   else come();
 }
 function drawBt() {
-  const B = D.bt, f = B.foes[B.k];
+  const B = BT, f = B.foes[B.k];
   $("bossHp").style.width = Math.max(0, f.hp) / f.max * 100 + "%";
   $("pHpBar").style.width = Math.max(0, B.php) / B.pmax * 100 + "%";
   $("pHpBar").style.background = B.php / B.pmax < 0.3 ? "linear-gradient(#ff8a7a,#e8473a)" : "linear-gradient(#9ff0b0,#3faa5a)";
   $("pHpNum").textContent = `${Math.max(0, B.php)}/${B.pmax}`;
   $("bossAtk").textContent = `こうげき ${B.atk}　ぼうぎょ ${B.def}`;
 }
-function rpgTurn(ok) {
-  const B = D.bt, f = B.foes[B.k], el = $("bossMon");
+function rpgTurn(ok, streak = 0) {
+  const B = BT, f = B.foes[B.k], el = $("bossMon");
   if (ok) {
     // 3れんぞくで「かいしんの いちげき」
-    const crit = (D.streak || 0) >= 3 && D.streak % 3 === 0;
+    const crit = streak >= 3 && streak % 3 === 0;
     const dmg = Math.max(1, Math.round(B.atk * (0.9 + Math.random() * 0.2) * (crit ? 1.6 : 1)));
     f.hp -= dmg;
     const kill = f.hp <= 0;
@@ -1936,11 +1956,17 @@ function rpgTurn(ok) {
     sfx("puff");
     fx(el, $("plAva"), PUFF, "puff", 520).then(() => {
       shake($("plAva")); bigShake(); pop($("plAva"), `-${dmg}`, "dmg"); drawBt();
-      say(B.dead ? "ちからつきた…" : `${f.name}の こうげき！ ${dmg}の ダメージを うけた`);
+      say(B.dead ? "ちからつきた…" : `${f.name}の こうげき！ ${dmg}の ダメージ！ かけるまで にげられないぞ！`);
     });
   }
 }
 
+// くんれんじょう・長文・なぞなぞの てき：いまの じぶんに あわせる（5かい くらい まちがえると ちからつきる）
+function easyFoes(n, s) {
+  const P = me(), out = [];
+  for (let i = 0; i < n; i++) { const m = MOBS[(s * 5 + i * 3) % MOBS.length]; out.push({ m, name: m.name, hp: P.atk, atk: P.def + Math.ceil(P.hp / 5) }); }
+  return out;
+}
 /* ---------- アイテムを 手に入れた！（ドラクエふうの まど） ---------- */
 let giQueue = [];
 function giveItems(list) { giQueue = giQueue.concat(list); if ($("getItem").hidden) nextGive(); }
@@ -2135,7 +2161,7 @@ function stageResult() {
 
 /* ---------- 画面の切りかえ ---------- */
 const MENU = ["home", "kaki", "storyMenu", "gridScreen", "adult", "equip", "lookEdit", "quest", "find"];
-const SCREENS = [...MENU, "drill", "result", "kana", "lists", "hello"];
+const SCREENS = [...MENU, "drill", "result", "kana", "lists", "hello", "title"];
 const isMenu = () => MENU.some(id => !$(id).hidden);
 function show(id) {
   if (!S.stats["アバター"] && MENU.includes(id) && id !== "adult") { if ($("hello").hidden) return startHello(); id = "hello"; }
@@ -2146,7 +2172,7 @@ function show(id) {
   if (id === "home") checkUpdate();
 }
 // 新しい版が出ていたら、ホームに いるときだけ 入れかえる（れんしゅうの とちゅうでは しない）
-const VER = "1018-0108";
+const VER = "1018-0112";
 function checkUpdate() {
   fetch("version.txt?" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : "").then(v => {
     v = v.trim();
@@ -2339,6 +2365,22 @@ $("helloNext").onclick = () => {
 };
 $("helloBack").onclick = () => { if (hstep > 0) { hstep--; renderHello(); } };
 $("helloAdult").onclick = () => show("adult");
+// いりぐちの え：岩山に 石の アーチ、おくが ぼんやり 光る。たいまつ 2本と じぶんの キャラ
+function gateSVG() {
+  const t = x => `<circle cx="${x}" cy="150" r="34" fill="url(#gg)" class="glow"/><rect x="${x - 3}" y="152" width="6" height="22" fill="#3a2a1a"/><path d="M${x - 7} 152 h14 l-3 5 h-8z" fill="#5a4030"/><path class="flame" d="M${x} 128 q10 11 6 20 q-6 5 -12 0 q-4 -9 6 -20z" fill="#ffcf6a" stroke="#fff6" stroke-width="1"/>`;
+  return `<svg viewBox="0 0 360 300" aria-label="ダンジョンの いりぐち" role="img"><defs><linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a3a6a"/><stop offset="1" stop-color="#e8a06a"/></linearGradient><radialGradient id="dg"><stop offset="0" stop-color="#ffd27a"/><stop offset=".55" stop-color="#7a3a1a"/><stop offset="1" stop-color="#1a0e0a"/></radialGradient><radialGradient id="gg"><stop offset="0" stop-color="#ffcf6a" stop-opacity=".6"/><stop offset="1" stop-color="#ffcf6a" stop-opacity="0"/></radialGradient></defs>`
+    + `<rect width="360" height="300" fill="url(#sky)"/><circle cx="300" cy="50" r="3" fill="#fff"/><circle cx="60" cy="30" r="2" fill="#fff"/><circle cx="200" cy="22" r="2" fill="#fff"/>`
+    + `<path d="M0 300 V120 L40 80 L90 100 L130 40 L180 70 L230 30 L280 90 L320 70 L360 110 V300z" fill="#6e5a4a"/><path d="M0 300 V170 L60 140 L120 160 L180 120 L250 150 L310 130 L360 160 V300z" fill="#5a4838"/>`
+    + `<path d="M110 268 V170 q70 -86 140 0 V268z" fill="#8a7a6a" stroke="#3a2a1a" stroke-width="4"/>`
+    + [0, 1, 2, 3, 4, 5, 6].map(i => { const a = Math.PI * (i / 6), x = 180 - Math.cos(a) * 62, y = 176 - Math.sin(a) * 62; return `<rect x="${x - 10}" y="${y - 8}" width="20" height="16" rx="3" fill="#a39383" stroke="#3a2a1a" stroke-width="2" transform="rotate(${(i / 6) * 180 - 90} ${x} ${y})"/>`; }).join("")
+    + `<path d="M130 268 V180 q50 -64 100 0 V268z" fill="url(#dg)" class="door"/>`
+    + `<path d="M120 268 h120 l10 12 h-140z M108 280 h144 l10 12 h-164z" fill="#9a8a7a" stroke="#3a2a1a" stroke-width="2"/>`
+    + t(84) + t(276)
+    + avatar(equipped()).replace('<svg class="ava"', '<svg x="152" y="206" width="56" height="62"')
+    + `</svg>`;
+}
+function showTitle() { $("gateArt").innerHTML = gateSVG(); show("title"); }
+$("enterBtn").onclick = () => { wakeAudio(); sfx("thud"); BG.name = undefined; bgmPlay("home"); show("home"); };
 function renderEquip() {
   const c = cleared(), eq = equipped(), P = me(eq), seen = seenSet(), pts = pointsLeft();
   $("eqAvatar").innerHTML = avatar(eq);
@@ -2457,7 +2499,8 @@ function startDrill(qs, mode, only, limit) {
   $("bossMon").innerHTML = ""; $("bossBar").hidden = true;
   show("drill");
   loadQ();
-  D.mob = startMob(curStage(), qs.length);
+  D.title = D.title || "くんれん";
+  startBattle(easyFoes(qs.length, curStage()), floorNo(curStage()), 0);
 }
 function loadQ() {
   const q = D.qs[D.i];
@@ -2598,8 +2641,16 @@ $("redoBtn").onclick = () => { $("lInk").textContent = ""; D.n = 0; D.off = { x:
 $("drillBack").onclick = () => { if (D.results.length) finishDrill(); else show(D.story ? "storyMenu" : D.only ? "gridScreen" : D.stage ? "home" : "kaki"); };
 $("nextBtn").onclick = () => {
   if (D.bt) {
-    D.i++;
     if (D.bt.over) return finishDrill();
+    if (D.retry) {
+      // まちがえた 字を もういちど。かけるまで てきは いすわる
+      D.retry = false; D.retrying = true;
+      loadQ(); $("drillProg").textContent = `${D.title}　もういちど！`;
+      setMsg("もういちど かこう！ かけるまで にげられないぞ", "bad");
+      return;
+    }
+    D.retrying = false;
+    D.i++;
     // 問題が たりなければ もういちど くりかえす
     if (D.i >= D.qs.length) D.qs = D.qs.concat(D.qs0);
     loadQ(); $("drillProg").textContent = `${D.title}　もんだい ${D.i + 1}`;
@@ -2692,7 +2743,7 @@ function charDone() {
   D.marks[idx] = D.clean ? "ok" : "tri";
   // テストで書けた字だけ「おぼえた」に近づく。れんしゅうは記録だけ
   const s = S.stats[k] || { ok: 0, ng: 0, st: 0, p: 0 };
-  if (D.mode === "test" && !D.only) { if (D.clean) { s.ok++; s.st++; } else { s.ng++; s.st = 0; } }
+  if (D.mode === "test" && !D.only && !D.retrying) { if (D.clean) { s.ok++; s.st++; } else { s.ng++; s.st = 0; } }
   else s.p = (s.p || 0) + 1;
   s.last = Date.now(); S.stats[k] = s; save();
   // 赤ペンの ○
@@ -2708,15 +2759,16 @@ function charDone() {
   D.si++;
   renderQ();
   if (D.si < D.slots.length) { busy = true; setTimeout(() => { busy = false; loadChar(); }, 900); return; }
-  D.results.push({ q: D.q, ok: D.slots.every(i => D.marks[i] === "ok") });
-  const lastOk = D.results[D.results.length - 1].ok;
+  // おなじ 字を やりなおした ときは、さいしょの けっかを のこす
+  const lastOk = D.slots.every(i => D.marks[i] === "ok");
+  if (!D.retrying) D.results.push({ q: D.q, ok: lastOk });
   D.streak = lastOk ? (D.streak || 0) + 1 : 0;
   if (D.streak >= 3 && D.streak % 3 === 0) setMsg(pickOne(STREAK), "good");
-  if (D.bt) rpgTurn(lastOk);
+  if (D.bt) { rpgTurn(lastOk, D.streak || 0); if (!lastOk && !D.bt.over) D.retry = true; }
   else if (D.boss) bossTurn(lastOk);
   else if (D.mob) mobTurn(lastOk);
   $("tools").hidden = true; $("nextBtn").hidden = false;
-  $("nextBtn").textContent = (D.bt ? D.bt.over : D.i + 1 >= D.qs.length) || (D.boss && D.boss.over) ? "けっかを 見る" : "つぎへ";
+  $("nextBtn").textContent = (D.bt ? D.bt.over : D.i + 1 >= D.qs.length) || (D.boss && D.boss.over) ? "けっかを 見る" : D.retry ? "もういちど" : "つぎへ";
   // 自動で つぎへ（ボス戦は こうげきの えんしゅつを 見てから）
   {
     // ○も △も 自動で つぎへ（△は 少し 長めに 見せる）
@@ -2772,6 +2824,10 @@ function finishDrill() {
   const wrong = D.results.filter(r => !r.ok).map(r => r.q);
   $("resRetry").hidden = !wrong.length;
   $("resRetry").onclick = () => startDrill(wrong, "test", undefined, D.limit);
+  if (D.bt && !D.stage) {
+    if (D.bt.dead) { $("resGreat").textContent = "ちからつきた… でも おしい！"; $("resNote").textContent = "HPが 0に なったら おしまい。そうびを 見なおして また ちょうせん しよう！"; $("resHana").innerHTML = ""; }
+    else if (D.bt.win && !D.find) $("resGreat").textContent = `てきを ぜんぶ たおした！ ${pickOne(PRAISE)}`;
+  }
   if (D.find) {
     const got = [];
     D.results.forEach((r, i) => { const k = D.find[i]; if (r.ok && k && !S.stats["見つけた" + k]) { S.stats["見つけた" + k] = { ok: 1, ng: 0, st: 1, p: 0, last: Date.now() }; got.push(k); } });
@@ -2796,19 +2852,14 @@ function showXp(x0) {
 let K = null;
 function startKana(fixed, quest) {
   if (Array.isArray(fixed)) {
-    K = { qs: fixed.map(i => ({ i, s: DATA.kana[i][0], a: DATA.kana[i][1], b: DATA.kana[i][2], why: DATA.kana[i][3] })), i: 0, ok: 0, xp0: xpTotal(), quest };
+    const qs = fixed.map(i => ({ i, s: DATA.kana[i][0], a: DATA.kana[i][1], b: DATA.kana[i][2], why: DATA.kana[i][3] }));
+    K = { qs, qs0: qs.slice(), i: 0, ok: 0, done: 0, streak: 0, xp0: xpTotal(), quest };
     show("kana"); loadKana();
-    const Q = QUESTS[quest.q];
-    startMob(curStage(), K.qs.length, "kana", false, Q.fi);
-    $("kanaProg").textContent = `${Q.name}　${quest.boss ? "ボス" : "マス" + (quest.idx + 1)}`;
-    if (quest.boss) {
-      MB = null;
-      K.boss = { def: Q.boss, hp: 6, max: 6, hearts: 3 };
-      $("bossBar").className = "bossbar boss"; $("dun").innerHTML = corridor(Q.fi, 1);
-      $("bossName").textContent = Q.boss.name; $("bossHp").style.width = "100%"; $("hearts").textContent = "♥♥♥"; $("bossPct").textContent = "";
-      $("bossMon").className = "bossmon"; $("bossMon").innerHTML = bossFace(Q.boss);
-      say(Q.boss.say); bossIntro("nazo", Q.boss); bgmPlay("boss");
-    }
+    const Q = QUESTS[quest.q], P = me();
+    // マスは 1もん 1ぴき。ボスは こたえるまで くりかえし
+    const foes = quest.boss ? [{ boss: Q.boss, name: Q.boss.name, hp: P.atk * 6, atk: P.def + Math.ceil(P.hp / 4) }] : easyFoes(qs.length, 7 + quest.idx);
+    startBattle(foes, Q.fi, quest.boss ? "nazo" : 0, "kana");
+    kanaLabel();
     return;
   }
   const items = DATA.kana.map((x, i) => ({ i, s: x[0], a: x[1], b: x[2], why: x[3] }));
@@ -2847,18 +2898,33 @@ function answerKana(o, btn) {
   $("kq").querySelector(".blank").textContent = q.a;
   $("kmsg").textContent = (right ? "せいかい！ " : "ざんねん。 ") + q.why;
   $("kmsg").className = "msg " + (right ? "good" : "bad");
-  const s = S.kstats[q.i] || { ok: 0, ng: 0, st: 0 };
-  if (right) { s.ok++; s.st++; K.ok++; sfx("kanaok"); } else { s.ng++; s.st = 0; sfx("miss"); }
-  if (K.boss) kanaBossTurn(right); else if (MB) mobTurn(right);
-  s.last = Date.now(); s.q = q.s.replace("＿", "（" + q.a + "）"); S.kstats[q.i] = s; save();
+  sfx(right ? "kanaok" : "miss");
+  // こたえなおしの ときは 記録しない（さいしょの こたえだけ のこす）
+  if (!K.retrying) {
+    const s = S.kstats[q.i] || { ok: 0, ng: 0, st: 0 };
+    if (right) { s.ok++; s.st++; K.ok++; } else { s.ng++; s.st = 0; }
+    K.done = (K.done || 0) + 1;
+    s.last = Date.now(); s.q = q.s.replace("＿", "（" + q.a + "）"); S.kstats[q.i] = s; save();
+  }
+  K.streak = right ? (K.streak || 0) + 1 : 0;
+  if (BT && BT.host === "kana") { rpgTurn(right, K.streak); if (!right && !BT.over) K.retry = true; }
+  else if (MB) mobTurn(right);
   $("kNext").hidden = false;
-  $("kNext").textContent = K.i + 1 >= K.qs.length || (K.boss && K.boss.over) ? "けっかを 見る" : "つぎへ";
+  $("kNext").textContent = BT && BT.host === "kana" ? (BT.over ? "けっかを 見る" : K.retry ? "もういちど" : "つぎへ") : K.i + 1 >= K.qs.length ? "けっかを 見る" : "つぎへ";
   if (right) { const myK = K, myI = K.i; setTimeout(() => { if (K === myK && K.i === myI && !$("kana").hidden) $("kNext").click(); }, 1700); }
 }
+function kanaLabel() { const Qq = K.quest; $("kanaProg").textContent = `${QUESTS[Qq.q].name}　${Qq.boss ? "ボス" : "マス" + (Qq.idx + 1)}${K.retrying ? "　もういちど！" : ""}`; }
 $("kNext").onclick = () => {
-  K.i++;
-  if (K.i < K.qs.length && !(K.boss && K.boss.over)) { loadKana(); if (K.quest) $("kanaProg").textContent = `${QUESTS[K.quest.q].name}　${K.boss ? "ボス" : "マス" + (K.quest.idx + 1)}　${K.i + 1} / ${K.qs.length}`; if (MB) mobAppear(true, K.i); return; }
-  $("resScore").textContent = `${K.qs.length}もん中 ${K.ok}もん ○`;
+  if (BT && BT.host === "kana" && !BT.over) {
+    if (K.retry) { K.retry = false; K.retrying = true; loadKana(); kanaLabel(); $("kmsg").textContent = "もういちど！ こたえるまで にげられないぞ"; $("kmsg").className = "msg bad"; return; }
+    K.retrying = false; K.i++;
+    if (K.i >= K.qs.length) K.qs = K.qs.concat(K.qs0);
+    loadKana(); kanaLabel();
+    if (BT.next) { BT.k++; BT.next = false; showFoe(true); }
+    return;
+  }
+  if (!(BT && BT.host === "kana")) { K.i++; if (K.i < K.qs.length) { loadKana(); if (MB) mobAppear(true, K.i); return; } }
+  $("resScore").textContent = `${K.done || K.qs.length}もん中 ${K.ok}もん ○`;
   const kp = K.ok === K.qs.length;
   $("resHana").innerHTML = kp ? HANA : "";
   $("resGreat").textContent = kp ? "よく できました！" : "がんばったね";
@@ -2868,7 +2934,7 @@ $("kNext").onclick = () => {
   $("resAgain").onclick = startKana;
   showXp(K.xp0); $("resGot").textContent = ""; $("resAgain").textContent = "もういちど";
   if (K.quest) {
-    const Qq = K.quest, Q = QUESTS[Qq.q], clear = Qq.boss ? K.boss.win : K.ok >= Math.ceil(K.qs.length * 0.7 - 1e-9);
+    const Qq = K.quest, Q = QUESTS[Qq.q], clear = !!(BT && BT.win);
     const got = questProgress(Qq.q, Qq.idx, clear, !!Qq.boss);
     if (Qq.boss) {
       $("resHana").innerHTML = bossFace(Q.boss).replace('class="mon"', 'class="mon hm"');
@@ -2876,8 +2942,8 @@ $("kNext").onclick = () => {
       $("resNote").textContent = `「${clear ? Q.boss.win : Q.boss.lose}」`;
       if (clear) setTimeout(() => sfx("great"), 200);
     } else {
-      $("resGreat").textContent = clear ? `マス${Qq.idx + 1} クリア！ ${pickOne(PRAISE)}` : "あと すこし！ もういちど ちょうせん しよう";
-      $("resNote").textContent = clear ? "7わり いじょう ○ で クリアだよ。" : `${Math.ceil(K.qs.length * 0.7 - 1e-9)}もん ○ で クリア。`;
+      $("resGreat").textContent = clear ? `マス${Qq.idx + 1} クリア！ ${pickOne(PRAISE)}` : BT && BT.dead ? "ちからつきた… でも おしい！" : "とちゅうで やめたよ";
+      $("resNote").textContent = clear ? `てきを ぜんぶ たおした！ のこり HP ${BT.php}/${BT.pmax}` : BT && BT.dead ? "ちからつきた… HPが 0に なったら マスの さいしょから。そうびを 見なおして また ちょうせん！" : "";
     }
     if (got.length) setTimeout(() => giveItems(got), 600);
     $("resAgain").textContent = clear ? "ちずに もどる" : "もういちど";
@@ -3005,7 +3071,7 @@ let lastTap = 0;
 document.addEventListener("touchend", e => { const t = Date.now(); if (t - lastTap < 350 && !e.target.closest("input,textarea")) { e.preventDefault(); const b = e.target.closest("button"); if (b && !b.disabled) b.click(); } lastTap = t; }, { passive: false });
 // はじめて：いまの いちばん つよい そうびを つけておく（古い 時こくに して、ほかの 端末で えらんだ ものを うわがき しない）
 if (!S.stats["そうび"]) { const eq = bestEq(); let code = 0; SLOTS.slice().reverse().forEach(slot => { code = code * 100 + (ITEMS.indexOf(eq[slot]) + 1); }); S.stats["そうび"] = { ok: code, ng: 0, st: 0, p: 0, last: 1 }; local(); }
-show("home");
+showTitle();
 setSync();
 pull();
 if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
