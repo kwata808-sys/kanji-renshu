@@ -234,6 +234,19 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .lookopt small { font-size: 11px; font-weight: 700; }
 .lookopt.swatch { height: 44px; border-width: 3px; }
 .lookopt[aria-pressed="true"] { border-color: var(--green); box-shadow: 0 0 0 2px var(--green); background: var(--ok); }
+#hello { gap: 12px; }
+.hellotop { display: flex; justify-content: space-between; align-items: center; }
+.hellotop .back { font-size: 12px; }
+.hellohero { display: flex; align-items: center; gap: 12px; background: #2a2026 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='14'%3E%3Cpath d='M0 .5H28M0 7.5H28M7 0V7M21 7V14' stroke='%23fff' stroke-opacity='.08' stroke-width='1.2'/%3E%3C/svg%3E"); border-radius: 16px; padding: 10px 14px; }
+.hellohero .ava { width: 120px; height: 132px; display: block; filter: drop-shadow(0 0 14px #ffd54a88); }
+.hellosay { flex: 1; background: #fff; border-radius: 14px; padding: 10px 12px; font-weight: 700; font-size: 17px; line-height: 1.5; position: relative; }
+.hellosay::before { content: ""; position: absolute; left: -9px; top: 50%; margin-top: -8px; border: 8px solid transparent; border-right-color: #fff; border-left: 0; }
+.hellonav { display: grid; grid-template-columns: auto 1fr; gap: 10px; }
+#helloBack[hidden] + #helloNext { grid-column: 1 / -1; }
+#hello .lookrow { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+#hello .lookopt .ava { width: 70px; height: 72px; }
+#hello .lookopt.swatch { height: 64px; }
+.helloready { text-align: center; font-size: 15px; color: var(--pencil); font-weight: 700; }
 .lookopt.swatch[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--green), inset 0 0 0 3px #fff; }
 .great { font-family: var(--font-k); font-size: 28px; font-weight: 600; color: var(--hana); }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
@@ -536,6 +549,14 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
   <p class="muted" id="storyNone" hidden>長文は いまは 2年生だけです。メニューで 2年を えらんでね。</p>
 </section>
 
+<!-- はじめての キャラづくり（これを おえないと はじまらない） -->
+<section id="hello" class="screen" hidden>
+  <div class="hellotop"><span class="label" id="helloStep"></span><button class="back" id="helloAdult">大人の人へ（合言葉）</button></div>
+  <div class="hellohero"><div id="helloAva"></div><div class="hellosay" id="helloSay"></div></div>
+  <div class="sheet" id="helloParts"></div>
+  <div class="hellonav"><button class="btn ghost" id="helloBack">もどる</button><button class="btn primary big" id="helloNext"></button></div>
+</section>
+
 <!-- サブクエスト -->
 <section id="quest" class="screen" hidden>
   <div class="topbar"><button class="back" data-back="home">← メニュー</button><span class="label" id="qTitle"></span></div>
@@ -587,6 +608,10 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     <div>
       <div style="font-weight:700;margin-bottom:8px">効果音</div>
       <div class="seg" id="soundSeg"><button data-s="1">あり</button><button data-s="0">なし</button></div>
+    </div>
+    <div>
+      <div style="font-weight:700;margin-bottom:8px">BGM（おんがく）</div>
+      <div class="seg" id="bgmSeg"><button data-s="1">あり</button><button data-s="0">なし</button></div>
     </div>
     <div>
       <div style="font-weight:700;margin-bottom:8px">判定のきびしさ</div>
@@ -768,6 +793,8 @@ async function pull() {
     setSync("on");
     if (S.pending) push();
     if (isMenu()) renderHome();
+    // べつの 端末で つくった キャラが とどいたら、キャラづくりは おしまい
+    if (!$("hello").hidden && S.stats["アバター"]) show("home");
   } catch (e) { setSync(e.message === "key" ? "badkey" : "off"); }
 }
 function mergeMap(a, b) {
@@ -1655,7 +1682,7 @@ function startSubBoss(q) {
   $("bossMon").className = "bossmon"; $("bossMon").innerHTML = bossFace(Q.boss);
   D.title = `${Q.name} ボスせん`; $("drillProg").textContent = D.title;
   renderBoss(); say(Q.boss.say);
-  bossIntro(q, Q.boss);
+  bossIntro(q, Q.boss); bgmPlay("boss");
 }
 // なぞなぞの ボス（かなクイズの 画面で たたかう）
 function kanaBossTurn(right) {
@@ -1776,7 +1803,7 @@ function startBoss(s) {
   D.title = `ステージ${s} ボスせん`;
   $("drillProg").textContent = D.title;
   renderBoss(); say(b.say);
-  bossIntro(s);
+  bossIntro(s); bgmPlay("boss");
 }
 function say(t) { const el = $("bossSay"); el.textContent = t; el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop"); }
 // スマブラふうの ダメージ％。たおすと ふっとんで「キラーン☆」
@@ -1884,10 +1911,12 @@ function stageResult() {
 
 /* ---------- 画面の切りかえ ---------- */
 const MENU = ["home", "kaki", "storyMenu", "gridScreen", "adult", "equip", "lookEdit", "quest"];
-const SCREENS = [...MENU, "drill", "result", "kana", "lists"];
+const SCREENS = [...MENU, "drill", "result", "kana", "lists", "hello"];
 const isMenu = () => MENU.some(id => !$(id).hidden);
 function show(id) {
+  if (!S.stats["アバター"] && MENU.includes(id) && id !== "adult") { if ($("hello").hidden) return startHello(); id = "hello"; }
   for (const s of SCREENS) $(s).hidden = s !== id;
+  bgmPlay(id === "drill" || id === "kana" ? "battle" : id === "quest" ? "quest" : "home");
   window.scrollTo(0, 0);
   if (MENU.includes(id)) renderHome();
   if (id === "home") checkUpdate();
@@ -1933,6 +1962,7 @@ function renderHome() {
   $("unkoSeg").children[1].disabled = !hasU;
   for (const b of $("countSeg").children) b.setAttribute("aria-pressed", +b.dataset.n === (S.settings.count || 5));
   for (const b of $("soundSeg").children) b.setAttribute("aria-pressed", (b.dataset.s === "1") === (S.settings.sound !== false));
+  for (const b of $("bgmSeg").children) b.setAttribute("aria-pressed", (b.dataset.s === "1") === (S.settings.bgm !== false));
   const weakN = Object.keys(S.stats).filter(k => isK(k) && status(k) === "weak").length;
   const nSteps = Math.ceil(GK[g].length / STEP);
   const ids = ["all", "weak", ...S.lists.map(l => l.id)];
@@ -1992,7 +2022,8 @@ function renderHome() {
 $("gradeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.grade = +b.dataset.g; if (S.settings.list === "all" || /^u\d+$/.test(S.settings.list)) S.settings.list = "all"; save(); renderHome(); };
 $("unkoSeg").onclick = e => { const b = e.target.closest("button"); if (!b || b.disabled) return; S.settings.unko = b.dataset.u === "1"; buildQ(); save(); renderHome(); };
 $("countSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.count = +b.dataset.n; save(); renderHome(); };
-$("soundSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.sound = b.dataset.s === "1"; save(); renderHome(); if (S.settings.sound) sfx("ok"); };
+$("bgmSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.bgm = b.dataset.s === "1"; save(); renderHome(); bgmPlay(S.settings.bgm ? "home" : null); };
+$("soundSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.sound = b.dataset.s === "1"; save(); renderHome(); if (S.settings.sound) sfx("ok"); BG.name = undefined; bgmPlay("home"); };
 $("levelSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.level = b.dataset.level; save(); renderHome(); };
 $("startBtn").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, S.settings.count || 5), "test", undefined, T.limit); };
 $("goKaki").onclick = () => show("kaki");
@@ -2030,6 +2061,51 @@ $("lookSave").onclick = () => {
   $("lookMsg").textContent = "かっこいい！ これで いこう！";
   sfx("ok");
 };
+
+/* ---------- はじめての キャラづくり ---------- */
+// ぜんぶの パーツを 1つずつ えらぶまで ぼうけんは はじまらない
+const HELLO_SAY = ["ようこそ、かんじの ダンジョンへ！ まずは きみの キャラを つくろう！", "はだの いろは どれに する？", "かみがたを えらぼう！", "かみの いろは？", "め は どれに する？", "くちは？", "めがねは かける？", "ほっぺは？", "ふくの いろを えらぼう！", "かっこいい！ これで ぼうけんに でかけよう！"];
+let hstep = 0, hdraft = null, hpicked = {};
+function startHello() { hstep = 0; hdraft = { ...DEFAULT_LOOK }; hpicked = {}; show("hello"); renderHello(); }
+function renderHello() {
+  const eq = equipped(), last = LOOK_KEYS.length + 1, k = LOOK_KEYS[hstep - 1];
+  $("helloAva").innerHTML = avatar(eq, hdraft);
+  $("helloSay").textContent = HELLO_SAY[hstep];
+  $("helloStep").textContent = hstep === 0 ? "キャラづくり" : hstep === last ? "かんせい！" : `キャラづくり ${hstep} / ${LOOK_KEYS.length}`;
+  const box = $("helloParts"); box.textContent = "";
+  $("helloBack").hidden = hstep === 0;
+  const nx = $("helloNext");
+  if (hstep === 0) {
+    box.innerHTML = `<p class="helloready">かみがた・め・ふくの いろ など、${LOOK_KEYS.length}つを えらぶよ。<br>ぜんぶ えらぶと ぼうけんが はじまる！</p>`;
+    nx.textContent = "キャラを つくる！"; nx.disabled = false;
+  } else if (hstep === last) {
+    box.innerHTML = `<p class="helloready">あとで「そうび」→「キャラを かえる」から なおせるよ。</p>`;
+    nx.textContent = "この キャラで ぼうけんに でる！"; nx.disabled = false;
+  } else {
+    const P = LOOK[k], row = document.createElement("div"); row.className = "lookrow";
+    P.opts.forEach((o, i) => {
+      const b = document.createElement("button");
+      b.className = "lookopt"; b.setAttribute("aria-pressed", hpicked[k] && hdraft[k] === i);
+      if (o.startsWith("#")) { b.classList.add("swatch"); b.style.background = o; b.setAttribute("aria-label", P.name + (i + 1)); }
+      else { b.innerHTML = avatar(eq, { ...hdraft, [k]: i }).replace('viewBox="0 0 100 110"', 'viewBox="12 -4 76 72"') + `<small></small>`; b.querySelector("small").textContent = o; }
+      b.onclick = () => { hdraft[k] = i; hpicked[k] = true; sfx("kanaok"); renderHello(); };
+      row.appendChild(b);
+    });
+    box.appendChild(row);
+    // えらぶまで つぎへ すすめない
+    nx.disabled = !hpicked[k];
+    nx.textContent = hpicked[k] ? "つぎへ" : "1つ えらんでね";
+  }
+}
+$("helloNext").onclick = () => {
+  if (hstep === LOOK_KEYS.length + 1) {
+    S.stats["アバター"] = { ok: lookToCode(hdraft), ng: 0, st: 0, p: 0, last: Date.now() }; save();
+    sfx("great"); show("home"); return;
+  }
+  hstep++; renderHello(); window.scrollTo(0, 0);
+};
+$("helloBack").onclick = () => { if (hstep > 0) { hstep--; renderHello(); } };
+$("helloAdult").onclick = () => show("adult");
 function renderEquip() {
   const c = cleared(), eq = equipped();
   $("eqAvatar").innerHTML = avatar(eq);
@@ -2064,6 +2140,47 @@ function renderEquip() {
 document.addEventListener("click", e => { const b = e.target.closest("[data-back]"); if (b) show(b.dataset.back); });
 $("listsBtn").onclick = () => { editNew(); renderLists(); show("lists"); };
 
+
+/* ---------- BGM（オリジナルの みじかい 曲を くりかえす） ---------- */
+// 1こ＝8ぶおんぷ。0 は やすみ。mel は 上の メロディ、bass は ひくい 音
+const BGM = {
+  home: { bpm: 126, mel: [72, 76, 79, 76, 77, 81, 79, 0, 76, 79, 84, 79, 81, 79, 76, 0, 74, 77, 81, 77, 79, 77, 76, 74, 72, 76, 79, 76, 72, 0, 72, 0],
+    bass: [48, 0, 55, 0, 53, 0, 55, 0, 52, 0, 55, 0, 57, 0, 55, 0, 50, 0, 57, 0, 55, 0, 50, 0, 48, 0, 55, 0, 48, 0, 48, 0] },
+  battle: { bpm: 152, mel: [69, 0, 72, 74, 76, 0, 74, 72, 74, 0, 76, 77, 79, 77, 76, 74, 72, 0, 74, 76, 77, 76, 74, 72, 71, 72, 74, 71, 69, 0, 0, 0],
+    bass: [45, 57, 45, 57, 41, 53, 41, 53, 43, 55, 43, 55, 40, 52, 40, 52, 45, 57, 45, 57, 41, 53, 41, 53, 44, 56, 44, 56, 45, 57, 45, 57] },
+  boss: { bpm: 166, mel: [62, 65, 69, 65, 70, 69, 65, 62, 61, 64, 67, 64, 69, 67, 64, 61, 62, 65, 69, 72, 70, 69, 67, 65, 64, 65, 67, 69, 70, 0, 69, 0],
+    bass: [38, 38, 50, 38, 38, 38, 50, 38, 46, 46, 58, 46, 45, 45, 57, 45, 38, 38, 50, 38, 43, 43, 55, 43, 45, 45, 57, 45, 45, 0, 45, 0] },
+  quest: { bpm: 112, mel: [67, 0, 71, 74, 72, 0, 71, 69, 67, 0, 64, 67, 69, 0, 0, 0, 67, 0, 71, 74, 76, 74, 72, 71, 69, 67, 66, 69, 67, 0, 0, 0],
+    bass: [43, 0, 0, 0, 40, 0, 0, 0, 36, 0, 0, 0, 38, 0, 0, 0, 43, 0, 0, 0, 40, 0, 0, 0, 38, 0, 0, 0, 43, 0, 0, 0] },
+};
+const BG = { name: null, step: 0, next: 0, timer: 0, out: null, ac: null };
+function bgmPlay(name) {
+  if (S.settings.bgm === false || S.settings.sound === false) name = null;
+  if (BG.name === name) return;
+  BG.name = name; BG.step = 0; BG.next = 0;
+  clearInterval(BG.timer); BG.timer = 0;
+  if (BG.out) { try { BG.out.gain.setTargetAtTime(0, AC.currentTime, 0.05); } catch (e) {} BG.out = null; }
+  if (name) BG.timer = setInterval(bgmTick, 60);
+}
+function bgmTick() {
+  // 音の じゅんびが できるまで（さいしょに さわるまで）は まつ
+  if (!AC || AC.state !== "running" || !BG.name || document.hidden) return;
+  if (!BG.out || BG.ac !== AC) { BG.out = AC.createGain(); BG.out.gain.value = 0.5; BG.out.connect(AC.destination); BG.ac = AC; BG.next = 0; }
+  const T = BGM[BG.name], dt = 60 / T.bpm / 2;
+  if (BG.next < AC.currentTime) BG.next = AC.currentTime + 0.05;
+  while (BG.next < AC.currentTime + 0.3) {
+    const i = BG.step % T.mel.length, m = T.mel[i], b = T.bass[i];
+    const tone = (n, type, vol, len) => {
+      const o = AC.createOscillator(), g = AC.createGain(), t0 = BG.next;
+      o.type = type; o.frequency.value = 440 * Math.pow(2, (n - 69) / 12);
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t0 + len);
+      o.connect(g).connect(BG.out); o.start(t0); o.stop(t0 + len + 0.02);
+    };
+    if (m) tone(m, "square", 0.045, dt * 0.85);
+    if (b) tone(b, "triangle", 0.12, dt * 0.9);
+    BG.next += dt; BG.step++;
+  }
+}
 /* ---------- 書きとり ---------- */
 let D = null; // いまの書きとり
 // only：1字だけの練習（記録は「れんしゅう」あつかい）／limit：マスにする字の範囲（ほかの字は印刷で見せる）
@@ -2396,7 +2513,7 @@ function startKana(fixed, quest) {
       $("bossBar").className = "bossbar boss"; $("dun").innerHTML = corridor(Q.fi, 1);
       $("bossName").textContent = Q.boss.name; $("bossHp").style.width = "100%"; $("hearts").textContent = "♥♥♥"; $("bossPct").textContent = "";
       $("bossMon").className = "bossmon"; $("bossMon").innerHTML = bossFace(Q.boss);
-      say(Q.boss.say); bossIntro("nazo", Q.boss);
+      say(Q.boss.say); bossIntro("nazo", Q.boss); bgmPlay("boss");
     }
     return;
   }
