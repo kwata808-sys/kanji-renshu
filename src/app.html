@@ -65,6 +65,13 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .hanamaru path { fill: none; stroke: var(--hana); stroke-linecap: round; stroke-linejoin: round; }
 .resTop { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
 .resTop .hm { width: 110px; height: 110px; flex: none; }
+.stories { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.storybtn { border: 2px solid var(--rule); background: var(--sheet); border-radius: 12px; padding: 10px 12px; text-align: left; display: grid; gap: 2px; font-family: var(--font-k); font-size: 17px; }
+.storybtn small { font-family: var(--font-ui); font-size: 12px; color: var(--pencil); }
+.question.story { display: block; font-size: 21px; line-height: 2.6; max-height: 38vh; overflow-y: auto; padding-right: 4px; }
+.question.story .word { display: inline-grid; vertical-align: bottom; margin: 0 2px; }
+.question.story .box, .question.story .kana { font-size: 21px; }
+.question.story .word .yomi { font-size: 12px; }
 .great { font-family: var(--font-k); font-size: 28px; font-weight: 600; color: var(--hana); }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .back { border: 0; background: transparent; font-weight: 700; padding: 8px 4px; color: var(--pencil); font-size: 16px; }
@@ -180,6 +187,14 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
       <button data-u="1">うんこ文<small id="unkoNote"></small></button>
     </div>
     <button id="startBtn" class="btn primary big">はじめる</button>
+  </div>
+
+  <div class="sheet" id="storyCard">
+    <div>
+      <h2 style="font-size:20px">長文に チャレンジ</h2>
+      <p class="muted" style="margin:4px 0 0">お話の中の □ に、じゅんばんに 字を かこう。</p>
+    </div>
+    <div id="storyList" class="stories"></div>
   </div>
 
   <div class="sheet">
@@ -654,6 +669,16 @@ function renderHome() {
     b.onclick = () => startDrill([qFor(k)[0] || fallbackQ(k)], "prac", [k]);
     grid.appendChild(b);
   }
+  const SL = DATA.stories[g] || [];
+  $("storyCard").hidden = !SL.length;
+  const sl = $("storyList"); sl.textContent = "";
+  SL.forEach((st, i) => {
+    const b = document.createElement("button"); b.className = "storybtn";
+    const n = (st.x.join("").match(/\{/g) || []).length;
+    b.innerHTML = `<b></b><small>□ ${n}こ</small>`; b.querySelector("b").textContent = st.t;
+    b.onclick = () => startStory(i);
+    sl.appendChild(b);
+  });
   $("counts").innerHTML = `<span>おぼえた <b>${c.master}</b></span><span>にがて <b>${c.weak}</b></span><span>ぜんぶ <b>${T.kanji.length}</b></span>`;
 }
 $("gradeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.grade = +b.dataset.g; if (S.settings.list === "all" || /^u\d+$/.test(S.settings.list)) S.settings.list = "all"; save(); renderHome(); };
@@ -684,29 +709,73 @@ function loadQ() {
   const q = D.qs[D.i];
   const ks = [...q.w].map((c, i) => isK(c) && (!D.only || D.only.includes(c)) && (!D.limit || D.limit.includes(c)) ? i : -1).filter(i => i >= 0);
   D.q = q; D.slots = ks; D.si = 0; D.marks = {};
-  $("drillProg").textContent = `${D.i + 1} / ${D.qs.length}`;
+  $("drillProg").textContent = (D.title ? D.title + "　" : "") + `${D.i + 1} / ${D.qs.length}`;
   $("modeNote").textContent = D.mode === "prac" ? "うすい字を なぞって かこう" : "見ないで かこう";
   $("nextBtn").hidden = true; $("tools").hidden = false;
   renderQ(); loadChar();
 }
-function renderQ() {
-  const q = D.q, el = $("qText"); el.textContent = "";
-  const [a, b] = q.s.split("＿");
-  const txt = t => { if (!t) return; const s = document.createElement("span"); s.className = "kana"; s.textContent = t; el.appendChild(s); };
-  txt(a);
+// 読み＋マスの かたまり。state：いま書く／書けた（ok=○か△）／まだ
+function wordBlock(q, state, ok) {
   const w = document.createElement("span"); w.className = "word";
   const y = document.createElement("span"); y.className = "yomi"; y.textContent = q.r; w.appendChild(y);
   const cells = document.createElement("span"); cells.className = "cells";
   [...q.w].forEach((c, i) => {
-    const si = D.slots.indexOf(i);
+    const si = state === "cur" ? D.slots.indexOf(i) : isK(c) ? 0 : -1;
     if (si < 0) { const s = document.createElement("span"); s.className = "kana"; s.textContent = c; cells.appendChild(s); return; }
     const box = document.createElement("span"); box.className = "box";
-    if (si < D.si) { box.textContent = c; box.classList.add("done"); if (D.marks[i] === "tri") box.classList.add("tri"); }
-    else if (si === D.si) box.classList.add("now");
+    if (state === "cur") {
+      if (si < D.si) { box.textContent = c; box.classList.add("done"); if (D.marks[i] === "tri") box.classList.add("tri"); }
+      else if (si === D.si) box.classList.add("now");
+    } else if (state === "done") { box.textContent = c; box.classList.add("done"); if (!ok) box.classList.add("tri"); }
     cells.appendChild(box);
   });
-  w.appendChild(cells); el.appendChild(w);
-  txt(b);
+  w.appendChild(cells);
+  return w;
+}
+function renderQ() {
+  const el = $("qText"); el.textContent = "";
+  el.classList.toggle("story", !!D.story);
+  const txt = t => { if (!t) return; const s = document.createElement("span"); s.className = "kana"; s.textContent = t; el.appendChild(s); };
+  if (D.story) {
+    // 長文：お話ぜんたいを出し、いま書く□を光らせる
+    let j = 0;
+    D.story.forEach((line, li) => {
+      if (li) el.appendChild(document.createElement("br"));
+      for (const part of line) {
+        if (typeof part === "string") { txt(part); continue; }
+        const q = D.qs[j];
+        el.appendChild(j < D.i ? wordBlock(q, "done", D.results[j] && D.results[j].ok) : j === D.i ? wordBlock(q, "cur") : wordBlock(q, "todo"));
+        j++;
+      }
+    });
+    const now = el.querySelector(".box.now");
+    if (now) { const r = now.getBoundingClientRect(), b = el.getBoundingClientRect(); el.scrollTop += r.top - b.top - b.height / 3; }
+    return;
+  }
+  const [a, b] = D.q.s.split("＿");
+  txt(a); el.appendChild(wordBlock(D.q, "cur")); txt(b);
+}
+// 長文の1話を「地の文」と「□のことば」に分ける
+function parseStory(st) {
+  const qs = [], lines = st.x.map(line => {
+    const parts = [], re = /\{([^|}]+)\|([^}]+)\}/g;
+    let last = 0, m;
+    while ((m = re.exec(line))) {
+      if (m.index > last) parts.push(line.slice(last, m.index));
+      const q = { w: m[1], r: m[2], s: "＿" }; qs.push(q); parts.push(q);
+      last = re.lastIndex;
+    }
+    if (last < line.length) parts.push(line.slice(last));
+    return parts;
+  });
+  return { qs, lines };
+}
+function startStory(i) {
+  const st = DATA.stories[gradeOf()][i], { qs, lines } = parseStory(st);
+  startDrill(qs, S.settings.mode);
+  D.story = lines; D.storyIdx = i; D.title = st.t;
+  $("drillProg").textContent = `${st.t}　1 / ${qs.length}`;
+  renderQ();
 }
 function clearPad() { for (const id of ["lOutline", "lAnim", "lInk", "lTop"]) $(id).textContent = ""; }
 function loadChar() {
@@ -764,7 +833,8 @@ $("drillBack").onclick = () => { if (D.results.length) finishDrill(); else show(
 $("nextBtn").onclick = () => { D.i++; if (D.i >= D.qs.length) finishDrill(); else loadQ(); };
 $("speakBtn").onclick = () => {
   try {
-    const u = new SpeechSynthesisUtterance(D.q.s.replace("＿", D.q.r).replace(/\s/g, ""));
+    const text = D.story ? D.story.map(l => l.map(p => typeof p === "string" ? p : p.r).join("")).join("。") : D.q.s.replace("＿", D.q.r);
+    const u = new SpeechSynthesisUtterance(text.replace(/\s/g, ""));
     u.lang = "ja-JP"; u.rate = 0.85; speechSynthesis.cancel(); speechSynthesis.speak(u);
   } catch (e) {}
 };
@@ -848,6 +918,7 @@ function finishDrill() {
   const n = D.results.length, ok = D.results.filter(r => r.ok).length;
   $("resScore").textContent = `${n}もん中 ${ok}もん ○`;
   const perfect = n > 0 && ok === n;
+  if (D.story) { const si = D.storyIdx; $("resAgain").onclick = () => startStory(si); }
   $("resHana").innerHTML = perfect ? HANA : "";
   $("resGreat").textContent = perfect ? "よく できました！" : ok >= n / 2 ? "がんばったね" : "つぎも がんばろう";
   if (perfect) setTimeout(() => sfx("great"), 200);
@@ -862,7 +933,7 @@ function finishDrill() {
   const wrong = D.results.filter(r => !r.ok).map(r => r.q);
   $("resRetry").hidden = !wrong.length;
   $("resRetry").onclick = () => startDrill(wrong, "prac", undefined, D.limit);
-  $("resAgain").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, S.settings.count || 5), S.settings.mode, undefined, T.limit); };
+  if (!D.story) $("resAgain").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, S.settings.count || 5), S.settings.mode, undefined, T.limit); };
   show("result");
 }
 $("resHome").onclick = () => show("home");

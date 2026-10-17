@@ -53,6 +53,25 @@ def load_questions(name):
 qs = load_questions("questions.txt")
 unko = {"2": load_questions("unko2.txt")}
 
+def load_stories(name, g):
+    """長文。地の文と題に、その学年の字が出ていないか（答えを先に見せていないか）を検査する"""
+    out, cur = [], None
+    for n, line in enumerate(open(f"{ROOT}/src/{name}"), 1):
+        line = line.rstrip("\n")
+        if line.startswith("#") and not line.startswith("## "): continue
+        if line.startswith("## "):
+            cur = {"t": line[3:].strip(), "x": []}; out.append(cur); plain = cur["t"]
+        elif cur is not None and line.strip():
+            cur["x"].append(line.strip()); plain = re.sub(r"\{[^}]*\}", "", line)
+            for w, r in re.findall(r"\{([^|}]+)\|([^}]+)\}", line):
+                if not any(grade.get(c) == g for c in w): errs.append(f"{name} {n}行目: {w} に{g}年の字が無い")
+                if any(re.match(r"[\u4e00-\u9fff]", c) and grade.get(c, 9) > g for c in w): errs.append(f"{name} {n}行目: {w} に{g}年より後の字")
+        else: continue
+        bad = [c for c in plain if grade.get(c, 0) >= g]
+        if bad: errs.append(f"{name} {n}行目: 地の文に{g}年以上の字 {''.join(bad)}")
+    return out
+stories = {"2": load_stories("stories2.txt", 2)}
+
 kana = []
 for line in open(f"{ROOT}/src/kana.txt"):
     line = line.strip()
@@ -99,7 +118,7 @@ if errs:
 q = {str(g): (qs if g == 2 else words[g]) for g in range(1, 7)}
 nq = {g: len(v) for g, v in q.items()}
 none = [k for k in grade if not any(k in x[0] for x in q[str(grade[k])])]
-data = {"unko": unko, "dic": dic, "strokes": strokes, "read": readings, "grade": grade, "q": q, "kana": kana}
+data = {"stories": stories, "unko": unko, "dic": dic, "strokes": strokes, "read": readings, "grade": grade, "q": q, "kana": kana}
 # 共有先（GASのURL）は config.json に置く。無ければ端末だけに保存する
 cfg = json.load(open(f"{ROOT}/config.json")) if os.path.exists(f"{ROOT}/config.json") else {}
 body = open(f"{ROOT}/src/app.html").read()
