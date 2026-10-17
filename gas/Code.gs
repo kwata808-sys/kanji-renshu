@@ -5,6 +5,8 @@
  * ① 下の KEY を、家族で決めた合言葉に書きかえる（アプリにも同じ合言葉を入れる）
  * ② 「デプロイ → 新しいデプロイ → ウェブアプリ」
  *    次のユーザーとして実行：自分 ／ アクセスできるユーザー：全員
+ * ③ 写真の字の読みとりを使うときは、左の「サービス ＋」から「Drive API」を追加する
+ *    （Googleドライブの文字読みとり＝OCR を使う。無料。写真は読みとったらすぐ消す）
  */
 const KEY = 'ここに合言葉';
 
@@ -21,6 +23,9 @@ function doPost(e) {
   let body;
   try { body = JSON.parse(e.postData.contents); } catch (err) { return json_({ error: 'bad' }); }
   if (body.key !== KEY) return json_({ error: 'key' });
+  if (body.ocr) {
+    try { return json_({ text: ocr_(body.ocr, body.type) }); } catch (err) { return json_({ error: 'ocr', msg: String(err) }); }
+  }
   const lock = LockService.getScriptLock();
   lock.waitLock(20000);
   try {
@@ -30,6 +35,16 @@ function doPost(e) {
   } finally {
     lock.releaseLock();
   }
+}
+
+// 写真を いったん Googleドキュメントに 変えて 文字を 読みとり、すぐ 消す
+function ocr_(b64, type) {
+  const blob = Utilities.newBlob(Utilities.base64Decode(b64), type || 'image/jpeg', 'kanji.jpg');
+  let id;
+  if (Drive.Files.create) id = Drive.Files.create({ name: 'かんじ読みとり', mimeType: 'application/vnd.google-apps.document' }, blob, { ocrLanguage: 'ja' }).id;
+  else id = Drive.Files.insert({ title: 'かんじ読みとり', mimeType: 'image/jpeg' }, blob, { ocr: true, ocrLanguage: 'ja' }).id;
+  try { return DocumentApp.openById(id).getBody().getText(); }
+  finally { try { Drive.Files.remove(id); } catch (err) { DriveApp.getFileById(id).setTrashed(true); } }
 }
 
 function json_(o) {
