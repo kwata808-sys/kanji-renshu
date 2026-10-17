@@ -1,15 +1,21 @@
-"""データを組み立てて dist/index.html を作る。python3 build.py"""
+"""データを組み立てて docs/ に公開用の一式を作る。python3 build.py"""
 import json, re, os, sys
 ROOT = os.path.dirname(os.path.abspath(__file__))
 d = json.load(open(f"{ROOT}/data/kanji.json"))
-grade = {k: v["grade"] for k, v in d.items() if v.get("grade") and v["grade"] <= 6}
+# 学年は現行の配当表（src/grades.txt）から取る。kanji.json の学年は2020年より前のもの
+grade = {}
+for line in open(f"{ROOT}/src/grades.txt"):
+    if line.startswith("#") or not line.strip(): continue
+    g, ks = line.split()
+    for k in ks: grade[k] = int(g)
 
 strokes, readings = {}, {}
 for k in grade:
     s = open(f"{ROOT}/data/kvg/kanji/{ord(k):05x}.svg").read()
     strokes[k] = re.findall(r'<path[^>]* d="([^"]+)"', s)
-    kun = [r for r in d[k]["readings_kun"] if not r.startswith("-") and not r.endswith("-")]
-    on = d[k]["readings_on"]
+    v = d.get(k, {"readings_kun": [], "readings_on": []})
+    kun = [r for r in v["readings_kun"] if not r.startswith("-") and not r.endswith("-")]
+    on = v["readings_on"]
     readings[k] = (on[0] if on else "") + "|" + (kun[0] if kun else "")
 
 def make_icons(out):
@@ -53,7 +59,7 @@ if errs:
 # 言葉の読みの辞書（JMdict のよく使う言葉から、小学校の漢字だけでできた言葉）
 import glob
 KANA = re.compile(r"^[\u3041-\u309f\u30a0-\u30ffー]+$")
-dic = {}
+full = {}
 jm = json.load(open(glob.glob(f"{ROOT}/data/jmdict-eng-common*.json")[0]))
 for e in jm["words"]:
     for k in e["kanji"]:
@@ -61,9 +67,33 @@ for e in jm["words"]:
         ks = [c for c in t if not KANA.match(c)]
         if not ks or any(c not in grade for c in ks): continue
         rs = sorted([r for r in e["kana"] if r["appliesToKanji"] == ["*"] or t in r["appliesToKanji"]], key=lambda r: not r["common"])
-        if rs and (t not in dic or (k["common"] and not dic[t][1])): dic[t] = (rs[0]["text"], k["common"])
-dic = {k: v[0] for k, v in dic.items()}
-data = {"dic": dic, "strokes": strokes, "read": readings, "grade": grade, "q": qs, "kana": kana}
+        if rs and (t not in full or (k["common"] and not full[t][1])): full[t] = (rs[0]["text"], k["common"])
+dic = {k: v[0] for k, v in full.items()}
+
+# 2年生以外の問題は src/words.txt（字ごとに子ども向けの言葉を選んだもの）から作る。読みは辞書から引く
+words = {g: [] for g in range(1, 7)}
+for n, line in enumerate(open(f"{ROOT}/src/words.txt"), 1):
+    line = line.strip()
+    if not line or line.startswith("#"): continue
+    k, *ws = line.split()
+    if k not in grade: errs.append(f"words.txt {n}行目: {k} は配当表に無い"); continue
+    g = grade[k]
+    for w in ws:
+        m = re.match(r"^(.+?)（(.+)）$", w)
+        w, r = (m.group(1), m.group(2)) if m else (w, dic.get(w, ""))
+        if k not in w: errs.append(f"words.txt {n}行目: {w} に {k} が無い")
+        late = [c for c in w if not KANA.match(c) and grade.get(c, 9) > g]
+        if late: errs.append(f"words.txt {n}行目: {w} に {g}年より後の字 {''.join(late)}")
+        if not r: errs.append(f"words.txt {n}行目: {w} の読みが辞書に無い")
+        words[g].append([w, r, "＿"])
+nowords = [k for k, g in grade.items() if g != 2 and not any(k in x[0] for x in words[g])]
+if nowords: errs.append("言葉の無い字: " + "".join(nowords))
+if errs:
+    print("\n".join(errs)); sys.exit(1)
+q = {str(g): (qs if g == 2 else words[g]) for g in range(1, 7)}
+nq = {g: len(v) for g, v in q.items()}
+none = [k for k in grade if not any(k in x[0] for x in q[str(grade[k])])]
+data = {"dic": dic, "strokes": strokes, "read": readings, "grade": grade, "q": q, "kana": kana}
 # 共有先（GASのURL）は config.json に置く。無ければ端末だけに保存する
 cfg = json.load(open(f"{ROOT}/config.json")) if os.path.exists(f"{ROOT}/config.json") else {}
 body = open(f"{ROOT}/src/app.html").read()
@@ -99,4 +129,4 @@ import hashlib
 ver = hashlib.sha1(html.encode()).hexdigest()[:10]
 open(f"{out}/sw.js", "w").write(open(f"{ROOT}/src/sw.js").read().replace("__VERSION__", ver))
 make_icons(out)
-print(f"ok: {len(qs)}問 / かな{len(kana)}問 / 書き順{len(strokes)}字 / {len(html)//1024}KB / 共有先 {'あり' if cfg.get('sync_url') else 'なし'} / 版 {ver_label}")
+print(f"ok: 問題数 {nq} / 問題の無い字 {len(none)}({''.join(none)}) / かな{len(kana)}問 / 書き順{len(strokes)}字 / {len(html)//1024}KB / 共有先 {'あり' if cfg.get('sync_url') else 'なし'} / 版 {ver_label}")

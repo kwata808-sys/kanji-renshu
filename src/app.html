@@ -18,21 +18,11 @@
   --weak: #fbe3df;
   --ok: #e3f1e8;
   --hint: #3b7bd6;
+  --hana: #e8473a;
   --font-k: "Klee One", "Hiragino Mincho ProN", "Yu Mincho", serif;
   --font-ui: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", system-ui, sans-serif;
 }
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --page: #131915; --sheet: #1c241f; --ink: #edf3ee; --pencil: #93a399; --rule: #3c4d42; --guide: #29352d;
-    --green: #5bbd8c; --green-ink: #0f1a14; --red: #ff6b57; --gold: #e2b84a; --weak: #4a2520; --ok: #1f3a2b; --hint: #79a9ff;
-    color-scheme: dark;
-  }
-}
-:root[data-theme="dark"] {
-  --page: #131915; --sheet: #1c241f; --ink: #edf3ee; --pencil: #93a399; --rule: #3c4d42; --guide: #29352d;
-  --green: #5bbd8c; --green-ink: #0f1a14; --red: #ff6b57; --gold: #e2b84a; --weak: #4a2520; --ok: #1f3a2b; --hint: #79a9ff;
-  color-scheme: dark;
-}
+:root { color-scheme: light; }
 [hidden] { display: none !important; }
 :root { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
 html, body { background: var(--page); color: var(--ink); margin: 0; }
@@ -64,6 +54,18 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .seg button small { font-weight: 500; font-size: 12px; color: var(--pencil); }
 .seg button[aria-pressed="true"] { background: var(--green); color: var(--green-ink); }
 .seg button[aria-pressed="true"] small { color: inherit; opacity: .85; }
+.seg.grades button { font-size: 17px; padding: 12px 2px; }
+.steps { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.step { border: 2px solid var(--rule); background: var(--sheet); border-radius: 12px; padding: 8px 8px 6px; display: grid; gap: 2px; text-align: left; position: relative; min-width: 0; }
+.step b { font-size: 13px; }
+.step span { font-family: var(--font-k); font-size: 18px; letter-spacing: .05em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.step small { font-size: 11px; color: var(--pencil); font-variant-numeric: tabular-nums; }
+.step[aria-pressed="true"] { border-color: var(--green); background: var(--ok); box-shadow: 0 0 0 2px var(--green) inset; }
+.step .hm { position: absolute; top: -8px; right: -6px; width: 30px; height: 30px; }
+.hanamaru path { fill: none; stroke: var(--hana); stroke-linecap: round; stroke-linejoin: round; }
+.resTop { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+.resTop .hm { width: 110px; height: 110px; flex: none; }
+.great { font-family: var(--font-k); font-size: 28px; font-weight: 600; color: var(--hana); }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .back { border: 0; background: transparent; font-weight: 700; padding: 8px 4px; color: var(--pencil); font-size: 16px; }
 .muted { color: var(--pencil); font-size: 14px; line-height: 1.6; }
@@ -154,14 +156,25 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
   </div>
 
   <div class="sheet">
+    <span class="label">なん年生の 字？</span>
+    <div class="seg grades" id="gradeSeg">
+      <button data-g="1">1年</button><button data-g="2">2年</button><button data-g="3">3年</button>
+      <button data-g="4">4年</button><button data-g="5">5年</button><button data-g="6">6年</button>
+    </div>
     <span class="label">れんしゅうする字を えらぶ</span>
     <div id="listChips" class="chips"></div>
+    <div id="stepChips" class="steps"></div>
+    <span class="label" id="myLabel" hidden>じぶんの リスト</span>
+    <div id="myChips" class="chips"></div>
     <span class="label">やりかた</span>
     <div class="seg" id="modeSeg">
       <button id="modeTest" data-mode="test">テスト<small>見ないで かく</small></button>
       <button id="modePrac" data-mode="prac">れんしゅう<small>なぞって かく</small></button>
     </div>
-    <button id="startBtn" class="btn primary big">10もん はじめる</button>
+    <div class="seg" id="countSeg">
+      <button data-n="5">5もん</button><button data-n="10">10もん</button>
+    </div>
+    <button id="startBtn" class="btn primary big">はじめる</button>
   </div>
 
   <div class="sheet">
@@ -170,7 +183,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
         <h2 style="font-size:20px">ひらがな・カタカナ クイズ</h2>
         <p class="muted" style="margin:4px 0 0">を・お／え・へ／は・わ、マリオ・マリヲ など</p>
       </div>
-      <button id="kanaBtn" class="btn ghost">10もん やる</button>
+      <button id="kanaBtn" class="btn ghost">はじめる</button>
     </div>
   </div>
 
@@ -209,6 +222,10 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
         <button id="keySave" class="btn ghost" style="flex:none">保存</button>
       </div>
       <div class="muted">スプレッドシートに決めた合言葉を、端末ごとに1回入れてください。</div>
+    </div>
+    <div>
+      <div style="font-weight:700;margin-bottom:8px">効果音</div>
+      <div class="seg" id="soundSeg"><button data-s="1">あり</button><button data-s="0">なし</button></div>
     </div>
     <div>
       <div style="font-weight:700;margin-bottom:8px">判定のきびしさ</div>
@@ -256,12 +273,12 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
 <section id="result" class="screen" hidden>
   <div class="sheet">
     <span class="label">けっか</span>
-    <div class="score" id="resScore"></div>
+    <div class="resTop"><div id="resHana"></div><div><div class="great" id="resGreat"></div><div class="score" id="resScore"></div></div></div>
     <div class="muted" id="resNote"></div>
     <div class="reslist" id="resList"></div>
   </div>
   <div class="row">
-    <button class="btn primary" id="resAgain">もう10もん</button>
+    <button class="btn primary" id="resAgain">もういちど</button>
     <button class="btn ghost" id="resRetry">まちがえた字を れんしゅう</button>
     <button class="btn ghost" id="resHome">はじめに もどる</button>
   </div>
@@ -323,8 +340,9 @@ const N = 32;
 /* ---------- 記録（スプレッドシートで iPhone・iPad 共有。つながらない間はこの端末に保存） ---------- */
 const SYNC_URL = /*SYNC_URL*/"";
 const LSKEY = "kanji-renshu-v1";
-let S = { lists: [], listsT: 0, stats: {}, kstats: {}, settings: { mode: "test", level: "normal", list: "g2" }, key: "", pending: false };
+let S = { lists: [], listsT: 0, stats: {}, kstats: {}, settings: { mode: "test", level: "normal", list: "all", grade: 2, count: 5, sound: true }, key: "", pending: false };
 try { const s = JSON.parse(localStorage.getItem(LSKEY) || "null"); if (s) S = Object.assign(S, s, { settings: Object.assign(S.settings, s.settings || {}) }); } catch (e) {}
+if (S.settings.list === "g2") S.settings.list = "all";
 let syncing = false, again = false, saveTimer = null;
 
 function local() { try { localStorage.setItem(LSKEY, JSON.stringify(S)); } catch (e) {} }
@@ -385,8 +403,18 @@ window.addEventListener("online", pull);
 /* ---------- 字と問題 ---------- */
 const isK = c => !!DATA.strokes[c];
 const kanjiOf = w => [...w].filter(isK);
-const G2 = Object.keys(DATA.grade).filter(k => DATA.grade[k] === 2);
-const BUILTIN = DATA.q.map(([w, r, s]) => ({ w, r, s }));
+// 学年ごとの字。画数の少ない順（かんたんな字から）にならべ、10字ずつのステップに分ける
+const GK = {};
+for (let g = 1; g <= 6; g++) GK[g] = Object.keys(DATA.grade).filter(k => DATA.grade[k] === g).sort((a, b) => DATA.strokes[a].length - DATA.strokes[b].length);
+const STEP = 10;
+const ALLQ = [];
+for (const g in DATA.q) for (const [w, r, s] of DATA.q[g]) ALLQ.push({ w, r, s, g: +g });
+const gradeOf = () => S.settings.grade || 2;
+function qFor(k) {
+  // その字の学年の問題を先に使う
+  const own = ALLQ.filter(q => q.g === DATA.grade[k] && q.w.includes(k));
+  return own.length ? own : ALLQ.filter(q => q.w.includes(k));
+}
 
 function fallbackQ(k) {
   // 組みこみの問題が無い字は、音読み（カタカナ）を出す。訓読みは古い読みが先頭に来ることがあるため
@@ -395,21 +423,27 @@ function fallbackQ(k) {
   return { w: k, r: kata || kun.replace(".", ""), s: "＿" };
 }
 function targetsOf(listId) {
-  if (listId === "g2") return { name: "2年生の字", kanji: G2, pool: BUILTIN };
+  const g = gradeOf();
+  if (listId === "all") return { name: `${g}年生の字`, kanji: GK[g], pool: ALLQ.filter(q => q.g === g) };
+  if (/^u\d+$/.test(listId)) {
+    const i = +listId.slice(1), ks = GK[g].slice(i * STEP, i * STEP + STEP);
+    if (!ks.length) return targetsOf("all");
+    return { name: `${g}年生 ステップ${i + 1}`, kanji: ks, pool: poolFor(ks, []), limit: ks };
+  }
   if (listId === "weak") {
     const ks = Object.keys(S.stats).filter(k => isK(k) && status(k) === "weak");
-    return { name: "にがてな字", kanji: ks, pool: poolFor(ks, []) };
+    return { name: "にがてな字", kanji: ks, pool: poolFor(ks, []), limit: ks };
   }
   const L = S.lists.find(l => l.id === listId);
-  if (!L) return targetsOf("g2");
+  if (!L) return targetsOf("all");
   const words = L.items.filter(i => i.w), chars = L.items.filter(i => i.k).flatMap(i => [...i.k]);
   const ks = [...new Set([...chars, ...words.flatMap(i => kanjiOf(i.w))])];
-  return { name: L.name, kanji: ks, pool: poolFor(chars, words) };
+  return { name: L.name, kanji: ks, pool: poolFor(chars, words), limit: ks };
 }
 function poolFor(chars, words) {
   const pool = [...words];
   for (const k of new Set(chars)) {
-    const qs = BUILTIN.filter(q => q.w.includes(k));
+    const qs = qFor(k);
     pool.push(...(qs.length ? qs : [fallbackQ(k)]));
   }
   return pool;
@@ -519,6 +553,24 @@ function learnOffset(raw, t, off, first) {
   return { x: c(off.x * 0.5 + dx * 0.5), y: c(off.y * 0.5 + dy * 0.5) };
 }
 
+/* ---------- 効果音 ---------- */
+let AC = null;
+function sfx(kind) {
+  if (S.settings.sound === false) return;
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state === "suspended") AC.resume();
+    const notes = { ok: [[880, 0], [1175, .12]], miss: [[220, 0]], great: [[784, 0], [988, .12], [1175, .24], [1568, .36]], kanaok: [[988, 0], [1319, .1]] }[kind];
+    for (const [f, t] of notes) {
+      const o = AC.createOscillator(), g = AC.createGain(), t0 = AC.currentTime + t;
+      o.type = kind === "miss" ? "triangle" : "sine"; o.frequency.value = f;
+      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(kind === "miss" ? 0.12 : 0.22, t0 + 0.02);
+      g.gain.exponentialRampToValueAtTime(0.0001, t0 + (kind === "miss" ? 0.18 : 0.35));
+      o.connect(g).connect(AC.destination); o.start(t0); o.stop(t0 + 0.4);
+    }
+  } catch (e) {}
+}
+
 /* ---------- 画面の切りかえ ---------- */
 function show(id) {
   for (const s of ["home", "drill", "result", "kana", "lists"]) $(s).hidden = s !== id;
@@ -527,25 +579,53 @@ function show(id) {
 }
 
 /* ---------- ホーム ---------- */
-function renderHome() {
-  const chips = $("listChips"); chips.textContent = "";
-  const weakN = Object.keys(S.stats).filter(k => isK(k) && status(k) === "weak").length;
-  const opts = [["g2", "2年生 ぜんぶ"], ...S.lists.map(l => [l.id, l.name]), ["weak", "にがてな字"]];
-  if (!opts.some(o => o[0] === S.settings.list)) S.settings.list = "g2";
-  for (const [id, name] of opts) {
-    const b = document.createElement("button");
-    b.className = "chip";
-    const n = id === "weak" ? weakN : targetsOf(id).kanji.length;
-    b.append(name, Object.assign(document.createElement("small"), { textContent: (S.settings.list === id ? "えらんでいます・" : "") + n + "字" }));
-    b.setAttribute("aria-pressed", S.settings.list === id);
-    b.onclick = () => { S.settings.list = id; save(); renderHome(); };
-    chips.appendChild(b);
+const HANA = (() => {
+  // 花丸：外がわの花びら12まいと、中のうずまき
+  let d = "", n = 12;
+  for (let i = 0; i <= n; i++) {
+    const t = i / n * Math.PI * 2, x = 60 + 44 * Math.cos(t), y = 60 + 44 * Math.sin(t);
+    d += i ? ` A12 12 0 0 1 ${x.toFixed(1)} ${y.toFixed(1)}` : `M${x.toFixed(1)} ${y.toFixed(1)}`;
   }
+  let sp = "M60 60";
+  for (let t = 0; t < Math.PI * 6; t += 0.2) sp += ` L${(60 + t * 1.75 * Math.cos(t)).toFixed(1)} ${(60 + t * 1.75 * Math.sin(t)).toFixed(1)}`;
+  return `<svg class="hanamaru hm" viewBox="0 0 120 120" aria-label="はなまる"><path d="${d}" stroke-width="5"/><path d="${sp}" stroke-width="5"/></svg>`;
+})();
+function chip(box, cls, id, html, title) {
+  const b = document.createElement("button");
+  b.className = cls; b.innerHTML = html;
+  if (title) b.setAttribute("aria-label", title);
+  b.setAttribute("aria-pressed", S.settings.list === id);
+  b.onclick = () => { S.settings.list = id; save(); renderHome(); };
+  box.appendChild(b);
+}
+function renderHome() {
+  const g = gradeOf();
+  for (const b of $("gradeSeg").children) b.setAttribute("aria-pressed", +b.dataset.g === g);
+  for (const b of $("countSeg").children) b.setAttribute("aria-pressed", +b.dataset.n === (S.settings.count || 5));
+  for (const b of $("soundSeg").children) b.setAttribute("aria-pressed", (b.dataset.s === "1") === (S.settings.sound !== false));
+  const weakN = Object.keys(S.stats).filter(k => isK(k) && status(k) === "weak").length;
+  const nSteps = Math.ceil(GK[g].length / STEP);
+  const ids = ["all", "weak", ...S.lists.map(l => l.id)];
+  for (let i = 0; i < nSteps; i++) ids.push("u" + i);
+  if (!ids.includes(S.settings.list)) S.settings.list = "all";
+  const esc = t => t.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const lc = $("listChips"); lc.textContent = "";
+  const sel = id => S.settings.list === id ? "えらんでいます・" : "";
+  chip(lc, "chip", "all", `${g}年生 ぜんぶ<small>${sel("all")}${GK[g].length}字</small>`);
+  chip(lc, "chip", "weak", `にがてな字<small>${sel("weak")}${weakN}字</small>`);
+  const st = $("stepChips"); st.textContent = "";
+  for (let i = 0; i < nSteps; i++) {
+    const ks = GK[g].slice(i * STEP, i * STEP + STEP), m = ks.filter(k => status(k) === "master").length;
+    chip(st, "step", "u" + i, `<b>ステップ${i + 1}</b><span>${ks.join("")}</span><small>おぼえた ${m}/${ks.length}</small>${m === ks.length ? HANA : ""}`, `ステップ${i + 1}`);
+  }
+  const my = $("myChips"); my.textContent = "";
+  $("myLabel").hidden = !S.lists.length;
+  for (const l of S.lists) chip(my, "chip", l.id, `${esc(l.name)}<small>${sel(l.id)}${targetsOf(l.id).kanji.length}字</small>`);
   for (const b of $("modeSeg").children) b.setAttribute("aria-pressed", b.dataset.mode === S.settings.mode);
   for (const b of $("levelSeg").children) b.setAttribute("aria-pressed", b.dataset.level === S.settings.level);
-  const T = targetsOf(S.settings.list);
+  const T = targetsOf(S.settings.list), n = S.settings.count || 5;
   $("startBtn").disabled = !T.pool.length;
-  $("startBtn").textContent = T.pool.length ? `${Math.min(10, T.pool.length)}もん はじめる` : "にがてな字は ありません";
+  $("startBtn").textContent = T.pool.length ? `${Math.min(n, T.pool.length)}もん はじめる` : "にがてな字は ありません";
   $("gridTitle").textContent = T.name;
   const grid = $("grid"); grid.textContent = "";
   const c = { master: 0, ok: 0, weak: 0 };
@@ -554,14 +634,17 @@ function renderHome() {
     const b = document.createElement("button");
     b.className = "cellbtn"; b.textContent = k; b.dataset.s = st;
     b.setAttribute("aria-label", k + "を れんしゅう");
-    b.onclick = () => startDrill([BUILTIN.find(q => q.w.includes(k)) || fallbackQ(k)], "prac", [k]);
+    b.onclick = () => startDrill([qFor(k)[0] || fallbackQ(k)], "prac", [k]);
     grid.appendChild(b);
   }
   $("counts").innerHTML = `<span>おぼえた <b>${c.master}</b></span><span>にがて <b>${c.weak}</b></span><span>ぜんぶ <b>${T.kanji.length}</b></span>`;
 }
+$("gradeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.grade = +b.dataset.g; if (S.settings.list === "all" || /^u\d+$/.test(S.settings.list)) S.settings.list = "all"; save(); renderHome(); };
+$("countSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.count = +b.dataset.n; save(); renderHome(); };
+$("soundSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.sound = b.dataset.s === "1"; save(); renderHome(); if (S.settings.sound) sfx("ok"); };
 $("modeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.mode = b.dataset.mode; save(); renderHome(); };
 $("levelSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.level = b.dataset.level; save(); renderHome(); };
-$("startBtn").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, 10), S.settings.mode); };
+$("startBtn").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, S.settings.count || 5), S.settings.mode, undefined, T.limit); };
 $("kanaBtn").onclick = startKana;
 $("gridToggle").onclick = () => {
   const open = $("gridBody").hidden;
@@ -573,14 +656,15 @@ $("listsBtn").onclick = () => { editNew(); renderLists(); show("lists"); };
 
 /* ---------- 書きとり ---------- */
 let D = null; // いまの書きとり
-function startDrill(qs, mode, only) {
-  D = { qs, mode, only, i: 0, results: [] };
+// only：1字だけの練習（記録は「れんしゅう」あつかい）／limit：マスにする字の範囲（ほかの字は印刷で見せる）
+function startDrill(qs, mode, only, limit) {
+  D = { qs, mode, only, limit, i: 0, results: [] };
   show("drill");
   loadQ();
 }
 function loadQ() {
   const q = D.qs[D.i];
-  const ks = [...q.w].map((c, i) => isK(c) && (!D.only || D.only.includes(c)) ? i : -1).filter(i => i >= 0);
+  const ks = [...q.w].map((c, i) => isK(c) && (!D.only || D.only.includes(c)) && (!D.limit || D.limit.includes(c)) ? i : -1).filter(i => i >= 0);
   D.q = q; D.slots = ks; D.si = 0; D.marks = {};
   $("drillProg").textContent = `${D.i + 1} / ${D.qs.length}`;
   $("modeNote").textContent = D.mode === "prac" ? "うすい字を なぞって かこう" : "見ないで かこう";
@@ -699,6 +783,7 @@ function endStroke(e) {
     return;
   }
   path.classList.add("bad");
+  sfx("miss");
   pad.classList.remove("shake"); void pad.offsetWidth; pad.classList.add("shake");
   setTimeout(() => path.remove(), 450);
   D.miss++;
@@ -728,6 +813,7 @@ function charDone() {
   const c = document.createElementNS(SVGNS, "circle");
   c.setAttribute("cx", 54.5); c.setAttribute("cy", 54.5); c.setAttribute("r", 48); c.setAttribute("class", "maru");
   if (D.clean) {
+    sfx("ok");
     $("lTop").appendChild(c);
     if (!reduced && c.animate) { const L = 2 * Math.PI * 48; c.style.strokeDasharray = L; c.animate([{ strokeDashoffset: L }, { strokeDashoffset: 0 }], { duration: 450, fill: "forwards" }); }
   }
@@ -743,6 +829,10 @@ function finishDrill() {
   if (D.qs.length === 1 && D.only) { show("home"); return; }
   const n = D.results.length, ok = D.results.filter(r => r.ok).length;
   $("resScore").textContent = `${n}もん中 ${ok}もん ○`;
+  const perfect = n > 0 && ok === n;
+  $("resHana").innerHTML = perfect ? HANA : "";
+  $("resGreat").textContent = perfect ? "よく できました！" : ok >= n / 2 ? "がんばったね" : "つぎも がんばろう";
+  if (perfect) setTimeout(() => sfx("great"), 200);
   $("resNote").textContent = D.mode === "test" ? "○は 見ないで かけた字。△は ヒントを 見た字です。" : "れんしゅうモードの けっかは「おぼえた」には かぞえません。";
   const list = $("resList"); list.textContent = "";
   for (const r of D.results) {
@@ -753,8 +843,8 @@ function finishDrill() {
   }
   const wrong = D.results.filter(r => !r.ok).map(r => r.q);
   $("resRetry").hidden = !wrong.length;
-  $("resRetry").onclick = () => startDrill(wrong, "prac");
-  $("resAgain").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, 10), S.settings.mode); };
+  $("resRetry").onclick = () => startDrill(wrong, "prac", undefined, D.limit);
+  $("resAgain").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, S.settings.count || 5), S.settings.mode, undefined, T.limit); };
   show("result");
 }
 $("resHome").onclick = () => show("home");
@@ -765,7 +855,7 @@ function startKana() {
   const items = DATA.kana.map((x, i) => ({ i, s: x[0], a: x[1], b: x[2], why: x[3] }));
   const w = it => { const s = S.kstats[it.i] || {}; return s.st >= 2 ? 0.4 : s.ng ? 3 : 1.5; };
   const out = [];
-  while (out.length < 10 && items.length) {
+  while (out.length < (S.settings.count || 5) && items.length) {
     const ws = items.map(w); let r = Math.random() * ws.reduce((a, b) => a + b, 0), j = 0;
     while (j < ws.length - 1 && (r -= ws[j]) > 0) j++;
     out.push(items.splice(j, 1)[0]);
@@ -798,7 +888,7 @@ function answerKana(o, btn) {
   $("kmsg").textContent = (right ? "せいかい！ " : "ざんねん。 ") + q.why;
   $("kmsg").className = "msg " + (right ? "good" : "bad");
   const s = S.kstats[q.i] || { ok: 0, ng: 0, st: 0 };
-  if (right) { s.ok++; s.st++; K.ok++; } else { s.ng++; s.st = 0; }
+  if (right) { s.ok++; s.st++; K.ok++; sfx("kanaok"); } else { s.ng++; s.st = 0; sfx("miss"); }
   s.last = Date.now(); s.q = q.s.replace("＿", "（" + q.a + "）"); S.kstats[q.i] = s; save();
   $("kNext").hidden = false;
   $("kNext").textContent = K.i + 1 >= K.qs.length ? "けっかを 見る" : "つぎへ";
@@ -807,6 +897,10 @@ $("kNext").onclick = () => {
   K.i++;
   if (K.i < K.qs.length) return loadKana();
   $("resScore").textContent = `${K.qs.length}もん中 ${K.ok}もん ○`;
+  const kp = K.ok === K.qs.length;
+  $("resHana").innerHTML = kp ? HANA : "";
+  $("resGreat").textContent = kp ? "よく できました！" : "がんばったね";
+  if (kp) setTimeout(() => sfx("great"), 200);
   $("resNote").textContent = "まちがえた もんだいは、つぎの クイズで 多めに 出ます。";
   $("resList").textContent = ""; $("resRetry").hidden = true;
   $("resAgain").onclick = startKana;
@@ -820,7 +914,7 @@ const KANA_RE = /^[ぁ-ゟ゠-ヿー]+$/;
 // 言葉の読み：辞書 → 組みこみの問題 の順に引く
 function readingOf(w) {
   if (DATA.dic[w]) return DATA.dic[w];
-  const q = BUILTIN.find(q => q.w === w);
+  const q = ALLQ.find(q => q.w === w);
   return q ? q.r : "";
 }
 function parseList(text) {
@@ -846,7 +940,7 @@ function parseList(text) {
     if (!KANA_RE.test(r)) { errs.push(`${at}よみは ひらがな で書いてください`); return; }
     // 文：＿が無ければ、文の中の言葉を自動で＿にする
     let sen = rest.join(" ").replace(/_/g, "＿");
-    if (!sen) { const q = BUILTIN.find(q => q.w === w && q.r === r); sen = q ? q.s : "＿"; }
+    if (!sen) { const q = ALLQ.find(q => q.w === w && q.r === r); sen = q ? q.s : "＿"; }
     else if (!sen.includes("＿")) {
       if (!sen.includes(w)) { errs.push(`${at}文の中に「${w}」が入っていません`); return; }
       sen = sen.replace(w, "＿");
@@ -860,7 +954,7 @@ function itemsToText(items) {
   return items.map(i => {
     if (i.k) return i.k;
     const r = i.r === readingOf(i.w) ? "" : "（" + i.r + "）";
-    const q = BUILTIN.find(q => q.w === i.w && q.r === i.r);
+    const q = ALLQ.find(q => q.w === i.w && q.r === i.r);
     const sen = i.s === "＿" || (q && q.s === i.s) ? "" : " " + i.s.replace("＿", i.w);
     return i.w + r + sen;
   }).join("\n");
