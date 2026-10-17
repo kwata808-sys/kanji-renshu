@@ -687,7 +687,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
 const DATA = /*DATA*/null;
 const SVGNS = "http://www.w3.org/2000/svg";
 const $ = id => document.getElementById(id);
-const TOL = { easy: 20, normal: 15, hard: 11 };
+const TOL = { easy: 21, normal: 17, hard: 11 };
 const N = 32;
 
 /* ---------- 記録（スプレッドシートで iPhone・iPad 共有。つながらない間はこの端末に保存） ---------- */
@@ -885,7 +885,7 @@ function fits(U, uL, t) {
 // 子どもの字は全体がずれやすいので、書けた画から「ずれ」を覚えて差し引く
 function shiftBy(ps, o) { return ps.map(p => ({ x: p.x - o.x, y: p.y - o.y })); }
 // 位置と大きさを お手本に そろえてから 形だけ くらべる。ずれは マスの 2割くらいまで
-const LOOSE = { easy: 28, normal: 22, hard: 12 };
+const LOOSE = { easy: 30, normal: 26, hard: 12 };
 function looseFit(raw, uL, t) {
   const R = resample(raw, N), cen = ps => ({ x: ps.reduce((s, p) => s + p.x, 0) / N, y: ps.reduce((s, p) => s + p.y, 0) / N });
   const cu = cen(R), ct = cen(t.pts);
@@ -924,6 +924,16 @@ function judge(raw, T, idx, off = { x: 0, y: 0 }) {
   if (T[idx].L >= 16 && meanD(R, T[idx]) < (TOL[S.settings.level] || 15)) return "reverse";
   for (let j = idx + 1; j < T.length; j++) if (fits(U, uL, T[j])) return "order";
   return "miss";
+}
+// 書けた 画ぜんぶから「字の 大きさと ずれ」を もとめ、お手本に そろえる しかけ（小さく 書いても 寄せて 書いても よい）
+function fitXf(pairs) {
+  const U = pairs.flatMap(p => p.u), V = pairs.flatMap(p => p.t), n = U.length;
+  const mu = { x: U.reduce((a, p) => a + p.x, 0) / n, y: U.reduce((a, p) => a + p.y, 0) / n };
+  const mv = { x: V.reduce((a, p) => a + p.x, 0) / n, y: V.reduce((a, p) => a + p.y, 0) / n };
+  let num = 0, den = 0;
+  U.forEach((p, i) => { const dx = p.x - mu.x, dy = p.y - mu.y; num += dx * (V[i].x - mv.x) + dy * (V[i].y - mv.y); den += dx * dx + dy * dy; });
+  const k = den > 1 ? Math.max(0.55, Math.min(1.7, num / den)) : 1;
+  return p => ({ x: (p.x - mu.x) * k + mv.x, y: (p.y - mu.y) * k + mv.y });
 }
 function learnOffset(raw, t, off, first) {
   const U = resample(raw, N);
@@ -1955,7 +1965,7 @@ function clearPad() { for (const id of ["lOutline", "lAnim", "lInk", "lTop"]) $(
 function loadChar() {
   clearPad();
   const k = D.q.w[D.slots[D.si]];
-  D.k = k; D.T = template(k); D.n = 0; D.off = { x: 0, y: 0 }; D.miss = 0; D.clean = true; D.outline = false;
+  D.k = k; D.T = template(k); D.n = 0; D.off = { x: 0, y: 0 }; D.pairs = []; D.miss = 0; D.clean = true; D.outline = false;
   if (D.only) setTimeout(showAnswer, 300);
   setMsg("");
   markStart();
@@ -1992,7 +2002,7 @@ let busy = false;
 async function showAnswer() {
   if (busy) return; busy = true;
   D.clean = false;
-  $("lInk").textContent = ""; $("lAnim").textContent = ""; D.n = 0;
+  $("lInk").textContent = ""; $("lAnim").textContent = ""; D.n = 0; D.pairs = [];
   for (const t of D.T) await animStroke(t, 0, 500);
   await new Promise(r => setTimeout(r, 600));
   $("lAnim").textContent = "";
@@ -2002,7 +2012,7 @@ async function showAnswer() {
 }
 $("hintBtn").onclick = () => { setMsg("つぎの 1画は ここ"); hintStroke(); };
 $("showBtn").onclick = showAnswer;
-$("redoBtn").onclick = () => { $("lInk").textContent = ""; D.n = 0; D.off = { x: 0, y: 0 }; markStart(); setMsg("はじめから かこう"); };
+$("redoBtn").onclick = () => { $("lInk").textContent = ""; D.n = 0; D.off = { x: 0, y: 0 }; D.pairs = []; markStart(); setMsg("はじめから かこう"); };
 $("drillBack").onclick = () => { if (D.results.length) finishDrill(); else show(D.story ? "storyMenu" : D.only ? "gridScreen" : D.stage ? "home" : "kaki"); };
 $("nextBtn").onclick = () => { D.i++; if (D.i >= D.qs.length || (D.boss && D.boss.over)) finishDrill(); else { loadQ(); if (D.mob) mobAppear(true); } };
 $("speakBtn").onclick = () => {
@@ -2036,7 +2046,16 @@ function endStroke(e) {
   if (!cur || e.pointerId !== curId) return;
   const raw = cur, path = curPath; cur = null; curPath = null;
   if (raw.length === 1) { raw.push({ x: raw[0].x + 0.5, y: raw[0].y + 0.5 }); path.setAttribute("d", dOf(raw)); }
-  const r = judge(raw, D.T, D.n, D.outline ? { x: 0, y: 0 } : D.off);
+  let r = judge(raw, D.T, D.n, D.outline ? { x: 0, y: 0 } : D.off);
+  const pass = x => x === "ok" || x.startsWith("merge");
+  if (!pass(r) && !D.outline && D.pairs.length >= 2) {
+    const r2 = judge(raw.map(fitXf(D.pairs)), D.T, D.n);
+    if (pass(r2)) r = r2;
+  }
+  if (pass(r)) {
+    const k = r === "ok" ? 1 : +r.slice(5), seg = D.T.slice(D.n, D.n + k);
+    D.pairs.push({ u: resample(raw, N), t: k === 1 ? seg[0].pts : resample(seg.flatMap(t => t.pts), N) });
+  }
   if (r === "ok") {
     if (!D.outline) D.off = learnOffset(raw, D.T[D.n], D.off, D.n === 0);
     D.n++; D.miss = 0; $("lAnim").textContent = "";
