@@ -199,6 +199,16 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .eqitem.no { background: var(--page); color: var(--pencil); }
 .gotitem { display: flex; gap: 10px; flex-wrap: wrap; }
 .gotitem span { background: #fff8e1; border: 2px solid var(--gold); border-radius: 12px; padding: 6px 12px; font-weight: 700; }
+.lookhead { grid-template-columns: auto 1fr; align-items: center; position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; }
+.lookhead .ava { width: 120px; height: 132px; display: block; }
+.lookbtns { display: grid; gap: 8px; }
+.lookrow { display: grid; grid-template-columns: repeat(auto-fill, minmax(68px, 1fr)); gap: 8px; margin-bottom: 6px; }
+.lookopt { border: 2px solid var(--rule); background: var(--sheet); border-radius: 12px; padding: 4px 2px; display: grid; justify-items: center; gap: 0; min-width: 0; }
+.lookopt .ava { width: 54px; height: 56px; display: block; }
+.lookopt small { font-size: 11px; font-weight: 700; }
+.lookopt.swatch { height: 44px; border-width: 3px; }
+.lookopt[aria-pressed="true"] { border-color: var(--green); box-shadow: 0 0 0 2px var(--green); background: var(--ok); }
+.lookopt.swatch[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--green), inset 0 0 0 3px #fff; }
 .great { font-family: var(--font-k); font-size: 28px; font-weight: 600; color: var(--hana); }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .back { border: 0; background: transparent; font-weight: 700; padding: 8px 4px; color: var(--pencil); font-size: 16px; }
@@ -323,7 +333,22 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
       <div class="muted" id="eqNote"></div>
     </div>
   </div>
+  <button class="btn primary" id="goLook">キャラを かえる</button>
   <div class="sheet"><div id="eqList" class="eqlist"></div></div>
+</section>
+
+<!-- キャラを かえる -->
+<section id="lookEdit" class="screen" hidden>
+  <div class="topbar"><button class="back" data-back="equip">← そうび</button><span class="label">キャラを かえる</span></div>
+  <div class="sheet lookhead">
+    <div id="lookPrev"></div>
+    <div class="lookbtns">
+      <button class="btn ghost" id="lookRand">おまかせ</button>
+      <button class="btn primary" id="lookSave">これに する！</button>
+      <span class="muted" id="lookMsg" aria-live="polite"></span>
+    </div>
+  </div>
+  <div class="sheet" id="lookParts"></div>
 </section>
 
 <!-- かきとりの じゅんび -->
@@ -864,27 +889,88 @@ const power = eq => SLOTS.reduce((a, k) => a + (eq[k] ? eq[k].pow : 0), 0);
 const attack = eq => 1 + Math.floor(power(eq) / 6);
 
 // じぶんの キャラ（そうびで 見た目が かわる）
-function avatar(eq) {
+// じぶんの キャラ：パーツを くみあわせる。そうびは その うえに かさなる
+const LOOK = {
+  skin: { name: "はだの いろ", opts: ["#ffe0bd", "#f6c9a0", "#e8b48a", "#c98e62", "#8d5a3b"] },
+  hair: { name: "かみがた", opts: ["みじかい", "ぼうず", "ツンツン", "おかっぱ", "ポニーテール", "ツインテール", "ロング", "くるくる"] },
+  hairC: { name: "かみの いろ", opts: ["#3a3a3a", "#7a4a24", "#e8c04a", "#c0392b", "#3b6fd6", "#3a9a5a", "#e66aa8"] },
+  eyes: { name: "め", opts: ["まる", "にっこり", "キラキラ", "ジトめ", "ウインク", "ねむい"] },
+  mouth: { name: "くち", opts: ["にっこり", "大わらい", "びっくり", "ぺろっ", "まっすぐ"] },
+  glasses: { name: "めがね", opts: ["なし", "まる", "しかく", "サングラス"] },
+  cheek: { name: "ほっぺ", opts: ["あり", "なし"] },
+  cloth: { name: "ふくの いろ（パジャマの とき）", opts: ["#9fc6e8", "#f7a072", "#7cc576", "#e66aa8", "#ffd54a", "#b39ddb", "#ffffff", "#555555"] },
+};
+const LOOK_KEYS = Object.keys(LOOK);
+const DEFAULT_LOOK = { skin: 0, hair: 2, hairC: 0, eyes: 0, mouth: 0, glasses: 0, cheek: 0, cloth: 0 };
+// 記録には 数字1つで のこす（先頭の 1 は 0 が きえないように）
+const lookToCode = l => Number("1" + LOOK_KEYS.map(k => l[k]).join(""));
+function codeToLook(code) {
+  const d = String(code || "").slice(1), l = { ...DEFAULT_LOOK };
+  LOOK_KEYS.forEach((k, i) => { const v = +d[i]; if (d[i] !== undefined && v < LOOK[k].opts.length) l[k] = v; });
+  return l;
+}
+const myLook = () => S.stats["アバター"] ? codeToLook(S.stats["アバター"].ok) : { ...DEFAULT_LOOK };
+function avatar(eq, look = myLook()) {
   const body = eq["からだ"], head = eq["あたま"], w = eq["ぶき"], sh = eq["たて"];
+  const skin = LOOK.skin.opts[look.skin], hc = LOOK.hairC.opts[look.hairC], hs = LOOK.hair.opts[look.hair];
+  const cloth = body.name === "パジャマ" ? LOOK.cloth.opts[look.cloth] : body.c;
   let s = `<svg class="ava" viewBox="0 0 100 110" aria-hidden="true">`;
   if (body.cape) s += `<path d="M30 52 L18 100 L82 100 L70 52 Z" fill="${body.cape}"/>`;
-  s += `<rect x="30" y="52" width="40" height="42" rx="12" fill="${body.c}" stroke="#3a3a3a" stroke-width="2"/>`;
+  // うしろの かみ
+  if (hs === "ロング") s += `<path d="M26 34 q0 -24 24 -24 q24 0 24 24 V62 q-4 4 -8 0 V40 H34 V62 q-4 4 -8 0z" fill="${hc}"/>`;
+  if (hs === "ポニーテール") s += `<path d="M64 16 q22 2 16 34 q-4 -14 -14 -20z" fill="${hc}"/>`;
+  if (hs === "ツインテール") s += `<ellipse cx="23" cy="40" rx="7" ry="14" fill="${hc}"/><ellipse cx="77" cy="40" rx="7" ry="14" fill="${hc}"/>`;
+  s += `<rect x="30" y="52" width="40" height="42" rx="12" fill="${cloth}" stroke="#3a3a3a" stroke-width="2"/>`;
   s += `<rect x="34" y="92" width="10" height="12" rx="3" fill="#3a3a3a"/><rect x="56" y="92" width="10" height="12" rx="3" fill="#3a3a3a"/>`;
   if (eq["アクセ"].name === "ランドセル") s += `<rect x="24" y="56" width="10" height="26" rx="3" fill="#c0392b"/>`;
   if (eq["アクセ"].name === "ロケット くつ") s += `<path d="M34 104 l-4 6 h18 l-4 -6z M56 104 l-4 6 h18 l-4 -6z" fill="#ff8a3d"/>`;
-  s += `<circle cx="50" cy="34" r="22" fill="#ffe0bd" stroke="#3a3a3a" stroke-width="2"/>`;
-  s += `<circle cx="42" cy="34" r="2.6" fill="#222"/><circle cx="58" cy="34" r="2.6" fill="#222"/><path d="M43 42 q7 6 14 0" stroke="#222" stroke-width="2.4" fill="none" stroke-linecap="round"/>`;
-  s += `<circle cx="37" cy="40" r="3" fill="#ffb3b3"/><circle cx="63" cy="40" r="3" fill="#ffb3b3"/>`;
-  const hats = {
-    hair: `<path d="M30 26 q4 -14 20 -14 q16 0 20 14 l-6 -4 -4 6 -6 -8 -6 8 -6 -8 -4 6z" fill="#3a3a3a"/>`,
-    cap: `<path d="M28 28 q2 -18 22 -18 q20 0 22 18 z" fill="#e8473a"/><path d="M50 10 q20 0 22 18 h-22z" fill="#fff"/>`,
-    band: `<path d="M30 26 q4 -14 20 -14 q16 0 20 14z" fill="#3a3a3a"/><rect x="28" y="22" width="44" height="7" fill="#fff" stroke="#e8473a" stroke-width="2"/><circle cx="50" cy="25" r="3" fill="#e8473a"/>`,
-    cat: `<path d="M30 26 q4 -14 20 -14 q16 0 20 14z" fill="#f0a64a"/><path d="M30 22 l2 -16 10 10z M70 22 l-2 -16 -10 10z" fill="#f0a64a"/>`,
-    mage: `<path d="M30 26 q4 -14 20 -14 q16 0 20 14z" fill="#3a3a3a"/><rect x="44" y="2" width="12" height="12" rx="4" fill="#3a3a3a"/>`,
-    crown: `<path d="M30 26 q4 -14 20 -14 q16 0 20 14z" fill="#3a3a3a"/><path d="M32 16 l4 -12 7 8 7 -10 7 10 7 -8 4 12z" fill="#f2c230" stroke="#b88a12" stroke-width="1.5"/>`,
+  s += `<circle cx="50" cy="34" r="22" fill="${skin}" stroke="#3a3a3a" stroke-width="2"/>`;
+  // め
+  const ey = {
+    "まる": `<circle cx="42" cy="34" r="2.6" fill="#222"/><circle cx="58" cy="34" r="2.6" fill="#222"/>`,
+    "にっこり": `<path d="M38.5 35 q3.5 -5 7 0 M54.5 35 q3.5 -5 7 0" stroke="#222" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+    "キラキラ": `<circle cx="42" cy="34" r="4" fill="#222"/><circle cx="58" cy="34" r="4" fill="#222"/><circle cx="43.3" cy="32.6" r="1.4" fill="#fff"/><circle cx="59.3" cy="32.6" r="1.4" fill="#fff"/>`,
+    "ジトめ": `<path d="M38 32 h8 M54 32 h8" stroke="#222" stroke-width="2.4" stroke-linecap="round"/><circle cx="42" cy="34.5" r="2" fill="#222"/><circle cx="58" cy="34.5" r="2" fill="#222"/>`,
+    "ウインク": `<circle cx="42" cy="34" r="2.6" fill="#222"/><path d="M54.5 35 q3.5 -5 7 0" stroke="#222" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+    "ねむい": `<path d="M38.5 34 h7 M54.5 34 h7" stroke="#222" stroke-width="2.4" stroke-linecap="round"/>`,
   };
-  s += hats[head.look] || hats.hair;
-  // えんぴつ（ぶき）
+  s += ey[LOOK.eyes.opts[look.eyes]];
+  const mo = {
+    "にっこり": `<path d="M43 42 q7 6 14 0" stroke="#222" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
+    "大わらい": `<path d="M42 40.5 q8 11 16 0z" fill="#c0392b" stroke="#222" stroke-width="2" stroke-linejoin="round"/>`,
+    "びっくり": `<ellipse cx="50" cy="43" rx="3" ry="3.6" fill="#7a2a2a"/>`,
+    "ぺろっ": `<path d="M43 41 q7 5 14 0" stroke="#222" stroke-width="2.4" fill="none" stroke-linecap="round"/><path d="M50 43.5 q4 0 4 4 q-4 2 -6 -2z" fill="#ff7b8a"/>`,
+    "まっすぐ": `<path d="M45 43 h10" stroke="#222" stroke-width="2.4" stroke-linecap="round"/>`,
+  };
+  s += mo[LOOK.mouth.opts[look.mouth]];
+  if (look.cheek === 0) s += `<circle cx="37" cy="40" r="3" fill="#ffb3b3"/><circle cx="63" cy="40" r="3" fill="#ffb3b3"/>`;
+  const gl = {
+    "まる": `<circle cx="42" cy="34" r="6" fill="none" stroke="#333" stroke-width="1.8"/><circle cx="58" cy="34" r="6" fill="none" stroke="#333" stroke-width="1.8"/><path d="M48 34 h4" stroke="#333" stroke-width="1.8"/>`,
+    "しかく": `<rect x="35" y="29" width="13" height="10" rx="2" fill="none" stroke="#333" stroke-width="1.8"/><rect x="52" y="29" width="13" height="10" rx="2" fill="none" stroke="#333" stroke-width="1.8"/><path d="M48 33 h4" stroke="#333" stroke-width="1.8"/>`,
+    "サングラス": `<rect x="35" y="29" width="13" height="9" rx="3" fill="#222"/><rect x="52" y="29" width="13" height="9" rx="3" fill="#222"/><path d="M48 32 h4" stroke="#222" stroke-width="2"/><path d="M37 31 l4 0" stroke="#fff" stroke-width="1.2" opacity=".6"/>`,
+  };
+  s += gl[LOOK.glasses.opts[look.glasses]] || "";
+  // まえの かみ
+  const fr = {
+    "みじかい": `<path d="M28 31 q1 -21 22 -21 q21 0 22 21 q-6 -9 -22 -9 q-16 0 -22 9z" fill="${hc}"/>`,
+    "ぼうず": `<path d="M29 28 q3 -16 21 -16 q18 0 21 16 q-10 -5 -21 -5 q-11 0 -21 5z" fill="${hc}" opacity=".55"/>`,
+    "ツンツン": `<path d="M30 26 q4 -14 20 -14 q16 0 20 14 l-6 -4 -4 6 -6 -8 -6 8 -6 -8 -4 6z" fill="${hc}"/><path d="M36 14 l-4 -8 8 5 M50 11 l0 -9 5 8 M64 14 l4 -8 -8 5" fill="${hc}" stroke="${hc}" stroke-width="3" stroke-linejoin="round"/>`,
+    "おかっぱ": `<path d="M27 46 V30 q1 -20 23 -20 q22 0 23 20 V46 h-6 V29 H33 V46z" fill="${hc}"/>`,
+    "ポニーテール": `<path d="M28 31 q1 -21 22 -21 q21 0 22 21 q-10 -10 -24 -8 q-10 2 -20 8z" fill="${hc}"/><circle cx="66" cy="17" r="3" fill="#e8473a"/>`,
+    "ツインテール": `<path d="M28 31 q1 -21 22 -21 q21 0 22 21 q-6 -9 -22 -9 q-16 0 -22 9z" fill="${hc}"/><circle cx="29" cy="28" r="3" fill="#e8473a"/><circle cx="71" cy="28" r="3" fill="#e8473a"/>`,
+    "ロング": `<path d="M28 33 q1 -23 22 -23 q21 0 22 23 q-4 -8 -10 -10 q-6 6 -24 6 q-6 0 -10 4z" fill="${hc}"/>`,
+    "くるくる": `<g fill="${hc}"><circle cx="30" cy="28" r="6"/><circle cx="35" cy="18" r="7"/><circle cx="45" cy="12" r="7"/><circle cx="56" cy="12" r="7"/><circle cx="66" cy="18" r="7"/><circle cx="71" cy="28" r="6"/></g>`,
+  };
+  s += fr[hs];
+  // ぼうし（そうび）
+  const hats = {
+    cap: `<path d="M28 28 q2 -18 22 -18 q20 0 22 18 z" fill="#e8473a"/><path d="M50 10 q20 0 22 18 h-22z" fill="#fff"/>`,
+    band: `<rect x="28" y="22" width="44" height="7" fill="#fff" stroke="#e8473a" stroke-width="2"/><circle cx="50" cy="25" r="3" fill="#e8473a"/>`,
+    cat: `<path d="M30 22 l2 -16 10 10z M70 22 l-2 -16 -10 10z" fill="${hc}" stroke="#3a3a3a" stroke-width="1.2"/><path d="M33 18 l1 -7 4 4z M67 18 l-1 -7 -4 4z" fill="#ffb3b3"/>`,
+    mage: `<rect x="44" y="2" width="12" height="12" rx="4" fill="${hc}"/>`,
+    crown: `<path d="M32 16 l4 -12 7 8 7 -10 7 10 7 -8 4 12z" fill="#f2c230" stroke="#b88a12" stroke-width="1.5"/>`,
+  };
+  s += hats[head.look] || "";
   s += `<g transform="rotate(-30 80 70)"><rect x="76" y="44" width="8" height="34" fill="${w.c}" stroke="#3a3a3a" stroke-width="1.5"/><path d="M76 44 l4 -9 4 9z" fill="#ffe0bd" stroke="#3a3a3a" stroke-width="1.5"/><path d="M78.5 38 l1.5 -3 1.5 3z" fill="#222"/></g>`;
   if (sh.c) s += `<rect x="12" y="60" width="20" height="26" rx="5" fill="${sh.c}" stroke="#3a3a3a" stroke-width="2"/>`;
   return s + `</svg>`;
@@ -1156,7 +1242,7 @@ function stageResult() {
 }
 
 /* ---------- 画面の切りかえ ---------- */
-const MENU = ["home", "kaki", "storyMenu", "gridScreen", "adult", "equip"];
+const MENU = ["home", "kaki", "storyMenu", "gridScreen", "adult", "equip", "lookEdit"];
 const SCREENS = [...MENU, "drill", "result", "kana", "lists"];
 const isMenu = () => MENU.some(id => !$(id).hidden);
 function show(id) {
@@ -1257,6 +1343,35 @@ $("goKana").onclick = startKana;
 $("goGrid").onclick = () => show("gridScreen");
 $("goAdult").onclick = () => show("adult");
 $("goEquip").onclick = () => { renderEquip(); show("equip"); };
+// キャラを かえる：パーツごとに、えらんだときの 顔を 小さく ならべる
+let draft = null;
+$("goLook").onclick = () => { draft = myLook(); renderLook(); show("lookEdit"); };
+function renderLook() {
+  const eq = equipped();
+  $("lookPrev").innerHTML = avatar(eq, draft);
+  const box = $("lookParts"); box.textContent = "";
+  for (const k of LOOK_KEYS) {
+    const P = LOOK[k];
+    const h = document.createElement("div"); h.className = "label"; h.textContent = P.name; box.appendChild(h);
+    const row = document.createElement("div"); row.className = "lookrow";
+    P.opts.forEach((o, i) => {
+      const b = document.createElement("button");
+      b.className = "lookopt"; b.setAttribute("aria-pressed", draft[k] === i);
+      if (o.startsWith("#")) { b.classList.add("swatch"); b.style.background = o; b.setAttribute("aria-label", P.name + (i + 1)); }
+      // 顔の まわりだけ 大きく 見せる
+      else { b.innerHTML = avatar(eq, { ...draft, [k]: i }).replace('viewBox="0 0 100 110"', 'viewBox="12 -4 76 72"') + `<small></small>`; b.querySelector("small").textContent = o; }
+      b.onclick = () => { draft[k] = i; $("lookMsg").textContent = ""; renderLook(); };
+      row.appendChild(b);
+    });
+    box.appendChild(row);
+  }
+}
+$("lookRand").onclick = () => { for (const k of LOOK_KEYS) draft[k] = Math.floor(Math.random() * LOOK[k].opts.length); $("lookMsg").textContent = ""; renderLook(); };
+$("lookSave").onclick = () => {
+  S.stats["アバター"] = { ok: lookToCode(draft), ng: 0, st: 0, p: 0, last: Date.now() }; save();
+  $("lookMsg").textContent = "かっこいい！ これで いこう！";
+  sfx("ok");
+};
 function renderEquip() {
   const c = cleared(), eq = equipped();
   $("eqAvatar").innerHTML = avatar(eq);
