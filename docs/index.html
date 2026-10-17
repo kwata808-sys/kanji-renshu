@@ -228,7 +228,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・版 1017-1954</p>
 </section>
 
 <!-- 書きとり -->
@@ -711,7 +711,12 @@ function endStroke(e) {
   if (D.miss >= 2 || r === "order") { setTimeout(hintStroke, 300); }
 }
 pad.addEventListener("pointerup", endStroke);
-for (const t of ["touchstart", "touchmove"]) pad.addEventListener(t, e => e.preventDefault(), { passive: false });
+// マスの上で書き始めた指は、マスの外に出ても画面を動かさない（iPhone対策）
+let touchOnPad = false;
+pad.addEventListener("touchstart", e => { touchOnPad = true; e.preventDefault(); }, { passive: false });
+document.addEventListener("touchmove", e => { if (touchOnPad) e.preventDefault(); }, { passive: false });
+document.addEventListener("touchend", e => { if (!e.touches.length) touchOnPad = false; });
+document.addEventListener("touchcancel", () => { touchOnPad = false; });
 pad.addEventListener("pointercancel", e => { if (cur && e.pointerId === curId) { curPath.remove(); cur = null; } });
 
 function charDone() {

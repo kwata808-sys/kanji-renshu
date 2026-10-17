@@ -68,6 +68,9 @@ head = """<!doctype html><html lang="ja"><head><meta charset="utf-8">
 <link rel="icon" href="icon-192.png">
 </head><body>
 """
+import datetime
+ver_label = datetime.datetime.now().strftime("%m%d-%H%M")
+body = body.replace("/*VERSION*/", ver_label)
 html = head + body + "\n</body></html>\n"
 out = f"{ROOT}/docs"
 os.makedirs(out, exist_ok=True)
@@ -83,4 +86,4 @@ import hashlib
 ver = hashlib.sha1(html.encode()).hexdigest()[:10]
 open(f"{out}/sw.js", "w").write(open(f"{ROOT}/src/sw.js").read().replace("__VERSION__", ver))
 make_icons(out)
-print(f"ok: {len(qs)}問 / かな{len(kana)}問 / 書き順{len(strokes)}字 / {len(html)//1024}KB / 共有先 {'あり' if cfg.get('sync_url') else 'なし'} / 版 {ver}")
+print(f"ok: {len(qs)}問 / かな{len(kana)}問 / 書き順{len(strokes)}字 / {len(html)//1024}KB / 共有先 {'あり' if cfg.get('sync_url') else 'なし'} / 版 {ver_label}")
