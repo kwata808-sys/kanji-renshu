@@ -786,11 +786,30 @@ function learnOffset(raw, t, off, first) {
 
 /* ---------- 効果音 ---------- */
 let AC = null;
+// iPhone・iPad は「画面に さわった しゅんかん」に 音の じゅんびを しないと 鳴らない。
+// また、うらに まわしたり ロックしたりすると 止まる。だから さわる たびに 起こしなおす
+function wakeAudio() {
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state !== "running") {
+      AC.resume();
+      const b = AC.createBuffer(1, 1, 22050), src = AC.createBufferSource();
+      src.buffer = b; src.connect(AC.destination); src.start(0);
+    }
+  } catch (e) {}
+}
+for (const ev of ["pointerdown", "touchend", "click", "keydown"]) document.addEventListener(ev, wakeAudio, { capture: true, passive: true });
 function sfx(kind) {
   if (S.settings.sound === false) return;
   try {
     AC = AC || new (window.AudioContext || window.webkitAudioContext)();
-    if (AC.state === "suspended") AC.resume();
+    // 止まって いたら、起きてから 鳴らす（起きる まえに 鳴らすと 音が とぶ）
+    if (AC.state !== "running") { AC.resume().then(() => { if (AC.state === "running") play(kind); }).catch(() => {}); return; }
+    play(kind);
+  } catch (e) {}
+}
+function play(kind) {
+  try {
     if (kind === "shoot") {
       // ビーム：高い音が かけあがる
       const o = AC.createOscillator(), g = AC.createGain(), t0 = AC.currentTime;

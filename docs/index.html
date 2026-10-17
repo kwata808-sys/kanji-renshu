@@ -456,7 +456,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2258</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2311</p>
 </section>
 
 <!-- 書きとり -->
@@ -797,11 +797,30 @@ function learnOffset(raw, t, off, first) {
 
 /* ---------- 効果音 ---------- */
 let AC = null;
+// iPhone・iPad は「画面に さわった しゅんかん」に 音の じゅんびを しないと 鳴らない。
+// また、うらに まわしたり ロックしたりすると 止まる。だから さわる たびに 起こしなおす
+function wakeAudio() {
+  try {
+    AC = AC || new (window.AudioContext || window.webkitAudioContext)();
+    if (AC.state !== "running") {
+      AC.resume();
+      const b = AC.createBuffer(1, 1, 22050), src = AC.createBufferSource();
+      src.buffer = b; src.connect(AC.destination); src.start(0);
+    }
+  } catch (e) {}
+}
+for (const ev of ["pointerdown", "touchend", "click", "keydown"]) document.addEventListener(ev, wakeAudio, { capture: true, passive: true });
 function sfx(kind) {
   if (S.settings.sound === false) return;
   try {
     AC = AC || new (window.AudioContext || window.webkitAudioContext)();
-    if (AC.state === "suspended") AC.resume();
+    // 止まって いたら、起きてから 鳴らす（起きる まえに 鳴らすと 音が とぶ）
+    if (AC.state !== "running") { AC.resume().then(() => { if (AC.state === "running") play(kind); }).catch(() => {}); return; }
+    play(kind);
+  } catch (e) {}
+}
+function play(kind) {
+  try {
     if (kind === "shoot") {
       // ビーム：高い音が かけあがる
       const o = AC.createOscillator(), g = AC.createGain(), t0 = AC.currentTime;
