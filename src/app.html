@@ -95,6 +95,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 
 /* 書くマス */
 .padwrap { display: grid; justify-items: center; gap: 10px; }
+body:has(#drill:not([hidden])) { overscroll-behavior: none; }
 #pad { width: min(100%, 440px, 52vh); aspect-ratio: 1; max-width: 100%; touch-action: none; user-select: none; -webkit-user-select: none; background: var(--sheet); border: 3px solid var(--ink); border-radius: 6px; display: block; }
 #pad .guide { stroke: var(--rule); stroke-width: .6; stroke-dasharray: 2 2; }
 #pad .outline path { stroke: var(--guide); stroke-width: 6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
@@ -175,6 +176,8 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
       <h2 style="font-size:20px" id="gridTitle">2年生の字</h2>
       <div class="counts" id="counts"></div>
     </div>
+    <button id="gridToggle" class="btn ghost" aria-expanded="false" aria-controls="gridBody">字の いちらんを 見る</button>
+    <div id="gridBody" class="screen" style="gap:14px" hidden>
     <div class="legend">
       <span><i style="background:var(--ok);border-color:var(--green)"></i>おぼえた（3回つづけて○）</span>
       <span><i style="background:var(--ok)"></i>かけた</span>
@@ -183,10 +186,11 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <div id="grid" class="grid"></div>
     <p class="muted" style="margin:0">字を おすと、かきじゅんを 見ながら れんしゅうできます。</p>
+    </div>
   </div>
 
   <div class="sheet">
-    <h2 style="font-size:18px">おうちの方へ</h2>
+    <h2 style="font-size:18px">大人の人へ</h2>
     <div class="row" style="justify-content:space-between">
       <div>
         <div style="font-weight:700">学校のプリントの字を登録</div>
@@ -278,7 +282,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
 <section id="lists" class="screen" hidden>
   <div class="topbar">
     <button class="back" id="listsBack">← もどる</button>
-    <span class="label">おうちの方へ</span>
+    <span class="label">大人の人へ</span>
   </div>
   <div class="sheet">
     <h2 style="font-size:20px" id="edTitle">新しいリスト</h2>
@@ -552,6 +556,12 @@ $("modeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) retu
 $("levelSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.level = b.dataset.level; save(); renderHome(); };
 $("startBtn").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, 10), S.settings.mode); };
 $("kanaBtn").onclick = startKana;
+$("gridToggle").onclick = () => {
+  const open = $("gridBody").hidden;
+  $("gridBody").hidden = !open;
+  $("gridToggle").setAttribute("aria-expanded", open);
+  $("gridToggle").textContent = open ? "いちらんを とじる" : "字の いちらんを 見る";
+};
 $("listsBtn").onclick = () => { editNew(); renderLists(); show("lists"); };
 
 /* ---------- 書きとり ---------- */
@@ -690,6 +700,7 @@ function endStroke(e) {
   if (D.miss >= 2 || r === "order") { setTimeout(hintStroke, 300); }
 }
 pad.addEventListener("pointerup", endStroke);
+for (const t of ["touchstart", "touchmove"]) pad.addEventListener(t, e => e.preventDefault(), { passive: false });
 pad.addEventListener("pointercancel", e => { if (cur && e.pointerId === curId) { curPath.remove(); cur = null; } });
 
 function charDone() {
@@ -791,7 +802,7 @@ $("kNext").onclick = () => {
 };
 $("kanaBack").onclick = () => show("home");
 
-/* ---------- リスト編集（おうちの方） ---------- */
+/* ---------- リスト編集（大人の人） ---------- */
 let editing = null;
 const KANA_RE = /^[ぁ-ゟ゠-ヿー]+$/;
 function parseList(text) {
