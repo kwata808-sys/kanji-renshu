@@ -259,9 +259,9 @@ body:has(#drill:not([hidden])) { overscroll-behavior: none; }
 #pad { width: min(100%, 440px, 52vh); aspect-ratio: 1; max-width: 100%; touch-action: none; user-select: none; -webkit-user-select: none; background: var(--sheet); border: 3px solid var(--ink); border-radius: 6px; display: block; }
 #pad .guide { stroke: var(--rule); stroke-width: .6; stroke-dasharray: 2 2; }
 #pad .outline path { stroke: var(--guide); stroke-width: 6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
-#pad .ink path { stroke: var(--ink); stroke-width: 4.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+#pad .ink path { stroke: var(--ink); stroke-width: 2.6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
 #pad .ink path.bad { stroke: var(--red); }
-#pad .anim path { stroke: var(--hint); stroke-width: 4.2; fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
+#pad .anim path { stroke: var(--hint); stroke-width: 3; fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
 #pad .startdot { fill: var(--green); }
 #pad .startnum { fill: var(--green-ink); font-size: 6px; font-weight: 700; font-family: var(--font-ui); }
 #pad .maru { stroke: var(--red); stroke-width: 3.5; fill: none; }
@@ -456,7 +456,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2256</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2258</p>
 </section>
 
 <!-- 書きとり -->
@@ -1237,10 +1237,10 @@ function bossTurn(ok) {
   B.over = B.hp <= 0 || B.hearts <= 0 || D.i + 1 >= D.qs.length;
   B.win = B.hp <= 0;
 }
-// ステージの けっか：ふつうは 6わり いじょう ○ で クリア、ボスは たおせば クリア
+// ステージの けっか：ふつうは 7わり いじょう ○ で クリア、ボスは たおせば クリア
 function stageResult() {
   const st = D.stage, n = D.results.length, ok = D.results.filter(r => r.ok).length;
-  const clear = st.t === "boss" ? D.boss.win : ok >= Math.ceil(n * 0.6);
+  const clear = st.t === "boss" ? D.boss.win : ok >= Math.ceil(n * 0.7 - 1e-9);
   const before = cleared();
   let got = [];
   if (clear && st.s === before + 1) {
@@ -1588,7 +1588,7 @@ function endStroke(e) {
   D.miss++;
   const msg = { reverse: "かく むきが はんたいだよ", order: "かきじゅんが ちがうよ", miss: "もういちど かいてみよう" }[r];
   setMsg(msg, "bad");
-  if (D.miss >= 2 || r === "order") { setTimeout(hintStroke, 300); }
+  if (D.miss >= 2) { setTimeout(hintStroke, 300); }
 }
 pad.addEventListener("pointerup", endStroke);
 // マスの上で書き始めた指は、マスの外に出ても画面を動かさない（iPhone対策）
@@ -1654,7 +1654,7 @@ function finishDrill() {
       if (B.win) setTimeout(() => sfx("great"), 200);
     } else {
       $("resGreat").textContent = r.clear ? `ステージ${st.s} クリア！ ${pickOne(PRAISE)}` : "あと すこし！ もういちど ちょうせん しよう";
-      $("resNote").textContent = r.clear ? "6わり いじょう ○ で クリアだよ。" : `${Math.ceil(D.results.length * 0.6)}もん ○ で クリア。${pickOne(CHEER)}`;
+      $("resNote").textContent = r.clear ? "7わり いじょう ○ で クリアだよ。" : `${Math.ceil(D.results.length * 0.7 - 1e-9)}もん ○ で クリア。${pickOne(CHEER)}`;
       if (r.clear && !perfect) $("resHana").innerHTML = "";
     }
     for (const it of r.got) { const sp = document.createElement("span"); sp.textContent = `そうび ゲット！ ${it.slot}：${it.name}`; $("resGot").appendChild(sp); }
