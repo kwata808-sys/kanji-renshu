@@ -237,16 +237,12 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <button id="startBtn" class="btn primary big">はじめる</button>
     <div class="opts">
-      <div class="seg" id="modeSeg">
-        <button id="modeTest" data-mode="test">テスト<small>見ないで かく</small></button>
-        <button id="modePrac" data-mode="prac">れんしゅう<small>なぞって かく</small></button>
-      </div>
       <div class="seg" id="countSeg">
         <button data-n="5">5もん</button><button data-n="10">10もん</button>
       </div>
       <div class="seg" id="unkoSeg">
         <button data-u="0">ふつうの文</button>
-        <button data-u="1">うんこ文<small id="unkoNote"></small></button>
+        <button data-u="1">うんこ文</button>
       </div>
     </div>
   </div>
@@ -325,7 +321,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2103</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2106</p>
 </section>
 
 <!-- 書きとり -->
@@ -703,7 +699,6 @@ function renderHome() {
   const hasU = !!DATA.unko[g];
   for (const b of $("unkoSeg").children) b.setAttribute("aria-pressed", (b.dataset.u === "1") === (!!S.settings.unko && hasU));
   $("unkoSeg").children[1].disabled = !hasU;
-  $("unkoNote").textContent = hasU ? "わらって おぼえよう" : "いまは 2年生だけ";
   for (const b of $("countSeg").children) b.setAttribute("aria-pressed", +b.dataset.n === (S.settings.count || 5));
   for (const b of $("soundSeg").children) b.setAttribute("aria-pressed", (b.dataset.s === "1") === (S.settings.sound !== false));
   const weakN = Object.keys(S.stats).filter(k => isK(k) && status(k) === "weak").length;
@@ -724,7 +719,6 @@ function renderHome() {
   const my = $("myChips"); my.textContent = "";
   $("myLabel").hidden = !S.lists.length;
   for (const l of S.lists) chip(my, "chip", l.id, `${esc(l.name)}<small>${sel(l.id)}${targetsOf(l.id).kanji.length}字</small>`);
-  for (const b of $("modeSeg").children) b.setAttribute("aria-pressed", b.dataset.mode === S.settings.mode);
   for (const b of $("levelSeg").children) b.setAttribute("aria-pressed", b.dataset.level === S.settings.level);
   const T = targetsOf(S.settings.list), n = S.settings.count || 5;
   $("startBtn").disabled = !T.pool.length;
@@ -762,9 +756,8 @@ $("gradeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) ret
 $("unkoSeg").onclick = e => { const b = e.target.closest("button"); if (!b || b.disabled) return; S.settings.unko = b.dataset.u === "1"; buildQ(); save(); renderHome(); };
 $("countSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.count = +b.dataset.n; save(); renderHome(); };
 $("soundSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.sound = b.dataset.s === "1"; save(); renderHome(); if (S.settings.sound) sfx("ok"); };
-$("modeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.mode = b.dataset.mode; save(); renderHome(); };
 $("levelSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.level = b.dataset.level; save(); renderHome(); };
-$("startBtn").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, S.settings.count || 5), S.settings.mode, undefined, T.limit); };
+$("startBtn").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, S.settings.count || 5), "test", undefined, T.limit); };
 $("goKaki").onclick = () => show("kaki");
 $("goStory").onclick = () => show("storyMenu");
 $("goKana").onclick = startKana;
@@ -786,7 +779,7 @@ function loadQ() {
   const ks = [...q.w].map((c, i) => isK(c) && (!D.only || D.only.includes(c)) && (!D.limit || D.limit.includes(c)) ? i : -1).filter(i => i >= 0);
   D.q = q; D.slots = ks; D.si = 0; D.marks = {};
   $("drillProg").textContent = (D.title ? D.title + "　" : "") + `${D.i + 1} / ${D.qs.length}`;
-  $("modeNote").textContent = D.mode === "prac" ? "うすい字を なぞって かこう" : "見ないで かこう";
+  $("modeNote").textContent = D.only ? "かきじゅんを 見てから なぞって かこう" : "見ないで かこう";
   $("nextBtn").hidden = true; $("tools").hidden = false;
   renderQ(); loadChar();
 }
@@ -858,8 +851,8 @@ function clearPad() { for (const id of ["lOutline", "lAnim", "lInk", "lTop"]) $(
 function loadChar() {
   clearPad();
   const k = D.q.w[D.slots[D.si]];
-  D.k = k; D.T = template(k); D.n = 0; D.off = { x: 0, y: 0 }; D.miss = 0; D.clean = true; D.outline = D.mode === "prac";
-  if (D.outline) drawOutline();
+  D.k = k; D.T = template(k); D.n = 0; D.off = { x: 0, y: 0 }; D.miss = 0; D.clean = true; D.outline = false;
+  if (D.only) setTimeout(showAnswer, 300);
   setMsg("");
   markStart();
 }
@@ -999,7 +992,7 @@ function finishDrill() {
   $("resHana").innerHTML = perfect ? HANA : "";
   $("resGreat").textContent = perfect ? "よく できました！" : ok >= n / 2 ? "がんばったね" : "つぎも がんばろう";
   if (perfect) setTimeout(() => sfx("great"), 200);
-  $("resNote").textContent = D.mode === "test" ? "○は 見ないで かけた字。△は ヒントを 見た字です。" : "れんしゅうモードの けっかは「おぼえた」には かぞえません。";
+  $("resNote").textContent = "○は 見ないで かけた字。△は ヒントを 見た字です。";
   const list = $("resList"); list.textContent = "";
   for (const r of D.results) {
     const d = document.createElement("div"); d.className = "resitem";
@@ -1009,8 +1002,8 @@ function finishDrill() {
   }
   const wrong = D.results.filter(r => !r.ok).map(r => r.q);
   $("resRetry").hidden = !wrong.length;
-  $("resRetry").onclick = () => startDrill(wrong, "prac", undefined, D.limit);
-  if (!D.story) $("resAgain").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, S.settings.count || 5), S.settings.mode, undefined, T.limit); };
+  $("resRetry").onclick = () => startDrill(wrong, "test", undefined, D.limit);
+  if (!D.story) $("resAgain").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, S.settings.count || 5), "test", undefined, T.limit); };
   show("result");
 }
 $("resHome").onclick = () => show("home");
