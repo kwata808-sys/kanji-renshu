@@ -1348,7 +1348,8 @@ function bossTurn(ok) {
 }
 // ステージの けっか：ふつうは 7わり いじょう ○ で クリア、ボスは たおせば クリア
 function stageResult() {
-  const st = D.stage, n = D.results.length, ok = D.results.filter(r => r.ok).length;
+  // とちゅうで やめたら、のこりは ×として 数える（やめて クリアに ならないように）
+  const st = D.stage, n = D.qs.length, ok = D.results.filter(r => r.ok).length;
   const clear = st.t === "boss" ? D.boss.win : ok >= Math.ceil(n * 0.7 - 1e-9);
   const before = cleared();
   let got = [];
@@ -1782,7 +1783,7 @@ function charDone() {
 }
 function finishDrill() {
   if (D.qs.length === 1 && D.only) { show("gridScreen"); return; }
-  const n = D.results.length, ok = D.results.filter(r => r.ok).length;
+  const n = D.stage ? D.qs.length : D.results.length, ok = D.results.filter(r => r.ok).length;
   $("resScore").textContent = `${n}もん中 ${ok}もん ○`;
   const perfect = n > 0 && ok === n;
   if (D.story) { const si = D.storyIdx; $("resAgain").onclick = () => startStory(si); }
@@ -1801,7 +1802,7 @@ function finishDrill() {
       if (B.win) setTimeout(() => sfx("great"), 200);
     } else {
       $("resGreat").textContent = r.clear ? `ステージ${st.s} クリア！ ${pickOne(PRAISE)}` : "あと すこし！ もういちど ちょうせん しよう";
-      $("resNote").textContent = r.clear ? "7わり いじょう ○ で クリアだよ。" : `${Math.ceil(D.results.length * 0.7 - 1e-9)}もん ○ で クリア。${pickOne(CHEER)}`;
+      $("resNote").textContent = r.clear ? "7わり いじょう ○ で クリアだよ。" : `${Math.ceil(D.qs.length * 0.7 - 1e-9)}もん ○ で クリア。${pickOne(CHEER)}`;
       if (r.clear && !perfect) $("resHana").innerHTML = "";
     }
     for (const it of r.got) { const sp = document.createElement("span"); sp.textContent = `そうび ゲット！ ${it.slot}：${it.name}`; $("resGot").appendChild(sp); }
