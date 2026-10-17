@@ -132,6 +132,20 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .arena .vs { font-family: var(--font-ui); font-weight: 700; font-size: 22px; color: var(--hana); opacity: .5; letter-spacing: .1em; }
 .shot { position: absolute; pointer-events: none; transform: translate(-50%, -50%); z-index: 2; }
 .shot.puff { transform: translate(-50%, -50%) scaleX(-1); }
+.shot.spin svg { animation: spin .36s linear infinite; display: block; }
+.shot.hammer svg { animation-duration: .48s; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.ovl { position: absolute; transform: translate(-50%, -50%); pointer-events: none; z-index: 2; }
+.ovl.slashfx { animation: slashin .5s ease-out forwards; }
+@keyframes slashin { 0% { opacity: 0; transform: translate(-50%, -50%) scale(.3) rotate(-20deg); } 30% { opacity: 1; transform: translate(-50%, -50%) scale(1.1) rotate(0); } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.2); } }
+.ovl.bolt { animation: boltin .6s ease-out forwards; }
+@keyframes boltin { 0% { opacity: 0; transform: translate(-50%, -140%) scale(.6); } 25% { opacity: 1; transform: translate(-50%, -60%) scale(1.1); } 50% { opacity: .4; } 65% { opacity: 1; } 100% { opacity: 0; transform: translate(-50%, -50%) scale(1); } }
+.pct { position: absolute; right: 2px; top: -6px; font-family: var(--font-ui); font-weight: 700; font-size: 24px; font-style: italic; letter-spacing: -.02em; -webkit-text-stroke: 1px #fff; text-shadow: 0 2px 0 rgba(0,0,0,.15); font-variant-numeric: tabular-nums; }
+.bossmon.ko { animation: ko 1s cubic-bezier(.3,.6,.4,1) forwards; }
+@keyframes ko { 0% { transform: none; } 100% { transform: translate(160px, -170px) rotate(900deg) scale(.15); opacity: .9; } }
+.kira { position: absolute; right: 0; top: -14px; font-weight: 700; font-size: 20px; color: #f2c230; -webkit-text-stroke: 1px #b88a12; animation: kira .8s ease-out; }
+@keyframes kira { 0% { transform: scale(0) rotate(-30deg); } 60% { transform: scale(1.4) rotate(10deg); } 100% { transform: scale(1); } }
+@media (prefers-reduced-motion: reduce) { .shot.spin svg, .bossmon.ko { animation: none; } }
 .popfx { position: absolute; transform: translate(-50%, -50%); pointer-events: none; z-index: 3; font-weight: 700; white-space: nowrap; animation: popup 1.1s ease-out forwards; }
 .popfx.boom { font-family: var(--font-k); font-size: 26px; color: #e8473a; -webkit-text-stroke: 1px #fff; text-shadow: 0 2px 0 #fff, 0 0 8px #ffd54a; }
 .popfx.dmg { font-size: 22px; color: #fff; background: var(--hana); border-radius: 99px; padding: 0 10px; }
@@ -459,6 +473,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
       <div class="pl" id="plAva"></div>
       <div class="vs">VS</div>
       <div class="bossmon" id="bossMon"></div>
+      <div class="pct" id="bossPct">0%</div>
     </div>
     <div class="bossinfo">
       <b id="bossName"></b>
@@ -818,6 +833,15 @@ function play(kind) {
       o.connect(g).connect(AC.destination); o.start(t0); o.stop(t0 + 0.32);
       return;
     }
+    if (kind === "slash") {
+      // きりさき：みじかい シャッ
+      const buf = AC.createBuffer(1, AC.sampleRate * 0.22, AC.sampleRate), d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+      const src = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(), t0 = AC.currentTime;
+      src.buffer = buf; f.type = "highpass"; f.frequency.setValueAtTime(1500, t0); f.frequency.exponentialRampToValueAtTime(5000, t0 + 0.2);
+      g.gain.value = 0.5; src.connect(f).connect(g).connect(AC.destination); src.start(t0);
+      return;
+    }
     if (kind === "boom" || kind === "puff") {
       // ばくはつ／おなら：ざらざらした 音を 下に しぼる
       const len = kind === "boom" ? 0.5 : 0.6, buf = AC.createBuffer(1, AC.sampleRate * len, AC.sampleRate), d = buf.getChannelData(0);
@@ -868,37 +892,48 @@ const curStage = () => Math.min(LAST, cleared() + 1);
 // そうび：ステージを クリアすると 手に入る。いちばん つよいものを 自動で つける
 const SLOTS = ["ぶき", "あたま", "からだ", "たて", "アクセ"];
 const ITEMS = [
-  { s: 0, slot: "ぶき", name: "ふつうの えんぴつ", pow: 1, c: "#e9b949" },
-  { s: 3, slot: "ぶき", name: "2Bえんぴつ", pow: 2, c: "#3c3c3c" },
-  { s: 15, slot: "ぶき", name: "3色ボールペン", pow: 4, c: "#3b7bd6" },
-  { s: 30, slot: "ぶき", name: "キラキラペン", pow: 6, c: "#e66aa8" },
-  { s: 50, slot: "ぶき", name: "まほうの ふで", pow: 9, c: "#9b6cf0" },
-  { s: 80, slot: "ぶき", name: "でんせつの 赤ペン", pow: 13, c: "#e8473a" },
-  { s: 99, slot: "ぶき", name: "金の えんぴつ", pow: 20, c: "#f2c230" },
-  { s: 0, slot: "あたま", name: "ねぐせ", pow: 0, look: "hair" },
-  { s: 10, slot: "あたま", name: "赤白ぼうし", pow: 1, look: "cap" },
-  { s: 20, slot: "あたま", name: "はちまき", pow: 2, look: "band" },
-  { s: 35, slot: "あたま", name: "ねこみみ", pow: 3, look: "cat" },
-  { s: 60, slot: "あたま", name: "ちょんまげ", pow: 5, look: "mage" },
+  { s: 0, slot: "ぶき", name: "木の けん", pow: 1, type: "sword", c: "#c9a46a" },
+  { s: 3, slot: "ぶき", name: "はがねの けん", pow: 2, type: "sword", c: "#cfd8e3" },
+  { s: 15, slot: "ぶき", name: "ほのおの ハンマー", pow: 4, type: "hammer", c: "#ff6a3d" },
+  { s: 30, slot: "ぶき", name: "いなずまの やり", pow: 6, type: "spear", c: "#ffd54a" },
+  { s: 50, slot: "ぶき", name: "ほしくずの 弓", pow: 9, type: "bow", c: "#9b8cf0" },
+  { s: 80, slot: "ぶき", name: "りゅうの つるぎ", pow: 13, type: "sword", c: "#4fd18b", glow: "#9dffcf" },
+  { s: 99, slot: "ぶき", name: "でんせつの かんじブレード", pow: 20, type: "legend", c: "#ffe066", glow: "#fff4b0" },
+  { s: 0, slot: "あたま", name: "ねぐせ", pow: 0, look: "none" },
+  { s: 10, slot: "あたま", name: "バンダナ", pow: 1, look: "bandana" },
+  { s: 20, slot: "あたま", name: "きしの かぶと", pow: 2, look: "helmet" },
+  { s: 35, slot: "あたま", name: "ゴーグル", pow: 3, look: "goggles" },
+  { s: 60, slot: "あたま", name: "りゅうの かぶと", pow: 5, look: "dragon" },
   { s: 90, slot: "あたま", name: "おうかん", pow: 8, look: "crown" },
-  { s: 0, slot: "からだ", name: "パジャマ", pow: 0, c: "#9fc6e8" },
-  { s: 8, slot: "からだ", name: "たいそうふく", pow: 1, c: "#ffffff" },
+  { s: 0, slot: "からだ", name: "ふだんぎ", pow: 0, base: true },
+  { s: 8, slot: "からだ", name: "たびびとの ふく", pow: 1, c: "#8d6e4a" },
   { s: 25, slot: "からだ", name: "ヒーロー マント", pow: 3, c: "#3b7bd6", cape: "#e8473a" },
-  { s: 55, slot: "からだ", name: "にんじゃの ふく", pow: 5, c: "#3d3f5c" },
-  { s: 85, slot: "からだ", name: "きんぴか スーツ", pow: 8, c: "#f2c230", cape: "#e8473a" },
+  { s: 55, slot: "からだ", name: "にんじゃの ふく", pow: 5, c: "#3d3f5c", scarf: "#e8473a" },
+  { s: 85, slot: "からだ", name: "ひかりの よろい", pow: 8, c: "#e9eef5", armor: "#f2c230", cape: "#ffffff" },
   { s: 0, slot: "たて", name: "なし", pow: 0 },
-  { s: 12, slot: "たて", name: "じゆうちょう", pow: 1, c: "#7cc576" },
-  { s: 28, slot: "たて", name: "したじき", pow: 2, c: "#5ab4e6" },
-  { s: 40, slot: "たて", name: "こくご じてん", pow: 4, c: "#e8473a" },
-  { s: 65, slot: "たて", name: "なべの ふた", pow: 5, c: "#b8b8b8" },
-  { s: 95, slot: "たて", name: "ひかる バリア", pow: 9, c: "#9be7ff" },
+  { s: 12, slot: "たて", name: "木の たて", pow: 1, c: "#b07a3a", shape: "round" },
+  { s: 28, slot: "たて", name: "てつの たて", pow: 2, c: "#9aa5b1", shape: "kite" },
+  { s: 40, slot: "たて", name: "ほのおの たて", pow: 4, c: "#e8473a", shape: "round", mark: "fire" },
+  { s: 65, slot: "たて", name: "ドラゴンの たて", pow: 5, c: "#3a9a5a", shape: "kite", mark: "star" },
+  { s: 95, slot: "たて", name: "ひかる バリア", pow: 9, c: "#9be7ff", shape: "barrier" },
   { s: 0, slot: "アクセ", name: "なし", pow: 0 },
-  { s: 7, slot: "アクセ", name: "けしゴム", pow: 1 },
-  { s: 18, slot: "アクセ", name: "ものさし", pow: 2 },
-  { s: 45, slot: "アクセ", name: "ランドセル", pow: 3 },
-  { s: 70, slot: "アクセ", name: "ロケット くつ", pow: 6 },
-  { s: 75, slot: "アクセ", name: "うんこの おまもり", pow: 7 },
+  { s: 7, slot: "アクセ", name: "パワーリング", pow: 1, look: "ring" },
+  { s: 18, slot: "アクセ", name: "スピードくつ", pow: 2, look: "speed" },
+  { s: 45, slot: "アクセ", name: "てんしの つばさ", pow: 3, look: "wings" },
+  { s: 70, slot: "アクセ", name: "ロケットくつ", pow: 6, look: "rocket" },
+  { s: 75, slot: "アクセ", name: "うんこの おまもり", pow: 7, look: "unko" },
 ];
+// ぶきの かたち：にぎりを 原点に、上（マイナス）へ のびる
+function weaponShape(w) {
+  const k = "#3a3a3a";
+  if (w.type === "hammer") return `<rect x="-2.5" y="-58" width="5" height="72" rx="2" fill="#7a5230" stroke="${k}" stroke-width="1.5"/><rect x="-18" y="-84" width="36" height="26" rx="5" fill="${w.c}" stroke="${k}" stroke-width="2"/><path d="M-10 -84 q4 -14 10 -6 q4 -12 10 6z" fill="#ffd54a" stroke="#e8473a" stroke-width="1.5"/>`;
+  if (w.type === "spear") return `<rect x="-2" y="-72" width="4" height="90" rx="2" fill="#8b6b4a" stroke="${k}" stroke-width="1.2"/><path d="M-8 -70 L0 -96 L8 -70z" fill="${w.c}" stroke="${k}" stroke-width="2"/><path d="M-3 -88 l5 -4 -3 7 5 -3" stroke="#fff" stroke-width="1.6" fill="none"/>`;
+  if (w.type === "bow") return `<path d="M-4 -86 Q30 -36 -4 14" stroke="${w.c}" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M-4 -86 L-4 14" stroke="#eee" stroke-width="1.5"/><path d="M-14 -36 h30 l-6 -4 m6 4 l-6 4" stroke="${k}" stroke-width="2" fill="none"/><circle cx="12" cy="-36" r="3" fill="#fff8b0"/>`;
+  const glow = w.glow ? `<path d="M-9 -2 L-9 -74 L0 -92 L9 -74 L9 -2z" fill="${w.glow}" opacity=".55"/>` : "";
+  const rainbow = w.type === "legend" ? `<path d="M-2 -10 V-70" stroke="#ff7b8a" stroke-width="1.5"/><path d="M0 -10 V-74" stroke="#5ab4e6" stroke-width="1.5"/><path d="M2 -10 V-70" stroke="#7cc576" stroke-width="1.5"/>` : `<path d="M-1 -10 V-68" stroke="#fff" stroke-width="1.5" opacity=".8"/>`;
+  return glow + `<rect x="-3" y="0" width="6" height="14" rx="2" fill="#6b4a1e" stroke="${k}" stroke-width="1.2"/><circle cx="0" cy="17" r="3.5" fill="#f2c230" stroke="${k}" stroke-width="1"/><rect x="-13" y="-5" width="26" height="6" rx="2" fill="#f2c230" stroke="${k}" stroke-width="1.5"/><path d="M-5 -5 L-5 -70 L0 -84 L5 -70 L5 -5z" fill="${w.c}" stroke="${k}" stroke-width="2"/>` + rainbow;
+}
+const weaponIcon = (w, size = 54) => `<svg viewBox="-34 -100 68 122" width="${size * 0.56}" height="${size}" aria-hidden="true">${weaponShape(w)}</svg>`;
 function equipped(c = cleared()) {
   const eq = {};
   for (const it of ITEMS) if (it.s <= c && (!eq[it.slot] || it.pow >= eq[it.slot].pow)) eq[it.slot] = it;
@@ -917,7 +952,7 @@ const LOOK = {
   mouth: { name: "くち", opts: ["にっこり", "大わらい", "びっくり", "ぺろっ", "まっすぐ"] },
   glasses: { name: "めがね", opts: ["なし", "まる", "しかく", "サングラス"] },
   cheek: { name: "ほっぺ", opts: ["あり", "なし"] },
-  cloth: { name: "ふくの いろ（パジャマの とき）", opts: ["#9fc6e8", "#f7a072", "#7cc576", "#e66aa8", "#ffd54a", "#b39ddb", "#ffffff", "#555555"] },
+  cloth: { name: "ふくの いろ（ふだんぎの とき）", opts: ["#9fc6e8", "#f7a072", "#7cc576", "#e66aa8", "#ffd54a", "#b39ddb", "#ffffff", "#555555"] },
 };
 const LOOK_KEYS = Object.keys(LOOK);
 const DEFAULT_LOOK = { skin: 0, hair: 2, hairC: 0, eyes: 0, mouth: 0, glasses: 0, cheek: 0, cloth: 0 };
@@ -932,17 +967,23 @@ const myLook = () => S.stats["アバター"] ? codeToLook(S.stats["アバター"
 function avatar(eq, look = myLook()) {
   const body = eq["からだ"], head = eq["あたま"], w = eq["ぶき"], sh = eq["たて"];
   const skin = LOOK.skin.opts[look.skin], hc = LOOK.hairC.opts[look.hairC], hs = LOOK.hair.opts[look.hair];
-  const cloth = body.name === "パジャマ" ? LOOK.cloth.opts[look.cloth] : body.c;
+  const cloth = body.base ? LOOK.cloth.opts[look.cloth] : body.c;
   let s = `<svg class="ava" viewBox="0 0 100 110" aria-hidden="true">`;
-  if (body.cape) s += `<path d="M30 52 L18 100 L82 100 L70 52 Z" fill="${body.cape}"/>`;
+  const ac = eq["アクセ"].look;
+  if (ac === "wings") s += `<path d="M32 60 q-30 -22 -28 10 q8 -4 12 2 q6 -6 16 0z M68 60 q30 -22 28 10 q-8 -4 -12 2 q-6 -6 -16 0z" fill="#fff" stroke="#9fb4c8" stroke-width="2"/>`;
+  if (body.cape) s += `<path d="M30 52 L18 100 L82 100 L70 52 Z" fill="${body.cape}" stroke="#3a3a3a" stroke-width="1"/>`;
   // うしろの かみ
   if (hs === "ロング") s += `<path d="M26 34 q0 -24 24 -24 q24 0 24 24 V62 q-4 4 -8 0 V40 H34 V62 q-4 4 -8 0z" fill="${hc}"/>`;
   if (hs === "ポニーテール") s += `<path d="M64 16 q22 2 16 34 q-4 -14 -14 -20z" fill="${hc}"/>`;
   if (hs === "ツインテール") s += `<ellipse cx="23" cy="40" rx="7" ry="14" fill="${hc}"/><ellipse cx="77" cy="40" rx="7" ry="14" fill="${hc}"/>`;
   s += `<rect x="30" y="52" width="40" height="42" rx="12" fill="${cloth}" stroke="#3a3a3a" stroke-width="2"/>`;
   s += `<rect x="34" y="92" width="10" height="12" rx="3" fill="#3a3a3a"/><rect x="56" y="92" width="10" height="12" rx="3" fill="#3a3a3a"/>`;
-  if (eq["アクセ"].name === "ランドセル") s += `<rect x="24" y="56" width="10" height="26" rx="3" fill="#c0392b"/>`;
-  if (eq["アクセ"].name === "ロケット くつ") s += `<path d="M34 104 l-4 6 h18 l-4 -6z M56 104 l-4 6 h18 l-4 -6z" fill="#ff8a3d"/>`;
+  if (body.armor) s += `<path d="M33 56 h34 v14 q-17 8 -34 0z" fill="${body.armor}" stroke="#3a3a3a" stroke-width="1.5"/><rect x="30" y="76" width="40" height="5" fill="${body.armor}"/><circle cx="50" cy="63" r="4" fill="#5ab4e6" stroke="#3a3a3a" stroke-width="1"/>`;
+  if (body.scarf) s += `<path d="M34 52 h32 v6 h-32z M62 56 l10 10 -4 2 -10 -8z" fill="${body.scarf}"/>`;
+  if (body.name === "たびびとの ふく") s += `<rect x="30" y="74" width="40" height="5" fill="#5a3d22"/><rect x="47" y="73" width="6" height="7" fill="#f2c230"/>`;
+  if (ac === "rocket") s += `<path d="M32 102 h14 v6 h-14z M54 102 h14 v6 h-14z" fill="#ff8a3d" stroke="#3a3a3a" stroke-width="1.2"/><path d="M34 108 l3 6 3 -6z M56 108 l3 6 3 -6z" fill="#ffd54a"/>`;
+  if (ac === "speed") s += `<path d="M32 102 h14 v6 h-14z M54 102 h14 v6 h-14z" fill="#3b7bd6" stroke="#3a3a3a" stroke-width="1.2"/><path d="M22 104 h7 M20 108 h9" stroke="#3b7bd6" stroke-width="1.5"/>`;
+  if (ac === "unko") s += `<g transform="translate(60 80) scale(.16)"><ellipse cx="50" cy="84" rx="40" ry="13" fill="#8a5a2b"/><ellipse cx="50" cy="66" rx="31" ry="12" fill="#9c6833"/><ellipse cx="50" cy="48" rx="22" ry="11" fill="#ad773d"/></g>`;
   s += `<circle cx="50" cy="34" r="22" fill="${skin}" stroke="#3a3a3a" stroke-width="2"/>`;
   // め
   const ey = {
@@ -981,17 +1022,24 @@ function avatar(eq, look = myLook()) {
     "くるくる": `<g fill="${hc}"><circle cx="30" cy="28" r="6"/><circle cx="35" cy="18" r="7"/><circle cx="45" cy="12" r="7"/><circle cx="56" cy="12" r="7"/><circle cx="66" cy="18" r="7"/><circle cx="71" cy="28" r="6"/></g>`,
   };
   s += fr[hs];
-  // ぼうし（そうび）
+  // あたま（そうび）
   const hats = {
-    cap: `<path d="M28 28 q2 -18 22 -18 q20 0 22 18 z" fill="#e8473a"/><path d="M50 10 q20 0 22 18 h-22z" fill="#fff"/>`,
-    band: `<rect x="28" y="22" width="44" height="7" fill="#fff" stroke="#e8473a" stroke-width="2"/><circle cx="50" cy="25" r="3" fill="#e8473a"/>`,
-    cat: `<path d="M30 22 l2 -16 10 10z M70 22 l-2 -16 -10 10z" fill="${hc}" stroke="#3a3a3a" stroke-width="1.2"/><path d="M33 18 l1 -7 4 4z M67 18 l-1 -7 -4 4z" fill="#ffb3b3"/>`,
-    mage: `<rect x="44" y="2" width="12" height="12" rx="4" fill="${hc}"/>`,
-    crown: `<path d="M32 16 l4 -12 7 8 7 -10 7 10 7 -8 4 12z" fill="#f2c230" stroke="#b88a12" stroke-width="1.5"/>`,
+    bandana: `<path d="M28 26 q22 -10 44 0 v6 q-22 -8 -44 0z" fill="#e8473a" stroke="#3a3a3a" stroke-width="1"/><path d="M72 28 l10 -4 -2 8z M72 30 l8 6 -6 2z" fill="#e8473a"/><circle cx="40" cy="28" r="1.5" fill="#fff"/><circle cx="56" cy="27" r="1.5" fill="#fff"/>`,
+    helmet: `<path d="M26 32 q0 -24 24 -24 q24 0 24 24 h-6 v-4 h-36 v4z" fill="#c4ccd6" stroke="#3a3a3a" stroke-width="2"/><rect x="47" y="10" width="6" height="18" fill="#9aa5b1"/><path d="M50 8 q12 -10 20 0 q-10 -2 -20 4z" fill="#e8473a"/>`,
+    goggles: `<rect x="28" y="20" width="44" height="5" fill="#5a3d22"/><circle cx="41" cy="22" r="6" fill="#9be7ff" stroke="#3a3a3a" stroke-width="2"/><circle cx="59" cy="22" r="6" fill="#9be7ff" stroke="#3a3a3a" stroke-width="2"/><circle cx="39" cy="20" r="1.6" fill="#fff"/><circle cx="57" cy="20" r="1.6" fill="#fff"/>`,
+    dragon: `<path d="M26 32 q0 -24 24 -24 q24 0 24 24 h-6 v-4 h-36 v4z" fill="#3a9a5a" stroke="#3a3a3a" stroke-width="2"/><path d="M30 14 l-8 -12 14 8z M70 14 l8 -12 -14 8z" fill="#f2e2b0" stroke="#3a3a3a" stroke-width="1.2"/><path d="M42 12 l3 -6 3 6 M52 12 l3 -6 3 6" fill="#f2c230"/>`,
+    crown: `<path d="M32 16 l4 -12 7 8 7 -10 7 10 7 -8 4 12z" fill="#f2c230" stroke="#b88a12" stroke-width="1.5"/><circle cx="50" cy="10" r="2" fill="#e8473a"/>`,
   };
   s += hats[head.look] || "";
-  s += `<g transform="rotate(-30 80 70)"><rect x="76" y="44" width="8" height="34" fill="${w.c}" stroke="#3a3a3a" stroke-width="1.5"/><path d="M76 44 l4 -9 4 9z" fill="#ffe0bd" stroke="#3a3a3a" stroke-width="1.5"/><path d="M78.5 38 l1.5 -3 1.5 3z" fill="#222"/></g>`;
-  if (sh.c) s += `<rect x="12" y="60" width="20" height="26" rx="5" fill="${sh.c}" stroke="#3a3a3a" stroke-width="2"/>`;
+  if (ac === "ring") s += `<circle cx="22" cy="74" r="4" fill="none" stroke="#f2c230" stroke-width="2.5"/>`;
+  // ぶき（右手）
+  s += `<g transform="translate(80 76) rotate(28) scale(.6)">${weaponShape(w)}</g>`;
+  // たて（左手）
+  if (sh.shape === "round") s += `<circle cx="21" cy="72" r="13" fill="${sh.c}" stroke="#3a3a3a" stroke-width="2"/><circle cx="21" cy="72" r="4" fill="#f2c230" stroke="#3a3a3a" stroke-width="1"/>`;
+  if (sh.shape === "kite") s += `<path d="M9 60 h24 v12 q0 14 -12 20 q-12 -6 -12 -20z" fill="${sh.c}" stroke="#3a3a3a" stroke-width="2"/>`;
+  if (sh.mark === "fire") s += `<path d="M21 64 q6 6 2 12 q-2 -4 -4 -2 q-4 -6 2 -10z" fill="#ffd54a"/>`;
+  if (sh.mark === "star") s += `<path d="M21 66 l2 5 5 0 -4 3 2 5 -5 -3 -5 3 2 -5 -4 -3 5 0z" fill="#f2c230"/>`;
+  if (sh.shape === "barrier") s += `<circle cx="50" cy="60" r="46" fill="${sh.c}" opacity=".22" stroke="${sh.c}" stroke-width="2"/>`;
   return s + `</svg>`;
 }
 
@@ -1175,16 +1223,31 @@ function startBoss(s) {
   D.stage = { s, t: "boss" };
   D.boss = { s, name: b.name, hp: 4 + i * 2, max: 4 + i * 2, hearts: 3, atk, combo: 0, shownHp: 4 + i * 2, shownHearts: 3 };
   $("plAva").innerHTML = "";
-  $("bossMon").innerHTML = bossFace(s);
+  $("bossMon").innerHTML = bossFace(s); $("bossMon").classList.remove("ko");
+  document.querySelectorAll("#arena .kira").forEach(e => e.remove());
   D.title = `ステージ${s} ボスせん`;
   $("drillProg").textContent = D.title;
   renderBoss(); say(b.say);
 }
 function say(t) { const el = $("bossSay"); el.textContent = t; el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop"); }
+// スマブラふうの ダメージ％。たおすと ふっとんで「キラーン☆」
+function knockout() {
+  const B = D.boss, b = BOSSES[B.s], m = $("bossMon");
+  setTimeout(() => {
+    sfx("great");
+    m.classList.add("ko");
+    pop($("bossPct"), "ふっとばし！", "boom");
+    setTimeout(() => { const st = document.createElement("div"); st.className = "kira"; st.textContent = "キラーン☆"; $("arena").appendChild(st); }, 700);
+    say(b.win);
+  }, 350);
+}
 function renderBoss(hpOnly) {
   const B = D && D.boss;
   $("bossBar").hidden = !B;
   if (!B) return;
+  const pct = Math.round((B.max - Math.max(0, B.shownHp)) / B.max * 150);
+  $("bossPct").textContent = pct + "%";
+  $("bossPct").style.color = pct >= 120 ? "#e8473a" : pct >= 60 ? "#ff8a3d" : "#3a3a3a";
   $("bossHp").style.width = (Math.max(0, B.shownHp) / B.max * 100) + "%";
   $("hearts").textContent = "♥".repeat(Math.max(0, B.shownHearts)) + "♡".repeat(3 - Math.max(0, B.shownHearts));
   if (hpOnly) return;
@@ -1192,8 +1255,17 @@ function renderBoss(hpOnly) {
   $("bossAtk").textContent = `こうげき力 ${B.atk}` + (B.combo >= 2 ? `　${B.combo}コンボ！` : "");
   if (!$("plAva").innerHTML) $("plAva").innerHTML = avatar(equipped());
 }
-// 正解すると えんぴつビームが とんで「ドカーン！」。ヒントを 見ると ボスが はんげき
-const BOOM = ["ドカーン！", "バシッ！", "ズドーン！", "ドーン！", "クリティカル！"];
+// 正解すると ぶきで こうげき。ぶきごとに うごきと 文字が かわる。ヒントを 見ると ボスが はんげき
+const HITWORD = { sword: ["ザシュッ！", "ズバッ！", "きりさき！"], hammer: ["ドゴォン！", "ズドーン！", "ペシャン！"], spear: ["バリバリッ！", "ビリビリ！", "ゴロゴロ ドーン！"], bow: ["シュッ…ズドン！", "ヒュン！ ドスッ！", "スターショット！"], legend: ["スーパーきりさき！", "かんじスラッシュ！", "でんせつの いちげき！"] };
+const SLASH = c => `<svg viewBox="0 0 100 100" width="90" height="90" aria-hidden="true"><path d="M10 80 Q50 50 92 8" stroke="${c}" stroke-width="10" fill="none" stroke-linecap="round" opacity=".9"/><path d="M14 78 Q50 52 90 10" stroke="#fff" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;
+const BOLT = `<svg viewBox="0 0 60 100" width="44" height="80" aria-hidden="true"><path d="M34 0 L10 52 H28 L18 100 L52 38 H32 L44 0z" fill="#ffd54a" stroke="#e8a400" stroke-width="3" stroke-linejoin="round"/></svg>`;
+const ARROW = `<svg viewBox="0 0 70 16" width="70" height="16" aria-hidden="true"><path d="M0 8 H58" stroke="#8b6b4a" stroke-width="3"/><path d="M56 2 L70 8 L56 14z" fill="#9b8cf0" stroke="#3a3a3a" stroke-width="1.5"/><path d="M0 3 l8 5 -8 5" fill="#fff" stroke="#9b8cf0" stroke-width="1.5"/><circle cx="64" cy="8" r="9" fill="#fff8b0" opacity=".5"/></svg>`;
+function overlay(target, html, cls, ms) {
+  const ar = $("arena"), a = ar.getBoundingClientRect(), t = target.getBoundingClientRect();
+  const el = document.createElement("div"); el.className = "ovl " + cls; el.innerHTML = html;
+  el.style.left = (t.left - a.left + t.width / 2) + "px"; el.style.top = (t.top - a.top + t.height / 2) + "px";
+  ar.appendChild(el); setTimeout(() => el.remove(), ms);
+}
 function fx(from, to, html, cls, dur) {
   const ar = $("arena"), a = ar.getBoundingClientRect(), f = from.getBoundingClientRect(), t = to.getBoundingClientRect();
   const el = document.createElement("div"); el.className = "shot " + cls; el.innerHTML = html;
@@ -1212,7 +1284,6 @@ function pop(target, text, cls) {
   ar.appendChild(el); setTimeout(() => el.remove(), 1100);
 }
 function shake(el) { el.classList.remove("shake2"); void el.offsetWidth; el.classList.add("shake2"); }
-const BEAM = `<svg viewBox="0 0 60 20" width="60" height="20" aria-hidden="true"><path d="M0 10 L44 3 L44 17 Z" fill="#ffd54a" opacity=".7"/><rect x="40" y="5" width="14" height="10" fill="#e9b949" stroke="#3a3a3a" stroke-width="1.5"/><path d="M54 5 L60 10 L54 15 Z" fill="#3a3a3a"/></svg>`;
 const PUFF = `<svg viewBox="0 0 50 40" width="50" height="40" aria-hidden="true"><circle cx="16" cy="22" r="12" fill="#b7d77a" opacity=".85"/><circle cx="30" cy="16" r="12" fill="#c9e08f" opacity=".85"/><circle cx="34" cy="28" r="10" fill="#a9cc68" opacity=".85"/></svg>`;
 function bossTurn(ok) {
   const B = D.boss, b = BOSSES[B.s];
@@ -1221,15 +1292,20 @@ function bossTurn(ok) {
     const dmg = B.atk + (B.combo >= 3 ? 1 : 0);
     B.hp -= dmg;
     const done = B.hp <= 0;
-    sfx("shoot");
-    fx($("plAva"), $("bossMon"), BEAM, "beam", 380).then(() => {
-      sfx("boom");
+    const w = equipped()["ぶき"], type = w.type;
+    // ぶきごとの こうげき：けん・ハンマーは なげて 回る、やりは かみなり、弓は 矢
+    const go = type === "spear" ? new Promise(r => { overlay($("bossMon"), BOLT, "bolt", 600); sfx("shoot"); setTimeout(r, 260); })
+      : type === "bow" ? (sfx("shoot"), fx($("plAva"), $("bossMon"), ARROW, "arrow", 260))
+      : (sfx("shoot"), fx($("plAva"), $("bossMon"), weaponIcon(w, 56), "spin " + type, type === "hammer" ? 480 : 360));
+    go.then(() => {
+      sfx(type === "sword" || type === "legend" ? "slash" : "boom");
+      if (type === "sword" || type === "legend") overlay($("bossMon"), SLASH(type === "legend" ? "#ff7b8a" : (w.glow || "#9be7ff")), "slashfx", 500);
       const m = $("bossMon"); m.classList.remove("hit"); void m.offsetWidth; m.classList.add("hit");
-      shake($("bossBar"));
-      pop($("bossMon"), B.combo >= 3 ? `${B.combo}コンボ！` : pickOne(BOOM), "boom");
+      shake($("bossBar")); if (type === "hammer") setTimeout(() => shake($("bossBar")), 180);
+      pop($("bossMon"), B.combo >= 3 ? `${B.combo}コンボ！` : pickOne(HITWORD[type] || HITWORD.sword), "boom");
       setTimeout(() => pop($("bossMon"), `-${dmg}`, "dmg"), 120);
       B.shownHp = B.hp; renderBoss();
-      say(done ? b.win : pickOne(b.hit));
+      if (done) knockout(); else say(pickOne(b.hit));
     });
   } else {
     B.combo = 0;
