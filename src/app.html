@@ -19,6 +19,9 @@
   --ok: #e3f1e8;
   --hint: #3b7bd6;
   --hana: #e8473a;
+  --t-story: #fde7c8;
+  --t-kana: #dbe9fb;
+  --t-grid: #ece6f6;
   --font-k: "Klee One", "Hiragino Mincho ProN", "Yu Mincho", serif;
   --font-ui: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", system-ui, sans-serif;
 }
@@ -72,6 +75,28 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .question.story .word { display: inline-grid; vertical-align: bottom; margin: 0 2px; }
 .question.story .box, .question.story .kana { font-size: 21px; }
 .question.story .word .yomi { font-size: 12px; }
+.gradebox { display: grid; gap: 8px; }
+.menu { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.tile { border: 0; border-radius: 18px; padding: 16px; text-align: left; display: grid; align-content: space-between; gap: 6px; min-height: 118px; color: var(--ink); min-width: 0; }
+.tile .tk { font-family: var(--font-k); font-weight: 600; font-size: 26px; line-height: 1.2; }
+.tile .ts { font-size: 13px; color: var(--ink); opacity: .7; }
+.tile.main { grid-column: 1 / -1; background: var(--green); color: var(--green-ink); min-height: 150px; padding: 20px; position: relative; overflow: hidden; }
+.tile.main .tk { font-size: 40px; }
+.tile.main .ts { color: inherit; opacity: .9; font-size: 15px; }
+.tile.main .tgo { justify-self: end; background: var(--green-ink); color: var(--green); border-radius: 999px; padding: 8px 16px; font-weight: 700; }
+.tile.main::after { content: "字"; position: absolute; right: -10px; top: -26px; font-family: var(--font-k); font-size: 150px; opacity: .12; }
+.tile.story { background: var(--t-story); }
+.tile.kana { background: var(--t-kana); }
+.tile.grid1 { background: var(--t-grid); grid-column: 1 / -1; min-height: 0; grid-template-columns: 1fr auto; align-items: center; }
+.tile.off { opacity: .55; }
+.adultlink { border: 0; background: transparent; color: var(--pencil); text-decoration: underline; font-size: 14px; justify-self: center; padding: 8px; }
+.hero { gap: 16px; }
+.pickname { font-family: var(--font-k); font-weight: 600; font-size: 24px; margin-top: 4px; }
+.opts { display: grid; gap: 10px; }
+.opts .seg { border-width: 1.5px; }
+.opts .seg button { padding: 8px 6px; }
+.opts .seg button[aria-pressed="true"] { background: var(--ok); color: var(--green); box-shadow: inset 0 0 0 2px var(--green); }
+.opts .seg button[aria-pressed="true"] small { color: var(--green); }
 .great { font-family: var(--font-k); font-size: 28px; font-weight: 600; color: var(--hana); }
 .topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .back { border: 0; background: transparent; font-weight: 700; padding: 8px 4px; color: var(--pencil); font-size: 16px; }
@@ -156,64 +181,94 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
 <div id="app">
 
 <!-- ホーム -->
+<!-- メニュー -->
 <section id="home" class="screen">
   <div class="title">
     <h1>かんじ練習帳</h1>
     <span id="sync" class="sync"></span>
   </div>
-
-  <div class="sheet">
-    <span class="label">なん年生の 字？</span>
+  <div class="gradebox">
+    <span class="label">なん年生？</span>
     <div class="seg grades" id="gradeSeg">
       <button data-g="1">1年</button><button data-g="2">2年</button><button data-g="3">3年</button>
       <button data-g="4">4年</button><button data-g="5">5年</button><button data-g="6">6年</button>
     </div>
+  </div>
+  <div class="menu">
+    <button class="tile main" id="goKaki">
+      <span class="tk">かきとり</span>
+      <span class="ts" id="kakiSub"></span>
+      <span class="tgo">はじめる →</span>
+    </button>
+    <button class="tile story" id="goStory">
+      <span class="tk">長文</span>
+      <span class="ts" id="storySub"></span>
+    </button>
+    <button class="tile kana" id="goKana">
+      <span class="tk">ひらがな<br>カタカナ</span>
+      <span class="ts">を・お／は・わ など</span>
+    </button>
+    <button class="tile grid1" id="goGrid">
+      <span class="tk">字の いちらん</span>
+      <span class="ts" id="gridSub"></span>
+    </button>
+  </div>
+  <button class="adultlink" id="goAdult">大人の人へ（リスト登録・共有・せってい）</button>
+</section>
+
+<!-- かきとりの じゅんび -->
+<section id="kaki" class="screen" hidden>
+  <div class="topbar"><button class="back" data-back="home">← メニュー</button><span class="label">かきとり</span></div>
+  <div class="sheet hero">
+    <div>
+      <span class="label">いま えらんでいる 字</span>
+      <div class="pickname" id="pickName"></div>
+    </div>
+    <button id="startBtn" class="btn primary big">はじめる</button>
+    <div class="opts">
+      <div class="seg" id="modeSeg">
+        <button id="modeTest" data-mode="test">テスト<small>見ないで かく</small></button>
+        <button id="modePrac" data-mode="prac">れんしゅう<small>なぞって かく</small></button>
+      </div>
+      <div class="seg" id="countSeg">
+        <button data-n="5">5もん</button><button data-n="10">10もん</button>
+      </div>
+      <div class="seg" id="unkoSeg">
+        <button data-u="0">ふつうの文</button>
+        <button data-u="1">うんこ文<small id="unkoNote"></small></button>
+      </div>
+    </div>
+  </div>
+  <div class="sheet">
     <span class="label">れんしゅうする字を えらぶ</span>
     <div id="listChips" class="chips"></div>
     <div id="stepChips" class="steps"></div>
     <span class="label" id="myLabel" hidden>じぶんの リスト</span>
     <div id="myChips" class="chips"></div>
-    <span class="label">やりかた</span>
-    <div class="seg" id="modeSeg">
-      <button id="modeTest" data-mode="test">テスト<small>見ないで かく</small></button>
-      <button id="modePrac" data-mode="prac">れんしゅう<small>なぞって かく</small></button>
-    </div>
-    <div class="seg" id="countSeg">
-      <button data-n="5">5もん</button><button data-n="10">10もん</button>
-    </div>
-    <span class="label">文の しゅるい</span>
-    <div class="seg" id="unkoSeg">
-      <button data-u="0">ふつうの文</button>
-      <button data-u="1">うんこ文<small id="unkoNote"></small></button>
-    </div>
-    <button id="startBtn" class="btn primary big">はじめる</button>
   </div>
+</section>
 
+<!-- 長文 -->
+<section id="storyMenu" class="screen" hidden>
+  <div class="topbar"><button class="back" data-back="home">← メニュー</button><span class="label">長文</span></div>
   <div class="sheet" id="storyCard">
     <div>
-      <h2 style="font-size:20px">長文に チャレンジ</h2>
+      <h2 style="font-size:22px">長文に チャレンジ</h2>
       <p class="muted" style="margin:4px 0 0">お話の中の □ に、じゅんばんに 字を かこう。</p>
     </div>
     <div id="storyList" class="stories"></div>
   </div>
+  <p class="muted" id="storyNone" hidden>長文は いまは 2年生だけです。メニューで 2年を えらんでね。</p>
+</section>
 
+<!-- 字の いちらん -->
+<section id="gridScreen" class="screen" hidden>
+  <div class="topbar"><button class="back" data-back="home">← メニュー</button><span class="label">字の いちらん</span></div>
   <div class="sheet">
     <div class="row" style="justify-content:space-between">
-      <div>
-        <h2 style="font-size:20px">ひらがな・カタカナ クイズ</h2>
-        <p class="muted" style="margin:4px 0 0">を・お／え・へ／は・わ、マリオ・マリヲ など</p>
-      </div>
-      <button id="kanaBtn" class="btn ghost">はじめる</button>
-    </div>
-  </div>
-
-  <div class="sheet">
-    <div class="row" style="justify-content:space-between">
-      <h2 style="font-size:20px" id="gridTitle">2年生の字</h2>
+      <h2 style="font-size:20px" id="gridTitle"></h2>
       <div class="counts" id="counts"></div>
     </div>
-    <button id="gridToggle" class="btn ghost" aria-expanded="false" aria-controls="gridBody">字の いちらんを 見る</button>
-    <div id="gridBody" class="screen" style="gap:14px" hidden>
     <div class="legend">
       <span><i style="background:var(--ok);border-color:var(--green)"></i>おぼえた（3回つづけて○）</span>
       <span><i style="background:var(--ok)"></i>かけた</span>
@@ -222,11 +277,13 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <div id="grid" class="grid"></div>
     <p class="muted" style="margin:0">字を おすと、かきじゅんを 見ながら れんしゅうできます。</p>
-    </div>
   </div>
+</section>
 
+<!-- 大人の人へ -->
+<section id="adult" class="screen" hidden>
+  <div class="topbar"><button class="back" data-back="home">← メニュー</button><span class="label">大人の人へ</span></div>
   <div class="sheet">
-    <h2 style="font-size:18px">大人の人へ</h2>
     <div class="row" style="justify-content:space-between">
       <div>
         <div style="font-weight:700">学校のプリントの字を登録</div>
@@ -300,7 +357,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
   <div class="row">
     <button class="btn primary" id="resAgain">もういちど</button>
     <button class="btn ghost" id="resRetry">まちがえた字を れんしゅう</button>
-    <button class="btn ghost" id="resHome">はじめに もどる</button>
+    <button class="btn ghost" id="resHome">メニューに もどる</button>
   </div>
 </section>
 
@@ -396,7 +453,7 @@ async function pull() {
     merge(await call());
     setSync("on");
     if (S.pending) push();
-    if (!$("home").hidden) renderHome();
+    if (isMenu()) renderHome();
   } catch (e) { setSync(e.message === "key" ? "badkey" : "off"); }
 }
 function mergeMap(a, b) {
@@ -417,7 +474,7 @@ function setSync(st) {
   $("sync").textContent = label; $("sync").classList.toggle("on", st === "on");
   $("syncState").textContent = label;
 }
-document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && $("home") && !$("home").hidden) pull(); });
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && $("home") && isMenu()) pull(); });
 window.addEventListener("online", pull);
 
 /* ---------- 字と問題 ---------- */
@@ -600,10 +657,13 @@ function sfx(kind) {
 }
 
 /* ---------- 画面の切りかえ ---------- */
+const MENU = ["home", "kaki", "storyMenu", "gridScreen", "adult"];
+const SCREENS = [...MENU, "drill", "result", "kana", "lists"];
+const isMenu = () => MENU.some(id => !$(id).hidden);
 function show(id) {
-  for (const s of ["home", "drill", "result", "kana", "lists"]) $(s).hidden = s !== id;
+  for (const s of SCREENS) $(s).hidden = s !== id;
   window.scrollTo(0, 0);
-  if (id === "home") renderHome();
+  if (MENU.includes(id)) renderHome();
 }
 
 /* ---------- ホーム ---------- */
@@ -670,7 +730,13 @@ function renderHome() {
     grid.appendChild(b);
   }
   const SL = DATA.stories[g] || [];
-  $("storyCard").hidden = !SL.length;
+  $("storyCard").hidden = !SL.length; $("storyNone").hidden = !!SL.length;
+  $("pickName").textContent = `${T.name}（${T.kanji.length}字）`;
+  $("kakiSub").textContent = `${T.name}・${n}もん`;
+  $("storySub").textContent = SL.length ? `お話 ${SL.length}こ` : "2年生だけ";
+  $("goStory").classList.toggle("off", !SL.length);
+  const gm = GK[g].filter(k => status(k) === "master").length;
+  $("gridSub").textContent = `おぼえた ${gm} / ${GK[g].length}`;
   const sl = $("storyList"); sl.textContent = "";
   SL.forEach((st, i) => {
     const b = document.createElement("button"); b.className = "storybtn";
@@ -688,13 +754,12 @@ $("soundSeg").onclick = e => { const b = e.target.closest("button"); if (!b) ret
 $("modeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.mode = b.dataset.mode; save(); renderHome(); };
 $("levelSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.level = b.dataset.level; save(); renderHome(); };
 $("startBtn").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, S.settings.count || 5), S.settings.mode, undefined, T.limit); };
-$("kanaBtn").onclick = startKana;
-$("gridToggle").onclick = () => {
-  const open = $("gridBody").hidden;
-  $("gridBody").hidden = !open;
-  $("gridToggle").setAttribute("aria-expanded", open);
-  $("gridToggle").textContent = open ? "いちらんを とじる" : "字の いちらんを 見る";
-};
+$("goKaki").onclick = () => show("kaki");
+$("goStory").onclick = () => show("storyMenu");
+$("goKana").onclick = startKana;
+$("goGrid").onclick = () => show("gridScreen");
+$("goAdult").onclick = () => show("adult");
+document.addEventListener("click", e => { const b = e.target.closest("[data-back]"); if (b) show(b.dataset.back); });
 $("listsBtn").onclick = () => { editNew(); renderLists(); show("lists"); };
 
 /* ---------- 書きとり ---------- */
@@ -829,7 +894,7 @@ async function showAnswer() {
 $("hintBtn").onclick = () => { setMsg("つぎの 1画は ここ"); hintStroke(); };
 $("showBtn").onclick = showAnswer;
 $("redoBtn").onclick = () => { $("lInk").textContent = ""; D.n = 0; D.off = { x: 0, y: 0 }; markStart(); setMsg("はじめから かこう"); };
-$("drillBack").onclick = () => { if (D.results.length) finishDrill(); else show("home"); };
+$("drillBack").onclick = () => { if (D.results.length) finishDrill(); else show(D.story ? "storyMenu" : D.only ? "gridScreen" : "kaki"); };
 $("nextBtn").onclick = () => { D.i++; if (D.i >= D.qs.length) finishDrill(); else loadQ(); };
 $("speakBtn").onclick = () => {
   try {
@@ -914,7 +979,7 @@ function charDone() {
   $("nextBtn").textContent = D.i + 1 >= D.qs.length ? "けっかを 見る" : "つぎへ";
 }
 function finishDrill() {
-  if (D.qs.length === 1 && D.only) { show("home"); return; }
+  if (D.qs.length === 1 && D.only) { show("gridScreen"); return; }
   const n = D.results.length, ok = D.results.filter(r => r.ok).length;
   $("resScore").textContent = `${n}もん中 ${ok}もん ○`;
   const perfect = n > 0 && ok === n;
@@ -1103,7 +1168,7 @@ function renderLists() {
     btns.append(e, d); r.append(nm, btns); box.appendChild(r);
   }
 }
-$("listsBack").onclick = () => show("home");
+$("listsBack").onclick = () => show("adult");
 $("keyInput").value = S.key || "";
 $("keySave").onclick = () => { S.key = $("keyInput").value.trim(); local(); setSync(); pull(); };
 
