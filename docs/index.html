@@ -470,7 +470,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2317</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2321</p>
 </section>
 
 <!-- 書きとり -->
@@ -797,6 +797,13 @@ function judge(raw, T, idx, off = { x: 0, y: 0 }) {
     for (let j = idx + 1; j < T.length; j++) if (fits(U, uL, T[j]) && meanD(U, T[j]) < m * 0.5) return "order";
     return "ok";
   }
+  // 「子」の 1画目と 2画目のように、つづく 2〜3画を つなげて 1画で 書いても みとめる
+  for (const k of [2, 3]) {
+    if (idx + k > T.length) break;
+    const seg = T.slice(idx, idx + k);
+    const L = seg.reduce((a, t) => a + t.L, 0) + seg.slice(1).reduce((a, t, j) => a + dist(seg[j].pts[N - 1], t.pts[0]), 0);
+    if (fits(U, uL, { pts: resample(seg.flatMap(t => t.pts), N), L })) return "merge" + k;
+  }
   const R = U.slice().reverse();
   if (T[idx].L >= 16 && meanD(R, T[idx]) < (TOL[S.settings.level] || 15)) return "reverse";
   for (let j = idx + 1; j < T.length; j++) if (fits(U, uL, T[j])) return "order";
@@ -830,7 +837,8 @@ function sfx(kind) {
   try {
     AC = AC || new (window.AudioContext || window.webkitAudioContext)();
     // 止まって いたら、起きてから 鳴らす（起きる まえに 鳴らすと 音が とぶ）
-    if (AC.state !== "running") { AC.resume().then(() => { if (AC.state === "running") play(kind); }).catch(() => {}); return; }
+    if (AC.state === "closed") { AC = null; return sfx(kind); }
+    if (AC.state !== "running") { AC.resume().then(() => { if (AC.state === "running") play(kind); }).catch(() => { AC = null; }); return; }
     play(kind);
   } catch (e) {}
 }
@@ -1676,10 +1684,23 @@ function endStroke(e) {
     if (D.n >= D.T.length) charDone();
     return;
   }
+  if (r.startsWith("merge")) {
+    // ○に するが、ほんとうの 分けかたを 青い 線で 見せる
+    const k = +r.slice(5), seg = D.T.slice(D.n, D.n + k);
+    D.n += k; D.miss = 0;
+    sfx("kanaok");
+    setMsg(`OK！ でも ほんとうは ${k}かいに 分けて かくよ`, "good");
+    $("lAnim").textContent = "";
+    seg.forEach((t, j) => animStroke(t, j * 400, 380));
+    busy = true;
+    setTimeout(() => { busy = false; $("lAnim").textContent = ""; markStart(); if (D.n >= D.T.length) charDone(); }, 400 * k + 900);
+    return;
+  }
   path.classList.add("bad");
   sfx("miss");
   pad.classList.remove("shake"); void pad.offsetWidth; pad.classList.add("shake");
-  setTimeout(() => path.remove(), 450);
+  // まちがえた 線は 赤で しばらく 見せてから けす
+  setTimeout(() => path.remove(), 1200);
   D.miss++;
   const msg = { reverse: "かく むきが はんたいだよ", order: "かきじゅんが ちがうよ", miss: "もういちど かいてみよう" }[r];
   setMsg(msg, "bad");
@@ -1706,6 +1727,7 @@ function charDone() {
   // 赤ペンの ○
   const c = document.createElementNS(SVGNS, "circle");
   c.setAttribute("cx", 54.5); c.setAttribute("cy", 54.5); c.setAttribute("r", 48); c.setAttribute("class", "maru");
+  if (!D.clean) sfx("kanaok");
   if (D.clean) {
     sfx("ok");
     $("lTop").appendChild(c);
@@ -1722,10 +1744,11 @@ function charDone() {
   if (D.boss) bossTurn(lastOk);
   $("tools").hidden = true; $("nextBtn").hidden = false;
   $("nextBtn").textContent = D.i + 1 >= D.qs.length || (D.boss && D.boss.over) ? "けっかを 見る" : "つぎへ";
-  // ○なら 自動で つぎへ（ボス戦は こうげきの えんしゅつを 見てから）。△は どこを まちがえたか 見られるよう ボタンで
-  if (lastOk || D.boss) {
+  // 自動で つぎへ（ボス戦は こうげきの えんしゅつを 見てから）
+  {
+    // ○も △も 自動で つぎへ（△は 少し 長めに 見せる）
     const myD = D, myI = D.i;
-    setTimeout(() => { if (D === myD && D.i === myI && !$("drill").hidden) $("nextBtn").click(); }, D.boss ? (D.boss.over ? 2200 : 1700) : 1100);
+    setTimeout(() => { if (D === myD && D.i === myI && !$("drill").hidden) $("nextBtn").click(); }, D.boss ? (D.boss.over ? 2200 : 1700) : lastOk ? 1100 : 1800);
   }
 }
 function finishDrill() {
