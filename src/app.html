@@ -1,0 +1,878 @@
+<title>かんじ練習帳</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Klee+One:wght@400;600&family=Zen+Maru+Gothic:wght@500;700&display=swap">
+<style>
+/* レイアウト：じゆうちょうの1ページ。上に問題文、まん中に大きなマス、下に操作ボタン */
+:root {
+  --page: #f3f7f1;
+  --sheet: #ffffff;
+  --ink: #1d2721;
+  --pencil: #7d8b82;
+  --rule: #c5d6c8;
+  --guide: #e3ece4;
+  --green: #2e7a57;
+  --green-ink: #ffffff;
+  --red: #d63d2b;
+  --gold: #b88a12;
+  --weak: #fbe3df;
+  --ok: #e3f1e8;
+  --hint: #3b7bd6;
+  --font-k: "Klee One", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --font-ui: "Zen Maru Gothic", "Hiragino Maru Gothic ProN", "Hiragino Sans", system-ui, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #131915; --sheet: #1c241f; --ink: #edf3ee; --pencil: #93a399; --rule: #3c4d42; --guide: #29352d;
+    --green: #5bbd8c; --green-ink: #0f1a14; --red: #ff6b57; --gold: #e2b84a; --weak: #4a2520; --ok: #1f3a2b; --hint: #79a9ff;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #131915; --sheet: #1c241f; --ink: #edf3ee; --pencil: #93a399; --rule: #3c4d42; --guide: #29352d;
+  --green: #5bbd8c; --green-ink: #0f1a14; --red: #ff6b57; --gold: #e2b84a; --weak: #4a2520; --ok: #1f3a2b; --hint: #79a9ff;
+  color-scheme: dark;
+}
+[hidden] { display: none !important; }
+:root { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+html, body { background: var(--page); color: var(--ink); margin: 0; }
+body { font-family: var(--font-ui); font-size: 16px; -webkit-text-size-adjust: 100%; }
+#app { max-width: 720px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 20px; }
+h1, h2, h3 { margin: 0; text-wrap: balance; }
+button { font: inherit; color: inherit; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px solid var(--hint); outline-offset: 2px; }
+.screen { display: grid; gap: 18px; }
+
+/* 共通の部品 */
+.sheet { background: var(--sheet); border: 1px solid var(--rule); border-radius: 14px; padding: 18px; display: grid; gap: 14px; }
+.label { font-size: 13px; color: var(--pencil); letter-spacing: .08em; font-weight: 700; }
+.btn { border: 0; border-radius: 12px; padding: 12px 18px; font-weight: 700; font-size: 17px; min-height: 48px; }
+.btn.primary { background: var(--green); color: var(--green-ink); }
+.btn.big { font-size: 21px; min-height: 60px; }
+.btn.ghost { background: transparent; border: 2px solid var(--rule); }
+.btn.danger { background: transparent; border: 2px solid var(--red); color: var(--red); }
+.btn:disabled { opacity: .45; cursor: default; }
+.row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 2px solid var(--rule); background: var(--sheet); border-radius: 999px; padding: 8px 14px; font-weight: 700; font-size: 15px; }
+.chip[aria-pressed="true"] { border-color: var(--green); background: var(--ok); }
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 2px solid var(--rule); border-radius: 12px; overflow: hidden; }
+.seg button { border: 0; background: transparent; padding: 10px 8px; font-weight: 700; display: grid; gap: 2px; }
+.seg button small { font-weight: 500; font-size: 12px; color: var(--pencil); }
+.seg button[aria-pressed="true"] { background: var(--green); color: var(--green-ink); }
+.seg button[aria-pressed="true"] small { color: inherit; opacity: .85; }
+.topbar { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.back { border: 0; background: transparent; font-weight: 700; padding: 8px 4px; color: var(--pencil); font-size: 16px; }
+.muted { color: var(--pencil); font-size: 14px; line-height: 1.6; }
+
+/* ホーム */
+.title { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.title h1 { font-family: var(--font-k); font-weight: 600; font-size: 32px; letter-spacing: .04em; }
+.sync { font-size: 12px; color: var(--pencil); border: 1px solid var(--rule); border-radius: 999px; padding: 4px 10px; }
+.sync.on { color: var(--green); border-color: var(--green); }
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; }
+.cellbtn { aspect-ratio: 1; max-width: 100%; border: 1px solid var(--rule); background: var(--sheet); border-radius: 8px; font-family: var(--font-k); font-size: 24px; position: relative; padding: 0; }
+.cellbtn[data-s="ok"] { background: var(--ok); }
+.cellbtn[data-s="master"] { background: var(--ok); border-color: var(--green); }
+.cellbtn[data-s="master"]::after { content: ""; position: absolute; inset: 3px; border: 2px solid var(--red); border-radius: 50%; opacity: .55; }
+.cellbtn[data-s="weak"] { background: var(--weak); border-color: var(--red); }
+.legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--pencil); }
+.legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--rule); vertical-align: -2px; margin-right: 4px; }
+.counts { display: flex; gap: 18px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
+.counts b { font-size: 24px; font-family: var(--font-k); }
+
+/* 問題文 */
+.question { font-family: var(--font-k); font-size: 26px; line-height: 2.2; display: flex; flex-wrap: wrap; align-items: flex-end; column-gap: 4px; min-height: 90px; }
+.word { display: inline-grid; justify-items: center; gap: 2px; line-height: 1; }
+.word .yomi { font-size: 15px; color: var(--red); letter-spacing: .06em; }
+.word .cells { display: inline-flex; align-items: flex-end; gap: 3px; }
+.box { width: 1.55em; height: 1.55em; border: 2px solid var(--ink); display: grid; place-items: center; font-size: 26px; background: var(--sheet); position: relative; }
+.box.now { border-color: var(--green); box-shadow: 0 0 0 3px var(--ok); }
+.box.done::after { content: ""; position: absolute; inset: -6px; border: 3px solid var(--red); border-radius: 50%; }
+.box.done.tri::after { border: 0; inset: auto; content: "△"; color: var(--red); font-size: 18px; top: -12px; right: -12px; font-family: var(--font-ui); }
+.kana { font-size: 26px; }
+.speak { border: 2px solid var(--rule); background: var(--sheet); border-radius: 999px; padding: 4px 12px; font-size: 14px; font-weight: 700; }
+
+/* 書くマス */
+.padwrap { display: grid; justify-items: center; gap: 10px; }
+#pad { width: min(100%, 440px, 52vh); aspect-ratio: 1; max-width: 100%; touch-action: none; user-select: none; -webkit-user-select: none; background: var(--sheet); border: 3px solid var(--ink); border-radius: 6px; display: block; }
+#pad .guide { stroke: var(--rule); stroke-width: .6; stroke-dasharray: 2 2; }
+#pad .outline path { stroke: var(--guide); stroke-width: 6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+#pad .ink path { stroke: var(--ink); stroke-width: 4.2; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+#pad .ink path.bad { stroke: var(--red); }
+#pad .anim path { stroke: var(--hint); stroke-width: 4.2; fill: none; stroke-linecap: round; stroke-linejoin: round; opacity: .85; }
+#pad .startdot { fill: var(--green); }
+#pad .startnum { fill: var(--green-ink); font-size: 6px; font-weight: 700; font-family: var(--font-ui); }
+#pad .maru { stroke: var(--red); stroke-width: 3.5; fill: none; }
+.msg { min-height: 1.6em; font-weight: 700; font-size: 18px; text-align: center; }
+.msg.good { color: var(--green); }
+.msg.bad { color: var(--red); }
+.tools { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; width: min(100%, 440px); }
+.tools .btn { font-size: 15px; padding: 10px 6px; }
+.shake { animation: shake .3s; }
+@keyframes shake { 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+
+/* 結果 */
+.score { font-family: var(--font-k); font-size: 40px; font-weight: 600; }
+.reslist { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 10px; }
+.resitem { border: 1px solid var(--rule); border-radius: 10px; padding: 10px; display: flex; align-items: center; gap: 10px; background: var(--sheet); }
+.resitem .m { font-size: 22px; color: var(--red); width: 1.2em; text-align: center; }
+.resitem .w { font-family: var(--font-k); font-size: 22px; }
+.resitem .r { font-size: 12px; color: var(--pencil); }
+
+/* かなクイズ */
+.choices { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.choice { border: 3px solid var(--rule); background: var(--sheet); border-radius: 16px; font-family: var(--font-k); font-size: 56px; min-height: 120px; }
+.choice.right { border-color: var(--green); background: var(--ok); }
+.choice.wrong { border-color: var(--red); background: var(--weak); }
+.kq { font-family: var(--font-k); font-size: 32px; line-height: 1.8; text-align: center; }
+.kq .blank { display: inline-block; min-width: 1.3em; border-bottom: 3px solid var(--red); text-align: center; color: var(--red); }
+
+/* リスト編集 */
+textarea, input[type="text"] { width: 100%; box-sizing: border-box; font: inherit; font-size: 17px; padding: 12px; border-radius: 10px; border: 2px solid var(--rule); background: var(--sheet); color: var(--ink); }
+textarea { min-height: 180px; font-family: var(--font-k); line-height: 1.7; }
+.preview { display: grid; gap: 6px; font-size: 14px; }
+.preview .err { color: var(--red); }
+.listrow { display: flex; align-items: center; justify-content: space-between; gap: 10px; border-top: 1px solid var(--rule); padding-top: 12px; flex-wrap: wrap; }
+.listrow .nm { font-weight: 700; min-width: 0; overflow-wrap: anywhere; }
+pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-family: var(--font-k); font-size: 15px; margin: 0; overflow-x: auto; line-height: 1.7; }
+
+@media (prefers-reduced-motion: reduce) { .shake { animation: none; } }
+</style>
+
+<div id="app">
+
+<!-- ホーム -->
+<section id="home" class="screen">
+  <div class="title">
+    <h1>かんじ練習帳</h1>
+    <span id="sync" class="sync"></span>
+  </div>
+
+  <div class="sheet">
+    <span class="label">れんしゅうする字</span>
+    <div id="listChips" class="chips"></div>
+    <span class="label">やりかた</span>
+    <div class="seg" id="modeSeg">
+      <button id="modeTest" data-mode="test">テスト<small>見ないで かく</small></button>
+      <button id="modePrac" data-mode="prac">れんしゅう<small>なぞって かく</small></button>
+    </div>
+    <button id="startBtn" class="btn primary big">10もん はじめる</button>
+  </div>
+
+  <div class="sheet">
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <h2 style="font-size:20px">ひらがな・カタカナ クイズ</h2>
+        <p class="muted" style="margin:4px 0 0">を・お／え・へ／は・わ、マリオ・マリヲ など</p>
+      </div>
+      <button id="kanaBtn" class="btn ghost">10もん やる</button>
+    </div>
+  </div>
+
+  <div class="sheet">
+    <div class="row" style="justify-content:space-between">
+      <h2 style="font-size:20px" id="gridTitle">2年生の字</h2>
+      <div class="counts" id="counts"></div>
+    </div>
+    <div class="legend">
+      <span><i style="background:var(--ok);border-color:var(--green)"></i>おぼえた（3回つづけて○）</span>
+      <span><i style="background:var(--ok)"></i>かけた</span>
+      <span><i style="background:var(--weak);border-color:var(--red)"></i>にがて</span>
+      <span><i></i>まだ</span>
+    </div>
+    <div id="grid" class="grid"></div>
+    <p class="muted" style="margin:0">字を おすと、かきじゅんを 見ながら れんしゅうできます。</p>
+  </div>
+
+  <div class="sheet">
+    <h2 style="font-size:18px">おうちの方へ</h2>
+    <div class="row" style="justify-content:space-between">
+      <div>
+        <div style="font-weight:700">学校のプリントの字を登録</div>
+        <div class="muted">プリントに出た字や言葉を、自分のリストにできます。</div>
+      </div>
+      <button id="listsBtn" class="btn ghost">リストを作る・直す</button>
+    </div>
+    <div>
+      <div style="font-weight:700">iPhone・iPadで記録を共有</div>
+      <div class="muted">いまの状態：<span id="syncState"></span></div>
+      <div class="row" style="margin-top:8px;flex-wrap:nowrap">
+        <input type="text" id="keyInput" placeholder="合言葉" autocomplete="off" autocapitalize="off" style="min-width:0">
+        <button id="keySave" class="btn ghost" style="flex:none">保存</button>
+      </div>
+      <div class="muted">スプレッドシートに決めた合言葉を、端末ごとに1回入れてください。</div>
+    </div>
+    <div>
+      <div style="font-weight:700;margin-bottom:8px">判定のきびしさ</div>
+      <div class="seg" id="levelSeg">
+        <button data-level="easy">やさしい<small>形がだいたい合えば○</small></button>
+        <button data-level="normal">ふつう</button>
+        <button data-level="hard">きびしい<small>位置も正確に</small></button>
+      </div>
+    </div>
+    <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
+  </div>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）</p>
+</section>
+
+<!-- 書きとり -->
+<section id="drill" class="screen" hidden>
+  <div class="topbar">
+    <button class="back" id="drillBack">← やめる</button>
+    <span class="label" id="drillProg">1 / 10</span>
+  </div>
+  <div class="sheet">
+    <div id="qText" class="question"></div>
+    <div class="row"><button class="speak" id="speakBtn">よみあげ</button><span class="muted" id="modeNote"></span></div>
+  </div>
+  <div class="padwrap">
+    <svg id="pad" viewBox="0 0 109 109" role="img" aria-label="ここに字を書く">
+      <line class="guide" x1="54.5" y1="0" x2="54.5" y2="109"/>
+      <line class="guide" x1="0" y1="54.5" x2="109" y2="54.5"/>
+      <g class="outline" id="lOutline"></g>
+      <g class="anim" id="lAnim"></g>
+      <g class="ink" id="lInk"></g>
+      <g id="lTop"></g>
+    </svg>
+    <div class="msg" id="msg" aria-live="polite"></div>
+    <div class="tools" id="tools">
+      <button class="btn ghost" id="hintBtn">ヒント</button>
+      <button class="btn ghost" id="showBtn">こたえを見る</button>
+      <button class="btn ghost" id="redoBtn">かきなおす</button>
+    </div>
+    <button class="btn primary big" id="nextBtn" hidden style="width:min(100%,440px)">つぎへ</button>
+  </div>
+</section>
+
+<!-- 結果 -->
+<section id="result" class="screen" hidden>
+  <div class="sheet">
+    <span class="label">けっか</span>
+    <div class="score" id="resScore"></div>
+    <div class="muted" id="resNote"></div>
+    <div class="reslist" id="resList"></div>
+  </div>
+  <div class="row">
+    <button class="btn primary" id="resAgain">もう10もん</button>
+    <button class="btn ghost" id="resRetry">まちがえた字を れんしゅう</button>
+    <button class="btn ghost" id="resHome">はじめに もどる</button>
+  </div>
+</section>
+
+<!-- かなクイズ -->
+<section id="kana" class="screen" hidden>
+  <div class="topbar">
+    <button class="back" id="kanaBack">← やめる</button>
+    <span class="label" id="kanaProg">1 / 10</span>
+  </div>
+  <div class="sheet">
+    <div class="kq" id="kq"></div>
+    <div class="msg" id="kmsg" aria-live="polite"></div>
+  </div>
+  <div class="choices" id="choices"></div>
+  <button class="btn primary big" id="kNext" hidden>つぎへ</button>
+</section>
+
+<!-- リスト編集 -->
+<section id="lists" class="screen" hidden>
+  <div class="topbar">
+    <button class="back" id="listsBack">← もどる</button>
+    <span class="label">おうちの方へ</span>
+  </div>
+  <div class="sheet">
+    <h2 style="font-size:20px" id="edTitle">新しいリスト</h2>
+    <label for="edName" style="font-weight:700">リストの名前</label>
+    <input type="text" id="edName" placeholder="例：10月17日のプリント">
+    <label for="edText" style="font-weight:700">字・言葉（1行に1つ）</label>
+    <pre class="fmt">朝線校門　　　　 ← 字だけ並べる（問題は自動で作ります）
+細かい こまかい　← 言葉 よみ
+大人 おとな ＿と話す。 ← 言葉 よみ 文（＿に言葉が入る）</pre>
+    <textarea id="edText" placeholder="朝線校門&#10;子牛 こうし&#10;細かい こまかい ＿すな。"></textarea>
+    <div class="preview" id="edPreview"></div>
+    <div class="row">
+      <button class="btn primary" id="edSave">保存する</button>
+      <button class="btn ghost" id="edNew">新しく作る</button>
+    </div>
+  </div>
+  <div class="sheet">
+    <h2 style="font-size:18px">作ったリスト</h2>
+    <div id="listRows"></div>
+  </div>
+</section>
+
+</div>
+<svg id="measure" width="0" height="0" style="position:absolute;left:-9999px" aria-hidden="true"></svg>
+
+<script>
+const DATA = /*DATA*/null;
+const SVGNS = "http://www.w3.org/2000/svg";
+const $ = id => document.getElementById(id);
+const TOL = { easy: 20, normal: 15, hard: 11 };
+const N = 32;
+
+/* ---------- 記録（スプレッドシートで iPhone・iPad 共有。つながらない間はこの端末に保存） ---------- */
+const SYNC_URL = /*SYNC_URL*/"";
+const LSKEY = "kanji-renshu-v1";
+let S = { lists: [], listsT: 0, stats: {}, kstats: {}, settings: { mode: "test", level: "normal", list: "g2" }, key: "", pending: false };
+try { const s = JSON.parse(localStorage.getItem(LSKEY) || "null"); if (s) S = Object.assign(S, s, { settings: Object.assign(S.settings, s.settings || {}) }); } catch (e) {}
+let syncing = false, again = false, saveTimer = null;
+
+function local() { try { localStorage.setItem(LSKEY, JSON.stringify(S)); } catch (e) {} }
+function shared() { return { lists: S.lists, listsT: S.listsT, stats: S.stats, kstats: S.kstats }; }
+function save() {
+  S.pending = true; local();
+  clearTimeout(saveTimer);
+  saveTimer = setTimeout(push, 1500);
+}
+function canSync() { return !!(SYNC_URL && S.key); }
+async function call(body) {
+  const r = body
+    ? await fetch(SYNC_URL, { method: "POST", body: JSON.stringify(body) })
+    : await fetch(SYNC_URL + "?key=" + encodeURIComponent(S.key));
+  const j = await r.json();
+  if (j.error) throw new Error(j.error);
+  return j;
+}
+async function push() {
+  if (!canSync()) return setSync();
+  if (syncing) { again = true; return; }
+  syncing = true;
+  try { const j = await call({ key: S.key, state: shared() }); S.pending = false; merge(j); setSync("on"); }
+  catch (e) { setSync(e.message === "key" ? "badkey" : "off"); }
+  syncing = false;
+  if (again) { again = false; push(); }
+}
+async function pull() {
+  if (!canSync()) return setSync();
+  try {
+    merge(await call());
+    setSync("on");
+    if (S.pending) push();
+    if (!$("home").hidden) renderHome();
+  } catch (e) { setSync(e.message === "key" ? "badkey" : "off"); }
+}
+function mergeMap(a, b) {
+  const out = Object.assign({}, a);
+  for (const k in b || {}) if (!out[k] || (b[k].last || 0) > (out[k].last || 0)) out[k] = b[k];
+  return out;
+}
+function merge(r) {
+  if (!r) return;
+  if ((r.listsT || 0) > (S.listsT || 0)) { S.lists = r.lists || []; S.listsT = r.listsT; }
+  S.stats = mergeMap(S.stats, r.stats);
+  S.kstats = mergeMap(S.kstats, r.kstats);
+  local();
+}
+function setSync(st) {
+  if (!st) st = !SYNC_URL ? "nourl" : !S.key ? "nokey" : "off";
+  const label = { on: "iPhone・iPadで共有中", off: "つながらない（この端末に保存中）", badkey: "合言葉がちがいます", nokey: "共有の設定がまだです", nourl: "この端末に保存" }[st];
+  $("sync").textContent = label; $("sync").classList.toggle("on", st === "on");
+  $("syncState").textContent = label;
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "visible" && $("home") && !$("home").hidden) pull(); });
+window.addEventListener("online", pull);
+
+/* ---------- 字と問題 ---------- */
+const isK = c => !!DATA.strokes[c];
+const kanjiOf = w => [...w].filter(isK);
+const G2 = Object.keys(DATA.grade).filter(k => DATA.grade[k] === 2);
+const BUILTIN = DATA.q.map(([w, r, s]) => ({ w, r, s }));
+
+function fallbackQ(k) {
+  // 組みこみの問題が無い字は、音読み（カタカナ）を出す。訓読みは古い読みが先頭に来ることがあるため
+  const [on, kun] = (DATA.read[k] || "|").split("|");
+  const kata = on.replace(/[\u3041-\u3096]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60));
+  return { w: k, r: kata || kun.replace(".", ""), s: "＿" };
+}
+function targetsOf(listId) {
+  if (listId === "g2") return { name: "2年生の字", kanji: G2, pool: BUILTIN };
+  if (listId === "weak") {
+    const ks = Object.keys(S.stats).filter(k => isK(k) && status(k) === "weak");
+    return { name: "にがてな字", kanji: ks, pool: poolFor(ks, []) };
+  }
+  const L = S.lists.find(l => l.id === listId);
+  if (!L) return targetsOf("g2");
+  const words = L.items.filter(i => i.w), chars = L.items.filter(i => i.k).flatMap(i => [...i.k]);
+  const ks = [...new Set([...chars, ...words.flatMap(i => kanjiOf(i.w))])];
+  return { name: L.name, kanji: ks, pool: poolFor(chars, words) };
+}
+function poolFor(chars, words) {
+  const pool = [...words];
+  for (const k of new Set(chars)) {
+    const qs = BUILTIN.filter(q => q.w.includes(k));
+    pool.push(...(qs.length ? qs : [fallbackQ(k)]));
+  }
+  return pool;
+}
+function status(k) {
+  const s = S.stats[k];
+  if (!s || (!s.ok && !s.ng)) return "none";
+  if (s.st >= 3) return "master";
+  if (s.st === 0 && s.ng > 0) return "weak";
+  return "ok";
+}
+function weight(q) {
+  const ks = kanjiOf(q.w);
+  const w = ks.map(k => {
+    const st = status(k), s = S.stats[k] || {};
+    const days = s.last ? (Date.now() - s.last) / 864e5 : 30;
+    return { none: 2, weak: 3.5, ok: 1.5, master: 0.3 }[st] + Math.min(days, 10) * 0.05;
+  });
+  return w.reduce((a, b) => a + b, 0) / Math.max(1, w.length);
+}
+function pick(pool, n) {
+  const left = pool.slice(), out = [], used = new Set();
+  while (out.length < n && left.length) {
+    const ws = left.map(q => weight(q) * (kanjiOf(q.w).some(k => used.has(k)) ? 0.05 : 1));
+    let r = Math.random() * ws.reduce((a, b) => a + b, 0), i = 0;
+    while (i < ws.length - 1 && (r -= ws[i]) > 0) i++;
+    const q = left.splice(i, 1)[0];
+    out.push(q); kanjiOf(q.w).forEach(k => used.add(k));
+  }
+  return out;
+}
+
+/* ---------- 画の形を点に直す ---------- */
+const tplCache = {};
+function template(k) {
+  if (tplCache[k]) return tplCache[k];
+  const m = $("measure");
+  tplCache[k] = DATA.strokes[k].map(d => {
+    const p = document.createElementNS(SVGNS, "path");
+    p.setAttribute("d", d); m.appendChild(p);
+    const L = p.getTotalLength(), pts = [];
+    for (let i = 0; i < N; i++) { const q = p.getPointAtLength(L * i / (N - 1)); pts.push({ x: q.x, y: q.y }); }
+    m.removeChild(p);
+    return { d, L, pts };
+  });
+  return tplCache[k];
+}
+const dist = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
+const plen = ps => ps.reduce((s, p, i) => i ? s + dist(ps[i - 1], p) : 0, 0);
+function resample(ps, n) {
+  if (ps.length < 2) return Array(n).fill(ps[0]);
+  const L = plen(ps);
+  if (L === 0) return Array(n).fill(ps[0]);
+  const step = L / (n - 1), out = [ps[0]];
+  let acc = 0, prev = ps[0];
+  for (let i = 1; i < ps.length; i++) {
+    let p = ps[i], d = dist(prev, p);
+    while (acc + d >= step && out.length < n) {
+      const t = (step - acc) / d, q = { x: prev.x + t * (p.x - prev.x), y: prev.y + t * (p.y - prev.y) };
+      out.push(q); prev = q; d = dist(prev, p); acc = 0;
+    }
+    acc += d; prev = p;
+  }
+  while (out.length < n) out.push(ps[ps.length - 1]);
+  return out;
+}
+function meanD(U, t) { return U.reduce((s, p, i) => s + dist(p, t.pts[i]), 0) / N; }
+function fits(U, uL, t) {
+  const tol = TOL[S.settings.level] || 15;
+  const se = dist(U[0], t.pts[0]), ee = dist(U[N - 1], t.pts[N - 1]);
+  const lenOk = t.L < 16 ? uL < Math.max(t.L * 3 + 14, 45) : (uL / t.L > 0.4 && uL / t.L < 2.3);
+  // 書く向き：始点→終点の向きが お手本と だいたい同じか
+  const ux = U[N - 1].x - U[0].x, uy = U[N - 1].y - U[0].y, tx = t.pts[N - 1].x - t.pts[0].x, ty = t.pts[N - 1].y - t.pts[0].y;
+  const nu = Math.hypot(ux, uy), nt = Math.hypot(tx, ty);
+  const dirOk = t.L < 16 || nu < 3 || (ux * tx + uy * ty) / (nu * nt) > 0.3;
+  return meanD(U, t) < tol && se < tol * 1.7 && ee < tol * 1.7 && lenOk && dirOk;
+}
+// 子どもの字は全体がずれやすいので、書けた画から「ずれ」を覚えて差し引く
+function shiftBy(ps, o) { return ps.map(p => ({ x: p.x - o.x, y: p.y - o.y })); }
+function judge(raw, T, idx, off = { x: 0, y: 0 }) {
+  let U = resample(shiftBy(raw, off), N);
+  const uL = plen(raw);
+  if (idx === 0 && !fits(U, uL, T[0])) {
+    // 1画目は まだ ずれが分からないので、重心を合わせて形だけ見る（ずれは18まで）
+    const t = T[0], c = v => Math.max(-18, Math.min(18, v));
+    const R0 = resample(raw, N);
+    const o = { x: c(R0.reduce((s, p, i) => s + p.x - t.pts[i].x, 0) / N), y: c(R0.reduce((s, p, i) => s + p.y - t.pts[i].y, 0) / N) };
+    const U2 = resample(shiftBy(raw, o), N);
+    if (fits(U2, uL, t)) U = U2;
+  }
+  if (fits(U, uL, T[idx])) {
+    // もっと よく合う「あとの画」があれば、書き順ちがい
+    const m = meanD(U, T[idx]);
+    for (let j = idx + 1; j < T.length; j++) if (fits(U, uL, T[j]) && meanD(U, T[j]) < m * 0.5) return "order";
+    return "ok";
+  }
+  const R = U.slice().reverse();
+  if (T[idx].L >= 16 && meanD(R, T[idx]) < (TOL[S.settings.level] || 15)) return "reverse";
+  for (let j = idx + 1; j < T.length; j++) if (fits(U, uL, T[j])) return "order";
+  return "miss";
+}
+function learnOffset(raw, t, off, first) {
+  const U = resample(raw, N);
+  const dx = U.reduce((s, p, i) => s + p.x - t.pts[i].x, 0) / N, dy = U.reduce((s, p, i) => s + p.y - t.pts[i].y, 0) / N;
+  const c = v => Math.max(-18, Math.min(18, v));
+  if (first) return { x: c(dx), y: c(dy) };
+  return { x: c(off.x * 0.5 + dx * 0.5), y: c(off.y * 0.5 + dy * 0.5) };
+}
+
+/* ---------- 画面の切りかえ ---------- */
+function show(id) {
+  for (const s of ["home", "drill", "result", "kana", "lists"]) $(s).hidden = s !== id;
+  window.scrollTo(0, 0);
+  if (id === "home") renderHome();
+}
+
+/* ---------- ホーム ---------- */
+function renderHome() {
+  const chips = $("listChips"); chips.textContent = "";
+  const weakN = Object.keys(S.stats).filter(k => isK(k) && status(k) === "weak").length;
+  const opts = [["g2", "2年生 ぜんぶ"], ...S.lists.map(l => [l.id, l.name]), ["weak", `にがてな字（${weakN}）`]];
+  if (!opts.some(o => o[0] === S.settings.list)) S.settings.list = "g2";
+  for (const [id, name] of opts) {
+    const b = document.createElement("button");
+    b.className = "chip"; b.textContent = name;
+    b.setAttribute("aria-pressed", S.settings.list === id);
+    b.onclick = () => { S.settings.list = id; save(); renderHome(); };
+    chips.appendChild(b);
+  }
+  for (const b of $("modeSeg").children) b.setAttribute("aria-pressed", b.dataset.mode === S.settings.mode);
+  for (const b of $("levelSeg").children) b.setAttribute("aria-pressed", b.dataset.level === S.settings.level);
+  const T = targetsOf(S.settings.list);
+  $("startBtn").disabled = !T.pool.length;
+  $("startBtn").textContent = T.pool.length ? `${Math.min(10, T.pool.length)}もん はじめる` : "にがてな字は ありません";
+  $("gridTitle").textContent = T.name;
+  const grid = $("grid"); grid.textContent = "";
+  const c = { master: 0, ok: 0, weak: 0 };
+  for (const k of T.kanji) {
+    const st = status(k); if (c[st] !== undefined) c[st]++;
+    const b = document.createElement("button");
+    b.className = "cellbtn"; b.textContent = k; b.dataset.s = st;
+    b.setAttribute("aria-label", k + "を れんしゅう");
+    b.onclick = () => startDrill([BUILTIN.find(q => q.w.includes(k)) || fallbackQ(k)], "prac", [k]);
+    grid.appendChild(b);
+  }
+  $("counts").innerHTML = `<span>おぼえた <b>${c.master}</b></span><span>にがて <b>${c.weak}</b></span><span>ぜんぶ <b>${T.kanji.length}</b></span>`;
+}
+$("modeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.mode = b.dataset.mode; save(); renderHome(); };
+$("levelSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.level = b.dataset.level; save(); renderHome(); };
+$("startBtn").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, 10), S.settings.mode); };
+$("kanaBtn").onclick = startKana;
+$("listsBtn").onclick = () => { editNew(); renderLists(); show("lists"); };
+
+/* ---------- 書きとり ---------- */
+let D = null; // いまの書きとり
+function startDrill(qs, mode, only) {
+  D = { qs, mode, only, i: 0, results: [] };
+  show("drill");
+  loadQ();
+}
+function loadQ() {
+  const q = D.qs[D.i];
+  const ks = [...q.w].map((c, i) => isK(c) && (!D.only || D.only.includes(c)) ? i : -1).filter(i => i >= 0);
+  D.q = q; D.slots = ks; D.si = 0; D.marks = {};
+  $("drillProg").textContent = `${D.i + 1} / ${D.qs.length}`;
+  $("modeNote").textContent = D.mode === "prac" ? "うすい字を なぞって かこう" : "見ないで かこう";
+  $("nextBtn").hidden = true; $("tools").hidden = false;
+  renderQ(); loadChar();
+}
+function renderQ() {
+  const q = D.q, el = $("qText"); el.textContent = "";
+  const [a, b] = q.s.split("＿");
+  const txt = t => { if (!t) return; const s = document.createElement("span"); s.className = "kana"; s.textContent = t; el.appendChild(s); };
+  txt(a);
+  const w = document.createElement("span"); w.className = "word";
+  const y = document.createElement("span"); y.className = "yomi"; y.textContent = q.r; w.appendChild(y);
+  const cells = document.createElement("span"); cells.className = "cells";
+  [...q.w].forEach((c, i) => {
+    const si = D.slots.indexOf(i);
+    if (si < 0) { const s = document.createElement("span"); s.className = "kana"; s.textContent = c; cells.appendChild(s); return; }
+    const box = document.createElement("span"); box.className = "box";
+    if (si < D.si) { box.textContent = c; box.classList.add("done"); if (D.marks[i] === "tri") box.classList.add("tri"); }
+    else if (si === D.si) box.classList.add("now");
+    cells.appendChild(box);
+  });
+  w.appendChild(cells); el.appendChild(w);
+  txt(b);
+}
+function clearPad() { for (const id of ["lOutline", "lAnim", "lInk", "lTop"]) $(id).textContent = ""; }
+function loadChar() {
+  clearPad();
+  const k = D.q.w[D.slots[D.si]];
+  D.k = k; D.T = template(k); D.n = 0; D.off = { x: 0, y: 0 }; D.miss = 0; D.clean = true; D.outline = D.mode === "prac";
+  if (D.outline) drawOutline();
+  setMsg("");
+  markStart();
+}
+function drawOutline() {
+  const g = $("lOutline"); g.textContent = "";
+  for (const t of D.T) { const p = document.createElementNS(SVGNS, "path"); p.setAttribute("d", t.d); g.appendChild(p); }
+}
+function markStart() {
+  const g = $("lTop"); g.textContent = "";
+  if (!D.outline || D.n >= D.T.length) return;
+  const p = D.T[D.n].pts[0];
+  const c = document.createElementNS(SVGNS, "circle"); c.setAttribute("cx", p.x); c.setAttribute("cy", p.y); c.setAttribute("r", 4.5); c.setAttribute("class", "startdot");
+  const t = document.createElementNS(SVGNS, "text"); t.setAttribute("x", p.x); t.setAttribute("y", p.y + 2); t.setAttribute("text-anchor", "middle"); t.setAttribute("class", "startnum"); t.textContent = D.n + 1;
+  g.append(c, t);
+}
+function setMsg(t, cls) { const m = $("msg"); m.textContent = t; m.className = "msg" + (cls ? " " + cls : ""); }
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function animStroke(t, delay = 0, dur = 650) {
+  const p = document.createElementNS(SVGNS, "path"); p.setAttribute("d", t.d);
+  $("lAnim").appendChild(p);
+  if (reduced || !p.animate) return Promise.resolve(p);
+  p.style.strokeDasharray = t.L + 1; p.style.strokeDashoffset = t.L + 1;
+  return p.animate([{ strokeDashoffset: t.L + 1 }, { strokeDashoffset: 0 }], { duration: dur, delay, fill: "forwards", easing: "ease-in-out" }).finished.then(() => p);
+}
+async function hintStroke() {
+  if (!D || D.n >= D.T.length) return;
+  D.clean = false;
+  $("lAnim").textContent = "";
+  await animStroke(D.T[D.n]);
+  setTimeout(() => { $("lAnim").textContent = ""; }, 900);
+}
+let busy = false;
+async function showAnswer() {
+  if (busy) return; busy = true;
+  D.clean = false;
+  $("lInk").textContent = ""; $("lAnim").textContent = ""; D.n = 0;
+  for (const t of D.T) await animStroke(t, 0, 500);
+  await new Promise(r => setTimeout(r, 600));
+  $("lAnim").textContent = "";
+  D.outline = true; drawOutline(); markStart();
+  setMsg("うすい字を なぞって かこう");
+  busy = false;
+}
+$("hintBtn").onclick = () => { setMsg("つぎの 1画は ここ"); hintStroke(); };
+$("showBtn").onclick = showAnswer;
+$("redoBtn").onclick = () => { $("lInk").textContent = ""; D.n = 0; D.off = { x: 0, y: 0 }; markStart(); setMsg("はじめから かこう"); };
+$("drillBack").onclick = () => { if (D.results.length) finishDrill(); else show("home"); };
+$("nextBtn").onclick = () => { D.i++; if (D.i >= D.qs.length) finishDrill(); else loadQ(); };
+$("speakBtn").onclick = () => {
+  try {
+    const u = new SpeechSynthesisUtterance(D.q.s.replace("＿", D.q.r).replace(/\s/g, ""));
+    u.lang = "ja-JP"; u.rate = 0.85; speechSynthesis.cancel(); speechSynthesis.speak(u);
+  } catch (e) {}
+};
+
+/* 指・ペンで書く */
+const pad = $("pad");
+let cur = null, curPath = null, curId = null;
+function pt(e) { const r = pad.getBoundingClientRect(); return { x: (e.clientX - r.left) / r.width * 109, y: (e.clientY - r.top) / r.height * 109 }; }
+function dOf(ps) { return "M" + ps.map(p => p.x.toFixed(1) + "," + p.y.toFixed(1)).join("L"); }
+pad.addEventListener("pointerdown", e => {
+  if (cur || busy || !D || D.n >= D.T.length) return;
+  e.preventDefault();
+  pad.setPointerCapture(e.pointerId);
+  curId = e.pointerId; cur = [pt(e)];
+  curPath = document.createElementNS(SVGNS, "path"); curPath.setAttribute("d", dOf(cur));
+  $("lInk").appendChild(curPath);
+});
+pad.addEventListener("pointermove", e => {
+  if (!cur || e.pointerId !== curId) return;
+  const evs = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  for (const ev of (evs.length ? evs : [e])) cur.push(pt(ev));
+  curPath.setAttribute("d", dOf(cur));
+});
+function endStroke(e) {
+  if (!cur || e.pointerId !== curId) return;
+  const raw = cur, path = curPath; cur = null; curPath = null;
+  if (raw.length === 1) { raw.push({ x: raw[0].x + 0.5, y: raw[0].y + 0.5 }); path.setAttribute("d", dOf(raw)); }
+  const r = judge(raw, D.T, D.n, D.outline ? { x: 0, y: 0 } : D.off);
+  if (r === "ok") {
+    if (!D.outline) D.off = learnOffset(raw, D.T[D.n], D.off, D.n === 0);
+    D.n++; D.miss = 0; $("lAnim").textContent = "";
+    setMsg(""); markStart();
+    if (D.n >= D.T.length) charDone();
+    return;
+  }
+  path.classList.add("bad");
+  pad.classList.remove("shake"); void pad.offsetWidth; pad.classList.add("shake");
+  setTimeout(() => path.remove(), 450);
+  D.miss++;
+  const msg = { reverse: "かく むきが はんたいだよ", order: "かきじゅんが ちがうよ", miss: "もういちど かいてみよう" }[r];
+  setMsg(msg, "bad");
+  if (D.miss >= 2 || r === "order") { setTimeout(hintStroke, 300); }
+}
+pad.addEventListener("pointerup", endStroke);
+pad.addEventListener("pointercancel", e => { if (cur && e.pointerId === curId) { curPath.remove(); cur = null; } });
+
+function charDone() {
+  const idx = D.slots[D.si], k = D.k;
+  const good = D.clean && D.mode === "test";
+  D.marks[idx] = D.clean ? "ok" : "tri";
+  // テストで書けた字だけ「おぼえた」に近づく。れんしゅうは記録だけ
+  const s = S.stats[k] || { ok: 0, ng: 0, st: 0, p: 0 };
+  if (D.mode === "test" && !D.only) { if (D.clean) { s.ok++; s.st++; } else { s.ng++; s.st = 0; } }
+  else s.p = (s.p || 0) + 1;
+  s.last = Date.now(); S.stats[k] = s; save();
+  // 赤ペンの ○
+  const c = document.createElementNS(SVGNS, "circle");
+  c.setAttribute("cx", 54.5); c.setAttribute("cy", 54.5); c.setAttribute("r", 48); c.setAttribute("class", "maru");
+  if (D.clean) {
+    $("lTop").appendChild(c);
+    if (!reduced && c.animate) { const L = 2 * Math.PI * 48; c.style.strokeDasharray = L; c.animate([{ strokeDashoffset: L }, { strokeDashoffset: 0 }], { duration: 450, fill: "forwards" }); }
+  }
+  setMsg(D.clean ? (good ? "せいかい！" : "よく かけました") : "かけたね。つぎは 見ないで かこう", D.clean ? "good" : "");
+  D.si++;
+  renderQ();
+  if (D.si < D.slots.length) { busy = true; setTimeout(() => { busy = false; loadChar(); }, 900); return; }
+  D.results.push({ q: D.q, ok: D.slots.every(i => D.marks[i] === "ok") });
+  $("tools").hidden = true; $("nextBtn").hidden = false;
+  $("nextBtn").textContent = D.i + 1 >= D.qs.length ? "けっかを 見る" : "つぎへ";
+}
+function finishDrill() {
+  if (D.qs.length === 1 && D.only) { show("home"); return; }
+  const n = D.results.length, ok = D.results.filter(r => r.ok).length;
+  $("resScore").textContent = `${n}もん中 ${ok}もん ○`;
+  $("resNote").textContent = D.mode === "test" ? "○は 見ないで かけた字。△は ヒントを 見た字です。" : "れんしゅうモードの けっかは「おぼえた」には かぞえません。";
+  const list = $("resList"); list.textContent = "";
+  for (const r of D.results) {
+    const d = document.createElement("div"); d.className = "resitem";
+    d.innerHTML = `<span class="m">${r.ok ? "○" : "△"}</span><span><div class="w"></div><div class="r"></div></span>`;
+    d.querySelector(".w").textContent = r.q.w; d.querySelector(".r").textContent = r.q.r;
+    list.appendChild(d);
+  }
+  const wrong = D.results.filter(r => !r.ok).map(r => r.q);
+  $("resRetry").hidden = !wrong.length;
+  $("resRetry").onclick = () => startDrill(wrong, "prac");
+  $("resAgain").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, 10), S.settings.mode); };
+  show("result");
+}
+$("resHome").onclick = () => show("home");
+
+/* ---------- ひらがな・カタカナ クイズ ---------- */
+let K = null;
+function startKana() {
+  const items = DATA.kana.map((x, i) => ({ i, s: x[0], a: x[1], b: x[2], why: x[3] }));
+  const w = it => { const s = S.kstats[it.i] || {}; return s.st >= 2 ? 0.4 : s.ng ? 3 : 1.5; };
+  const out = [];
+  while (out.length < 10 && items.length) {
+    const ws = items.map(w); let r = Math.random() * ws.reduce((a, b) => a + b, 0), j = 0;
+    while (j < ws.length - 1 && (r -= ws[j]) > 0) j++;
+    out.push(items.splice(j, 1)[0]);
+  }
+  K = { qs: out, i: 0, ok: 0 };
+  show("kana"); loadKana();
+}
+function loadKana() {
+  const q = K.qs[K.i];
+  $("kanaProg").textContent = `${K.i + 1} / ${K.qs.length}`;
+  const [a, b] = q.s.split("＿");
+  const el = $("kq"); el.textContent = "";
+  el.append(a, Object.assign(document.createElement("span"), { className: "blank", textContent: "　" }), b);
+  $("kmsg").textContent = ""; $("kmsg").className = "msg"; $("kNext").hidden = true;
+  const ch = $("choices"); ch.textContent = "";
+  const opts = Math.random() < 0.5 ? [q.a, q.b] : [q.b, q.a];
+  for (const o of opts) {
+    const btn = document.createElement("button"); btn.className = "choice"; btn.textContent = o;
+    btn.onclick = () => answerKana(o, btn);
+    ch.appendChild(btn);
+  }
+}
+function answerKana(o, btn) {
+  const q = K.qs[K.i];
+  if (!$("kNext").hidden) return;
+  const right = o === q.a;
+  for (const b of $("choices").children) if (b.textContent === q.a) b.classList.add("right");
+  if (!right) btn.classList.add("wrong");
+  $("kq").querySelector(".blank").textContent = q.a;
+  $("kmsg").textContent = (right ? "せいかい！ " : "ざんねん。 ") + q.why;
+  $("kmsg").className = "msg " + (right ? "good" : "bad");
+  const s = S.kstats[q.i] || { ok: 0, ng: 0, st: 0 };
+  if (right) { s.ok++; s.st++; K.ok++; } else { s.ng++; s.st = 0; }
+  s.last = Date.now(); s.q = q.s.replace("＿", "（" + q.a + "）"); S.kstats[q.i] = s; save();
+  $("kNext").hidden = false;
+  $("kNext").textContent = K.i + 1 >= K.qs.length ? "けっかを 見る" : "つぎへ";
+}
+$("kNext").onclick = () => {
+  K.i++;
+  if (K.i < K.qs.length) return loadKana();
+  $("resScore").textContent = `${K.qs.length}もん中 ${K.ok}もん ○`;
+  $("resNote").textContent = "まちがえた もんだいは、つぎの クイズで 多めに 出ます。";
+  $("resList").textContent = ""; $("resRetry").hidden = true;
+  $("resAgain").onclick = startKana;
+  show("result");
+};
+$("kanaBack").onclick = () => show("home");
+
+/* ---------- リスト編集（おうちの方） ---------- */
+let editing = null;
+const KANA_RE = /^[ぁ-ゟ゠-ヿー]+$/;
+function parseList(text) {
+  const items = [], errs = [];
+  text.split(/\n/).forEach((line, n) => {
+    const t = line.replace(/　/g, " ").trim();
+    if (!t) return;
+    const tok = t.split(/\s+/);
+    const w = tok[0];
+    const bad = [...w].filter(c => /[一-鿿々]/.test(c) && !isK(c));
+    if (bad.length) { errs.push(`${n + 1}行目：「${bad.join("")}」は小学校で習う字ではないので書き順がありません`); return; }
+    if (!kanjiOf(w).length) { errs.push(`${n + 1}行目：漢字が入っていません`); return; }
+    if (tok.length === 1) {
+      if ([...w].every(isK)) { items.push({ k: w }); return; }
+      errs.push(`${n + 1}行目：送りがなのある言葉は、よみも書いてください（例：${w} ${"よみ"}）`); return;
+    }
+    const r = tok[1];
+    if (!KANA_RE.test(r)) { errs.push(`${n + 1}行目：よみは ひらがな で書いてください`); return; }
+    let s = tok.slice(2).join(" ").replace(/_/g, "＿");
+    if (!s) s = "＿";
+    if (!s.includes("＿")) s = s + "（＿）";
+    if (s.split("＿").length !== 2) { errs.push(`${n + 1}行目：文の ＿ は1つにしてください`); return; }
+    items.push({ w, r, s });
+  });
+  return { items, errs };
+}
+function itemsToText(items) { return items.map(i => i.k ? i.k : (i.s === "＿" ? `${i.w} ${i.r}` : `${i.w} ${i.r} ${i.s}`)).join("\n"); }
+function renderPreview() {
+  const { items, errs } = parseList($("edText").value);
+  const el = $("edPreview"); el.textContent = "";
+  const ks = new Set(items.flatMap(i => i.k ? [...i.k] : kanjiOf(i.w)));
+  const ok = document.createElement("div");
+  ok.textContent = items.length ? `${items.length}行・${ks.size}字：${[...ks].join("")}` : "";
+  el.appendChild(ok);
+  for (const e of errs) { const d = document.createElement("div"); d.className = "err"; d.textContent = e; el.appendChild(d); }
+  $("edSave").disabled = !items.length || errs.length > 0;
+}
+function editNew() {
+  editing = null; $("edTitle").textContent = "新しいリスト";
+  $("edName").value = ""; $("edText").value = ""; renderPreview();
+}
+function editList(l) {
+  editing = l.id; $("edTitle").textContent = "リストを直す";
+  $("edName").value = l.name; $("edText").value = itemsToText(l.items); renderPreview();
+  window.scrollTo(0, 0);
+}
+$("edText").addEventListener("input", renderPreview);
+$("edNew").onclick = editNew;
+$("edSave").onclick = () => {
+  const { items, errs } = parseList($("edText").value);
+  if (!items.length || errs.length) return;
+  const name = $("edName").value.trim() || `リスト${S.lists.length + 1}`;
+  if (editing) { const l = S.lists.find(x => x.id === editing); if (l) { l.name = name; l.items = items; } }
+  else { const id = "L" + Date.now().toString(36); S.lists.push({ id, name, items }); editing = id; S.settings.list = id; }
+  S.listsT = Date.now(); save(); renderLists();
+  $("edPreview").insertAdjacentHTML("afterbegin", '<div style="color:var(--green);font-weight:700">保存しました</div>');
+};
+function renderLists() {
+  const box = $("listRows"); box.textContent = "";
+  if (!S.lists.length) { box.innerHTML = '<p class="muted" style="margin:0">まだありません。上で作ると、ホームの「れんしゅうする字」に出ます。</p>'; return; }
+  for (const l of S.lists) {
+    const r = document.createElement("div"); r.className = "listrow";
+    const nm = document.createElement("div"); nm.className = "nm";
+    const ks = new Set(l.items.flatMap(i => i.k ? [...i.k] : kanjiOf(i.w)));
+    nm.textContent = `${l.name}（${ks.size}字）`;
+    const btns = document.createElement("div"); btns.className = "row";
+    const e = document.createElement("button"); e.className = "btn ghost"; e.textContent = "直す"; e.onclick = () => editList(l);
+    const d = document.createElement("button"); d.className = "btn danger"; d.textContent = "消す";
+    d.onclick = () => {
+      if (d.dataset.arm) { S.lists = S.lists.filter(x => x.id !== l.id); S.listsT = Date.now(); if (editing === l.id) editNew(); save(); renderLists(); }
+      else { d.dataset.arm = 1; d.textContent = "本当に消す"; setTimeout(() => { delete d.dataset.arm; d.textContent = "消す"; }, 3000); }
+    };
+    btns.append(e, d); r.append(nm, btns); box.appendChild(r);
+  }
+}
+$("listsBack").onclick = () => show("home");
+$("keyInput").value = S.key || "";
+$("keySave").onclick = () => { S.key = $("keyInput").value.trim(); local(); setSync(); pull(); };
+
+show("home");
+setSync();
+pull();
+if ("serviceWorker" in navigator && location.protocol === "https:") navigator.serviceWorker.register("sw.js").catch(() => {});
+</script>
