@@ -1,5 +1,5 @@
 <!doctype html><html lang="ja"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="かんじ">
@@ -257,6 +257,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 
 /* 問題文 */
 .question { font-family: var(--font-k); font-size: 26px; line-height: 2.2; display: flex; flex-wrap: wrap; align-items: flex-end; column-gap: 4px; min-height: 90px; }
+.wordwrap { display: inline-flex; align-items: flex-end; }
 .word { display: inline-grid; justify-items: center; gap: 2px; line-height: 1; }
 .word .yomi { font-size: 15px; color: var(--red); letter-spacing: .06em; }
 .word .cells { display: inline-flex; align-items: flex-end; gap: 3px; }
@@ -270,6 +271,10 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 /* 書くマス */
 .padwrap { display: grid; justify-items: center; gap: 10px; }
 body:has(#drill:not([hidden])) { overscroll-behavior: none; }
+/* ダブルタップや ピンチで 画面が 大きく ならないように する */
+* { touch-action: manipulation; }
+html, body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
+input, textarea { -webkit-user-select: text; user-select: text; }
 #pad { width: min(100%, 440px, 52vh); aspect-ratio: 1; max-width: 100%; touch-action: none; user-select: none; -webkit-user-select: none; background: var(--sheet); border: 3px solid var(--ink); border-radius: 6px; display: block; }
 #pad .guide { stroke: var(--rule); stroke-width: .6; stroke-dasharray: 2 2; }
 #pad .outline path { stroke: var(--guide); stroke-width: 6; fill: none; stroke-linecap: round; stroke-linejoin: round; }
@@ -470,7 +475,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2333</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2337</p>
 </section>
 
 <!-- 書きとり -->
@@ -1541,10 +1546,19 @@ function loadQ() {
 }
 // 読み＋マスの かたまり。state：いま書く／書けた（ok=○か△）／まだ
 function wordBlock(q, state, ok) {
-  const w = document.createElement("span"); w.className = "word";
-  const y = document.createElement("span"); y.className = "yomi"; y.textContent = q.r; w.appendChild(y);
+  // 前と後ろの ひらがな（会「う」の う）は マスの外に出し、読みは 漢字の ところだけ のせる
+  const cs = [...q.w], rs = [...q.r];
+  let p = 0, s = 0;
+  while (p < cs.length && !isK(cs[p]) && cs[p] === rs[p]) p++;
+  while (s < cs.length - p && !isK(cs[cs.length - 1 - s]) && cs[cs.length - 1 - s] === rs[rs.length - 1 - s]) s++;
+  const outer = document.createElement("span"); outer.className = "wordwrap";
+  const kana = t => { if (!t) return; const e = document.createElement("span"); e.className = "kana"; e.textContent = t; outer.appendChild(e); };
+  kana(cs.slice(0, p).join(""));
+  const w = document.createElement("span"); w.className = "word"; outer.appendChild(w);
+  const y = document.createElement("span"); y.className = "yomi"; y.textContent = rs.slice(p, rs.length - s).join("") || q.r; w.appendChild(y);
   const cells = document.createElement("span"); cells.className = "cells";
-  [...q.w].forEach((c, i) => {
+  cs.forEach((c, i) => {
+    if (i < p || i >= cs.length - s) return;
     const si = state === "cur" ? D.slots.indexOf(i) : isK(c) ? 0 : -1;
     if (si < 0) { const s = document.createElement("span"); s.className = "kana"; s.textContent = c; cells.appendChild(s); return; }
     const box = document.createElement("span"); box.className = "box";
@@ -1555,7 +1569,8 @@ function wordBlock(q, state, ok) {
     cells.appendChild(box);
   });
   w.appendChild(cells);
-  return w;
+  kana(cs.slice(cs.length - s).join(""));
+  return outer;
 }
 function renderQ() {
   const el = $("qText"); el.textContent = "";
@@ -1986,6 +2001,10 @@ $("listsBack").onclick = () => show("adult");
 $("keyInput").value = S.key || "";
 $("keySave").onclick = () => { S.key = $("keyInput").value.trim(); local(); setSync(); pull(); };
 
+// iPhone・iPad の Safari は 拡大禁止の 指定を 無視するので、ピンチと ダブルタップを 直接 止める
+for (const ev of ["gesturestart", "gesturechange"]) document.addEventListener(ev, e => e.preventDefault(), { passive: false });
+let lastTap = 0;
+document.addEventListener("touchend", e => { const t = Date.now(); if (t - lastTap < 350 && !e.target.closest("input,textarea")) { e.preventDefault(); const b = e.target.closest("button"); if (b && !b.disabled) b.click(); } lastTap = t; }, { passive: false });
 show("home");
 setSync();
 pull();

@@ -1,6 +1,6 @@
-// 通信が無くても開けるようにする。版 6516889094
+// 通信が無くても開けるようにする。版 90fd2ed836
 // つながっているときは必ず最新を取りに行き、手元の保存分は通信できないときだけ使う
-const CACHE = "kanji-6516889094";
+const CACHE = "kanji-90fd2ed836";
 const FILES = ["./", "index.html", "manifest.webmanifest", "icon-180.png", "icon-192.png", "icon-512.png"];
 self.addEventListener("install", e => {
   // cache: "reload" … ブラウザの一時保存（GitHubは10分間）を通さず、最新を取る
