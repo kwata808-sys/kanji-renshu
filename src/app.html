@@ -54,8 +54,11 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .btn:disabled { opacity: .45; cursor: default; }
 .row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
 .chips { display: flex; flex-wrap: wrap; gap: 8px; }
-.chip { border: 2px solid var(--rule); background: var(--sheet); border-radius: 999px; padding: 8px 14px; font-weight: 700; font-size: 15px; }
-.chip[aria-pressed="true"] { border-color: var(--green); background: var(--ok); }
+.chips { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
+.chip { border: 2px solid var(--rule); background: var(--sheet); border-radius: 12px; padding: 10px 12px; font-weight: 700; font-size: 16px; text-align: left; display: grid; gap: 2px; min-width: 0; overflow-wrap: anywhere; }
+.chip small { font-weight: 500; font-size: 12px; color: var(--pencil); }
+.chip[aria-pressed="true"] { border-color: var(--green); background: var(--green); color: var(--green-ink); }
+.chip[aria-pressed="true"] small { color: inherit; opacity: .85; }
 .seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; border: 2px solid var(--rule); border-radius: 12px; overflow: hidden; }
 .seg button { border: 0; background: transparent; padding: 10px 8px; font-weight: 700; display: grid; gap: 2px; }
 .seg button small { font-weight: 500; font-size: 12px; color: var(--pencil); }
@@ -151,7 +154,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
   </div>
 
   <div class="sheet">
-    <span class="label">れんしゅうする字</span>
+    <span class="label">れんしゅうする字を えらぶ</span>
     <div id="listChips" class="chips"></div>
     <span class="label">やりかた</span>
     <div class="seg" id="modeSeg">
@@ -217,7 +220,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・版 /*VERSION*/</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 /*VERSION*/</p>
 </section>
 
 <!-- 書きとり -->
@@ -289,10 +292,12 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     <label for="edName" style="font-weight:700">リストの名前</label>
     <input type="text" id="edName" placeholder="例：10月17日のプリント">
     <label for="edText" style="font-weight:700">字・言葉（1行に1つ）</label>
-    <pre class="fmt">朝線校門　　　　 ← 字だけ並べる（問題は自動で作ります）
-細かい こまかい　← 言葉 よみ
-大人 おとな ＿と話す。 ← 言葉 よみ 文（＿に言葉が入る）</pre>
-    <textarea id="edText" placeholder="朝線校門&#10;子牛 こうし&#10;細かい こまかい ＿すな。"></textarea>
+    <pre class="fmt">ご飯　　　　　　　← 言葉だけ（よみは自動）
+ご飯 ご飯をたべる。 ← 言葉と文（言葉の所が自動で□になる）
+朝線校門　　　　　← 字だけ並べる
+上手（うわて）　　 ← よみを変えたいときだけ（）で書く</pre>
+    <p class="muted" style="margin:0">下に、よみと文が どう入ったかが出ます。よみが違っていたら、言葉のすぐあとに（よみ）を書いてください。</p>
+    <textarea id="edText" placeholder="ご飯&#10;細かい 細かいすな。&#10;朝線校門"></textarea>
     <div class="preview" id="edPreview"></div>
     <div class="row">
       <button class="btn primary" id="edSave">保存する</button>
@@ -525,11 +530,13 @@ function show(id) {
 function renderHome() {
   const chips = $("listChips"); chips.textContent = "";
   const weakN = Object.keys(S.stats).filter(k => isK(k) && status(k) === "weak").length;
-  const opts = [["g2", "2年生 ぜんぶ"], ...S.lists.map(l => [l.id, l.name]), ["weak", `にがてな字（${weakN}）`]];
+  const opts = [["g2", "2年生 ぜんぶ"], ...S.lists.map(l => [l.id, l.name]), ["weak", "にがてな字"]];
   if (!opts.some(o => o[0] === S.settings.list)) S.settings.list = "g2";
   for (const [id, name] of opts) {
     const b = document.createElement("button");
-    b.className = "chip"; b.textContent = name;
+    b.className = "chip";
+    const n = id === "weak" ? weakN : targetsOf(id).kanji.length;
+    b.append(name, Object.assign(document.createElement("small"), { textContent: (S.settings.list === id ? "えらんでいます・" : "") + n + "字" }));
     b.setAttribute("aria-pressed", S.settings.list === id);
     b.onclick = () => { S.settings.list = id; save(); renderHome(); };
     chips.appendChild(b);
@@ -810,38 +817,68 @@ $("kanaBack").onclick = () => show("home");
 /* ---------- リスト編集（大人の人） ---------- */
 let editing = null;
 const KANA_RE = /^[ぁ-ゟ゠-ヿー]+$/;
+// 言葉の読み：辞書 → 組みこみの問題 の順に引く
+function readingOf(w) {
+  if (DATA.dic[w]) return DATA.dic[w];
+  const q = BUILTIN.find(q => q.w === w);
+  return q ? q.r : "";
+}
 function parseList(text) {
   const items = [], errs = [];
   text.split(/\n/).forEach((line, n) => {
     const t = line.replace(/　/g, " ").trim();
     if (!t) return;
+    const at = `${n + 1}行目：`;
     const tok = t.split(/\s+/);
-    const w = tok[0];
+    // 「上手（うわて）」のように、かっこで読みを書いてもよい
+    const m = tok[0].match(/^(.+?)[（(]([^）)]+)[）)]$/);
+    const w = m ? m[1] : tok[0];
     const bad = [...w].filter(c => /[一-鿿々]/.test(c) && !isK(c));
-    if (bad.length) { errs.push(`${n + 1}行目：「${bad.join("")}」は小学校で習う字ではないので書き順がありません`); return; }
-    if (!kanjiOf(w).length) { errs.push(`${n + 1}行目：漢字が入っていません`); return; }
-    if (tok.length === 1) {
-      if ([...w].every(isK)) { items.push({ k: w }); return; }
-      errs.push(`${n + 1}行目：送りがなのある言葉は、よみも書いてください（例：${w} ${"よみ"}）`); return;
+    if (bad.length) { errs.push(`${at}「${bad.join("")}」は小学校で習う字ではないので書き順がありません`); return; }
+    if (!kanjiOf(w).length) { errs.push(`${at}漢字が入っていません`); return; }
+    // 「朝線校門」のように字だけ並べた行（辞書にある言葉なら言葉として扱う）
+    if (!m && tok.length === 1 && [...w].every(isK) && w.length > 1 && !readingOf(w)) { items.push({ k: w }); return; }
+    let rest = tok.slice(1);
+    let r = m ? m[2] : readingOf(w);
+    // 辞書に無い言葉だけ、2つめを読みとして受けつける（「生活 せいかつ」）
+    if (!r && rest.length && KANA_RE.test(rest[0])) r = rest.shift();
+    if (!r) { errs.push(`${at}「${w}」の よみが 見つかりません。「${w}（よみ）」のように書いてください`); return; }
+    if (!KANA_RE.test(r)) { errs.push(`${at}よみは ひらがな で書いてください`); return; }
+    // 文：＿が無ければ、文の中の言葉を自動で＿にする
+    let sen = rest.join(" ").replace(/_/g, "＿");
+    if (!sen) { const q = BUILTIN.find(q => q.w === w && q.r === r); sen = q ? q.s : "＿"; }
+    else if (!sen.includes("＿")) {
+      if (!sen.includes(w)) { errs.push(`${at}文の中に「${w}」が入っていません`); return; }
+      sen = sen.replace(w, "＿");
     }
-    const r = tok[1];
-    if (!KANA_RE.test(r)) { errs.push(`${n + 1}行目：よみは ひらがな で書いてください`); return; }
-    let s = tok.slice(2).join(" ").replace(/_/g, "＿");
-    if (!s) s = "＿";
-    if (!s.includes("＿")) s = s + "（＿）";
-    if (s.split("＿").length !== 2) { errs.push(`${n + 1}行目：文の ＿ は1つにしてください`); return; }
-    items.push({ w, r, s });
+    if (sen.split("＿").length !== 2) { errs.push(`${at}文の ＿ は1つにしてください`); return; }
+    items.push({ w, r, s: sen });
   });
   return { items, errs };
 }
-function itemsToText(items) { return items.map(i => i.k ? i.k : (i.s === "＿" ? `${i.w} ${i.r}` : `${i.w} ${i.r} ${i.s}`)).join("\n"); }
+function itemsToText(items) {
+  return items.map(i => {
+    if (i.k) return i.k;
+    const r = i.r === readingOf(i.w) ? "" : "（" + i.r + "）";
+    const q = BUILTIN.find(q => q.w === i.w && q.r === i.r);
+    const sen = i.s === "＿" || (q && q.s === i.s) ? "" : " " + i.s.replace("＿", i.w);
+    return i.w + r + sen;
+  }).join("\n");
+}
 function renderPreview() {
   const { items, errs } = parseList($("edText").value);
   const el = $("edPreview"); el.textContent = "";
   const ks = new Set(items.flatMap(i => i.k ? [...i.k] : kanjiOf(i.w)));
   const ok = document.createElement("div");
-  ok.textContent = items.length ? `${items.length}行・${ks.size}字：${[...ks].join("")}` : "";
+  ok.style.fontWeight = "700";
+  ok.textContent = items.length ? `${ks.size}字：${[...ks].join("")}` : "";
   el.appendChild(ok);
+  for (const i of items) {
+    const d = document.createElement("div");
+    d.style.fontFamily = "var(--font-k)";
+    d.textContent = i.k ? `${i.k}（字だけ。問題は自動）` : `${i.w}（${i.r}）` + (i.s === "＿" ? "" : `：${i.s}`);
+    el.appendChild(d);
+  }
   for (const e of errs) { const d = document.createElement("div"); d.className = "err"; d.textContent = e; el.appendChild(d); }
   $("edSave").disabled = !items.length || errs.length > 0;
 }

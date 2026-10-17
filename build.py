@@ -50,7 +50,20 @@ for line in open(f"{ROOT}/src/kana.txt"):
 if errs:
     print("\n".join(errs)); sys.exit(1)
 
-data = {"strokes": strokes, "read": readings, "grade": grade, "q": qs, "kana": kana}
+# 言葉の読みの辞書（JMdict のよく使う言葉から、小学校の漢字だけでできた言葉）
+import glob
+KANA = re.compile(r"^[\u3041-\u309f\u30a0-\u30ffー]+$")
+dic = {}
+jm = json.load(open(glob.glob(f"{ROOT}/data/jmdict-eng-common*.json")[0]))
+for e in jm["words"]:
+    for k in e["kanji"]:
+        t = k["text"]
+        ks = [c for c in t if not KANA.match(c)]
+        if not ks or any(c not in grade for c in ks): continue
+        rs = sorted([r for r in e["kana"] if r["appliesToKanji"] == ["*"] or t in r["appliesToKanji"]], key=lambda r: not r["common"])
+        if rs and (t not in dic or (k["common"] and not dic[t][1])): dic[t] = (rs[0]["text"], k["common"])
+dic = {k: v[0] for k, v in dic.items()}
+data = {"dic": dic, "strokes": strokes, "read": readings, "grade": grade, "q": qs, "kana": kana}
 # 共有先（GASのURL）は config.json に置く。無ければ端末だけに保存する
 cfg = json.load(open(f"{ROOT}/config.json")) if os.path.exists(f"{ROOT}/config.json") else {}
 body = open(f"{ROOT}/src/app.html").read()
