@@ -393,6 +393,7 @@ html:has(#drill:not([hidden])), body:has(#drill:not([hidden])) { overflow: hidde
 .tgot h3 { font-size: 24px; color: #b8501a; font-family: var(--font-k); }
 .tgot .ticon svg { width: 72px; height: 72px; display: block; }
 .tgot .tname { font-size: 20px; font-weight: 700; }
+.tgot .tkey { font-size: 15px; font-weight: 700; color: #fff; background: #3f7a4a; border-radius: 10px; padding: 6px 10px; }
 .tgot .tsub { font-size: 15px; color: var(--gold); font-weight: 700; }
 @media (prefers-reduced-motion: reduce) { .dun.walk .world, .dun .flame, .iface .mon, .rays.on, .tchest.drop, .tchest.wiggle, #intro, .stripe span { animation: none; } }
 /* ダブルタップや ピンチで 画面が 大きく ならないように する */
@@ -470,8 +471,8 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
   <button class="btn primary big gonext" id="goNext"></button>
   <div class="menu4">
     <button class="tile4 t-kaki" id="goKaki"><i class="room">くんれんじょう</i><b>じゆうに<br>かきとり</b><small id="kakiSub"></small></button>
-    <button class="tile4 t-story" id="goStory"><i class="room">まきものの へや</i><b>長文</b><small id="storySub"></small></button>
-    <button class="tile4 t-kana" id="goKana"><i class="room">なぞなぞの とびら</i><b>ひらがな<br>カタカナ</b><small>を・お など</small></button>
+    <button class="tile4 t-story" id="goStory"><i class="room">まきものの とう</i><b>長文</b><small id="storySub"></small></button>
+    <button class="tile4 t-kana" id="goKana"><i class="room">なぞなぞの もり</i><b>ひらがな<br>カタカナ</b><small id="kanaSub"></small></button>
     <button class="tile4 t-grid" id="goGrid"><i class="room">かんじ ずかん</i><b>字の<br>いちらん</b><small id="gridSub"></small></button>
   </div>
   <button class="adultlink" id="goAdult">大人の人へ（リスト登録・共有・せってい）</button>
@@ -546,6 +547,14 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
   <p class="muted" id="storyNone" hidden>長文は いまは 2年生だけです。メニューで 2年を えらんでね。</p>
 </section>
 
+<!-- サブクエスト -->
+<section id="quest" class="screen" hidden>
+  <div class="topbar"><button class="back" data-back="home">← メニュー</button><span class="label" id="qTitle"></span></div>
+  <div class="zukan" id="qBanner"></div>
+  <div class="boardwrap" id="qMap"></div>
+  <button class="btn primary big gonext" id="qGo"></button>
+</section>
+
 <!-- 字の いちらん -->
 <section id="gridScreen" class="screen" hidden>
   <div class="topbar"><button class="back" data-back="home">← メニュー</button><span class="label">字の いちらん</span></div>
@@ -600,7 +609,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1018-0007</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1018-0029</p>
 </section>
 
 <!-- ボス登場・たからばこ（全画面に かさねる） -->
@@ -1125,6 +1134,8 @@ const ITEMS = [
   { s: 45, slot: "アクセ", name: "てんしの つばさ", pow: 3, look: "wings" },
   { s: 70, slot: "アクセ", name: "ロケットくつ", pow: 6, look: "rocket" },
   { s: 75, slot: "アクセ", name: "うんこの おまもり", pow: 7, look: "unko" },
+  { s: 999, sub: "nazo", slot: "アクセ", name: "なぞときの すず", pow: 3, look: "ring" },
+  { s: 999, sub: "maki", slot: "たて", name: "ちしきの たて", pow: 4, c: "#3b7bd6", shape: "kite", mark: "star" },
 ];
 // ぶきの かたち：にぎりを 原点に、上（マイナス）へ のびる
 function weaponShape(w) {
@@ -1139,7 +1150,7 @@ function weaponShape(w) {
 const weaponIcon = (w, size = 54) => `<svg viewBox="-34 -100 68 122" width="${size * 0.56}" height="${size}" aria-hidden="true">${weaponShape(w)}</svg>`;
 function equipped(c = cleared()) {
   const eq = {};
-  for (const it of ITEMS) if (it.s <= c && (!eq[it.slot] || it.pow >= eq[it.slot].pow)) eq[it.slot] = it;
+  for (const it of ITEMS) if ((it.sub ? qBossDone(it.sub) : it.s <= c) && (!eq[it.slot] || it.pow >= eq[it.slot].pow)) eq[it.slot] = it;
   return eq;
 }
 const power = eq => SLOTS.reduce((a, k) => a + (eq[k] ? eq[k].pow : 0), 0);
@@ -1291,7 +1302,7 @@ const BOSSES = {
 };
 const BOSS_ORDER = Object.keys(BOSSES).map(Number);
 function bossFace(stage) {
-  const b = BOSSES[stage];
+  const b = typeof stage === "object" ? stage : BOSSES[stage];
   if (b.hat === "unko") {
     return `<svg class="mon" viewBox="0 0 100 100" aria-hidden="true"><path d="M30 18 L36 6 L44 16 L50 4 L56 16 L64 6 L70 18 Z" fill="#f2c230" stroke="#b88a12" stroke-width="2"/><ellipse cx="50" cy="84" rx="40" ry="13" fill="#8a5a2b"/><ellipse cx="50" cy="66" rx="31" ry="12" fill="#9c6833"/><ellipse cx="50" cy="48" rx="22" ry="11" fill="#ad773d"/><path d="M50 22 q14 6 6 22 h-12 q-8 -14 6 -22z" fill="#ad773d"/><circle cx="41" cy="64" r="6" fill="#fff"/><circle cx="59" cy="64" r="6" fill="#fff"/><circle cx="42" cy="65" r="3" fill="#222"/><circle cx="58" cy="65" r="3" fill="#222"/><path d="M40 78 q10 6 20 0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="34" cy="72" r="3" fill="#e9967a"/><circle cx="66" cy="72" r="3" fill="#e9967a"/></svg>`;
   }
@@ -1351,15 +1362,12 @@ function boardSVG(page, cur, c) {
     if (p.y === q.y) d += ` L${p.x} ${p.y}`;
     else { const cx = q.x > 180 ? q.x + 42 : q.x - 42; d += ` C${cx} ${q.y} ${cx} ${p.y} ${p.x} ${p.y}`; }
   }
-  // ダンジョンの ちず：かべは レンガ、道は 石だたみ、すみに たいまつ
-  const f = FLOORS[Math.min(page, FLOORS.length - 1)];
-  let g = `<svg viewBox="0 0 360 244" class="sugoroku" role="img" aria-label="ちか${page + 1}かい ${f.name} ステージ${first}から${last}">`;
-  g += `<defs><pattern id="brk" width="28" height="14" patternUnits="userSpaceOnUse"><rect width="28" height="14" fill="${f.wall2}"/><path d="M0 .5 H28 M0 7.5 H28 M7 0 V7 M21 7 V14" stroke="#0004" stroke-width="1.2"/></pattern><radialGradient id="tgb"><stop offset="0" stop-color="${f.light}" stop-opacity=".6"/><stop offset="1" stop-color="${f.light}" stop-opacity="0"/></radialGradient></defs>`;
-  g += `<rect x="3" y="3" width="354" height="238" rx="18" fill="url(#brk)" stroke="#2a2026" stroke-width="5"/>`;
-  for (const [tx, ty] of [[18, 22], [342, 22], [18, 226], [342, 226]]) g += `<circle cx="${tx}" cy="${ty}" r="22" fill="url(#tgb)" class="glow"/><path class="flame" d="M${tx} ${ty - 9} q6 7 3 12 q-3 3 -6 0 q-3 -5 3 -12z" fill="${f.light}"/>`;
+  // エリアの ちず：そうげん・やま・どうくつ・うみ・おしろ
+  const f = FLOORS[Math.min(page, FLOORS.length - 1)], sc = scene(page);
+  let g = `<svg viewBox="0 0 360 244" class="sugoroku" role="img" aria-label="${f.name} ステージ${first}から${last}">` + sc.bg;
   g += `<path d="${d}" fill="none" stroke="#2a2026" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>`;
-  g += `<path d="${d}" fill="none" stroke="${f.floor}" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>`;
-  g += `<path d="${d}" fill="none" stroke="#0002" stroke-width="17" stroke-dasharray="2 9" stroke-linejoin="round"/>`;
+  g += `<path d="${d}" fill="none" stroke="${sc.road}" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>`;
+  g += `<path d="${d}" fill="none" stroke="#0002" stroke-width="17" stroke-dasharray="2 9" stroke-linejoin="round"/>` + sc.top;
   const bubble = (x, y, text, fill) => {
     const w = text.length * 10 + 14;
     const bx = Math.max(6, Math.min(354 - w, x - w / 2));
@@ -1390,11 +1398,11 @@ function boardSVG(page, cur, c) {
 /* ---------- ダンジョン ---------- */
 // 20ステージごとに ばしょが かわる（ちか1かい〜5かい）
 const FLOORS = [
-  { name: "いしの どうくつ", wall: "#7a6656", wall2: "#5e4d41", floor: "#9c8669", ceil: "#4a3c36", back: "#1c1418", light: "#ffcf6a" },
-  { name: "こおりの どうくつ", wall: "#7f9db5", wall2: "#5f7f99", floor: "#b9d3e6", ceil: "#4b627a", back: "#16202c", light: "#bfefff" },
-  { name: "もりの いせき", wall: "#6f8a5a", wall2: "#566e45", floor: "#a5b77f", ceil: "#3f5236", back: "#141c12", light: "#d8ff8a" },
-  { name: "すいしょうの へや", wall: "#8a74a8", wall2: "#6c5a8a", floor: "#b9a6d6", ceil: "#4c3f66", back: "#1a1426", light: "#f0c8ff" },
-  { name: "マグマの おしろ", wall: "#8f5a4a", wall2: "#6e4234", floor: "#c0866a", ceil: "#4f2a22", back: "#2a0e08", light: "#ff9a4a" },
+  { name: "みどりの そうげん", short: "そうげん", wall: "#6f8a5a", wall2: "#566e45", floor: "#c9a46a", ceil: "#3f5236", back: "#141c12", light: "#d8ff8a" },
+  { name: "ごつごつ やま", short: "やま", wall: "#8a8078", wall2: "#6e655e", floor: "#b0a090", ceil: "#4e4640", back: "#1c1816", light: "#ffcf6a" },
+  { name: "くらやみ どうくつ", short: "どうくつ", wall: "#7a6656", wall2: "#5e4d41", floor: "#9c8669", ceil: "#4a3c36", back: "#1c1418", light: "#ffcf6a" },
+  { name: "ざぶざぶ うみ", short: "うみ", wall: "#7f9db5", wall2: "#5f7f99", floor: "#e8d6a8", ceil: "#4b627a", back: "#16202c", light: "#bfefff" },
+  { name: "マグマの おしろ", short: "おしろ", wall: "#8f5a4a", wall2: "#6e4234", floor: "#c0866a", ceil: "#4f2a22", back: "#2a0e08", light: "#ff9a4a" },
 ];
 const floorNo = s => Math.min(FLOORS.length - 1, Math.floor((s - 1) / 20));
 // おくゆきの ある 通路。まん中（150,52）に むかって 小さく なる
@@ -1454,8 +1462,8 @@ const BIGCHEST = open => `<svg viewBox="0 0 100 100" aria-hidden="true">`
 // ざこ戦：1もん ごとに ざこが 1ぴき。たおすと おくへ すすむ（パズドラふう）
 // 書きとり・長文・かなクイズ どこでも つかう。らんは いまの 画面へ うつして つかう
 let MB = null;
-function startMob(s, n, where, chest) {
-  const fi = floorNo(s), bar = $("bossBar"), host = $(where || "drill");
+function startMob(s, n, where, chest, fiOver) {
+  const fi = fiOver !== undefined ? fiOver : floorNo(s), bar = $("bossBar"), host = $(where || "drill");
   host.insertBefore(bar, host.querySelector(".sheet"));
   MB = { s, fi, n, chest: !!chest };
   bar.hidden = false; bar.className = "bossbar mob" + (where === "story" ? " small" : "");
@@ -1513,10 +1521,10 @@ function mobTurn(ok) {
   }
 }
 // ボスの とうじょう：WARNING！
-function bossIntro(s) {
-  const b = BOSSES[s], el = $("intro");
-  $("iKind").textContent = s === LAST ? "ラスボス" : "中ボス";
-  $("iFace").innerHTML = bossFace(s);
+function bossIntro(s, def) {
+  const b = def || BOSSES[s], el = $("intro");
+  $("iKind").textContent = def ? "サブクエストの ボス" : s === LAST ? "ラスボス" : "中ボス";
+  $("iFace").innerHTML = bossFace(b);
   $("iName").textContent = b.name;
   el.hidden = false; sfx("warn");
   $("bossMon").style.visibility = "hidden";
@@ -1557,9 +1565,159 @@ function treasureShow(s, got) {
     const sub = document.createElement("div"); sub.className = "tsub"; sub.textContent = "+50 けいけんち";
     g.append(h, ic, nm, sub);
     for (const it of got) { const e = document.createElement("div"); e.className = "tsub"; e.textContent = `そうび ゲット！ ${it.slot}：${it.name}`; g.appendChild(e); }
+    for (const q in QUESTS) if (QUESTS[q].key === s) { const e = document.createElement("div"); e.className = "tkey"; e.textContent = `「${QUESTS[q].keyName}」も 手に入れた！ ホームの「${QUESTS[q].name}」に 入れるよ`; g.appendChild(e); }
     g.hidden = false; $("tTap").hidden = false;
     setTimeout(() => { el.onclick = () => { el.hidden = true; el.onclick = null; }; }, 500);
   }, 2300 * q);
+}
+
+
+/* ---------- サブクエスト（なぞなぞの もり・まきものの とう） ---------- */
+// メインの たからばこで「かぎ」を 手に入れると 入れる。さいごに ボスが いる
+const QUESTS = {
+  nazo: { name: "なぞなぞの もり", key: 5, keyName: "なぞなぞの かぎ", fi: 0, bg: "#3f7a4a", path: "#d9b77a",
+    boss: { name: "なぞなぞ フクロウはかせ", c: "#c9a46a", eyes: "kira", mouth: "o", hat: "glasses",
+      say: "ホッホー！ わしの なぞが とけるかな？ 「を」か「お」か… ホッホー！", hit: ["ホッ!? せいかい じゃと!?", "ホッホー… やるのう", "はねが ぬけた〜！"],
+      hint: "ホッホー！ ひっかかったのう！", win: "ホッホー… まいった。きみは なぞとき名人じゃ！", lose: "ホッホー！ また ちょうせん するのじゃ" } },
+  maki: { name: "まきものの とう", key: 15, keyName: "まきものの かぎ", fi: 2, bg: "#5a463a", path: "#e8d6a8",
+    boss: { name: "ながなが まきもの大王", c: "#f6e7c8", eyes: "smug", mouth: "wave", hat: "crown",
+      say: "わしの まきものは ながいぞ〜。さいごまで かけるかな？", hit: ["まきものが ほどけた〜！", "ながすぎて じぶんも よめない…", "くるくる〜 目が まわる〜"],
+      hint: "ふっふっふ、ヒントを 見たな？", win: "まいった… きみは まきもの名人じゃ", lose: "ながながながなが〜 また おいで" } },
+};
+const hasKey = q => cleared() >= QUESTS[q].key;
+const qDone = q => (S.stats["クエスト" + q] && S.stats["クエスト" + q].ok) || 0;
+const qBossDone = q => !!S.stats["クエストボス" + q];
+const qSize = q => q === "nazo" ? Math.ceil(DATA.kana.length / 5) + 1 : (DATA.stories[gradeOf()] || []).length + 1;
+// マスを クリアしたら すすめる。ボスを たおすと とくべつな そうび
+function questProgress(q, idx, clear, boss) {
+  let got = [];
+  if (!clear) return got;
+  const d = qDone(q);
+  if (idx === d) { S.stats["クエスト" + q] = { ok: d + 1, ng: 0, st: 0, p: 0, last: Date.now() }; }
+  if (boss && !qBossDone(q)) { S.stats["クエストボス" + q] = { ok: 1, ng: 0, st: 1, p: 0, last: Date.now() }; got = ITEMS.filter(it => it.sub === q); }
+  save();
+  return got;
+}
+let QK = null;
+function openQuest(q) { QK = q; show("quest"); renderQuest(); }
+function questBoard(q, n, d, key) {
+  const Q = QUESTS[q], xs = [52, 136, 220, 304], rows = Math.ceil(n / 4), H = rows * 64 + 28;
+  const pos = i => { const r = Math.floor(i / 4), k = i % 4; return { x: xs[r % 2 ? 3 - k : k], y: 46 + r * 64 }; };
+  let path = "";
+  for (let i = 0; i < n; i++) {
+    const p = pos(i);
+    if (!i) { path = `M${p.x} ${p.y}`; continue; }
+    const o = pos(i - 1);
+    if (p.y === o.y) path += ` L${p.x} ${p.y}`;
+    else { const cx = o.x > 180 ? o.x + 40 : o.x - 40; path += ` C${cx} ${o.y} ${cx} ${p.y} ${p.x} ${p.y}`; }
+  }
+  let g = `<svg viewBox="0 0 360 ${H}" class="sugoroku" role="img" aria-label="${Q.name}">`;
+  g += `<rect x="3" y="3" width="354" height="${H - 6}" rx="18" fill="${Q.bg}" stroke="#2a2026" stroke-width="5"/>`;
+  if (q === "nazo") for (let i = 0; i < 14; i++) { const x = 20 + (i * 53) % 330, y = 20 + ((i * 37) % (H - 40)); g += `<circle cx="${x}" cy="${y}" r="9" fill="#2f6a3a" opacity=".7"/><text x="${x}" y="${y + 4}" text-anchor="middle" font-size="10" font-weight="700" fill="#d8ff8a" opacity=".55">？</text>`; }
+  else g += `<rect x="3" y="3" width="354" height="${H - 6}" rx="18" fill="url(#brk2)"/><defs><pattern id="brk2" width="28" height="14" patternUnits="userSpaceOnUse"><path d="M0 .5 H28 M0 7.5 H28 M7 0 V7 M21 7 V14" stroke="#0004" stroke-width="1.2"/></pattern></defs>`;
+  g += `<path d="${path}" fill="none" stroke="#2a2026" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/><path d="${path}" fill="none" stroke="${Q.path}" stroke-width="17" stroke-linecap="round" stroke-linejoin="round"/>`;
+  let me = "";
+  for (let i = 0; i < n; i++) {
+    const p = pos(i), boss = i === n - 1, done = boss ? qBossDone(q) : i < d, now = key && i === Math.min(d, n - 1), lock = !key || i > d, r = boss ? 21 : 15;
+    g += `<g class="node${lock ? " lock" : ""}" data-i="${i}" tabindex="0" role="button" aria-label="${boss ? "ボス" : "マス" + (i + 1)}">`;
+    if (now) g += `<circle cx="${p.x}" cy="${p.y}" r="${r + 6}" fill="none" stroke="#ffe08a" stroke-width="4" class="nowring"/>`;
+    g += `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${boss ? "#ffd6cf" : done ? "#fff6d0" : lock ? "#d9d2cc" : "#fff"}" stroke="#2a2026" stroke-width="3"/>`;
+    g += boss ? bossFace(Q.boss).replace('<svg class="mon"', `<svg x="${p.x - 17}" y="${p.y - 17}" width="34" height="34"`) : `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-size="14" font-weight="700" fill="#5a3d22">${i + 1}</text>`;
+    if (done) g += `<circle cx="${p.x}" cy="${p.y}" r="${r - 3}" fill="none" stroke="#e8473a" stroke-width="2.5" opacity=".7"/>`;
+    g += `</g>`;
+    if (now) me = avatar(equipped()).replace('<svg class="ava"', `<svg x="${p.x - 15}" y="${p.y - 52}" width="30" height="34" class="meava"`);
+  }
+  return g + me + `</svg>`;
+}
+function renderQuest() {
+  const q = QK, Q = QUESTS[q], n = qSize(q), d = Math.min(qDone(q), n - 1), key = hasKey(q);
+  $("qTitle").textContent = Q.name;
+  $("qBanner").innerHTML = corridor(Q.fi) + `<div class="zt"><b></b><small></small></div>`;
+  $("qBanner").querySelector("b").textContent = Q.name;
+  $("qBanner").querySelector("small").textContent = !key ? `ステージ${Q.key}の たからばこで「${Q.keyName}」を 手に入れよう`
+    : n < 2 ? "まきものは いまは 2年生だけ。メニューで 2年を えらんでね" : qBossDone(q) ? "ボスを たおした！ なんどでも あそべるよ" : `マス ${qDone(q)} / ${n - 1}　さいごに ボスが いるよ`;
+  $("qMap").innerHTML = n > 1 ? questBoard(q, n, d, key) : "";
+  $("qMap").querySelectorAll(".node").forEach(nd => nd.addEventListener("click", () => { const i = +nd.dataset.i; if (key && i <= d) playQuest(q, i); }));
+  const go = $("qGo");
+  go.disabled = !key || n < 2;
+  go.textContent = !key ? `「${Q.keyName}」が ひつよう` : n < 2 ? "2年生だけ" : d === n - 1 ? `ボス：${Q.boss.name}と たたかう！` : `マス${d + 1}に ちょうせん！`;
+  go.onclick = () => playQuest(q, d);
+}
+function playQuest(q, i) {
+  const n = qSize(q), boss = i === n - 1;
+  if (q === "nazo") {
+    if (boss) return startKana(DATA.kana.map((_, j) => j).sort(() => Math.random() - .5).slice(0, 10), { q, idx: i, boss: true });
+    return startKana([0, 1, 2, 3, 4].map(k => i * 5 + k).filter(k => k < DATA.kana.length), { q, idx: i });
+  }
+  if (boss) return startSubBoss(q);
+  startStory(i);
+  D.stage = { s: q, t: "normal", sub: q, idx: i };
+}
+// まきものの ボス：お話の ことばから 出る
+function startSubBoss(q) {
+  const Q = QUESTS[q], words = (DATA.stories[gradeOf()] || []).flatMap(st => parseStory(st).qs), atk = attack(equipped());
+  startDrill(pick(words, 12), "test");
+  D.mob = MB = null;
+  D.stage = { s: q, t: "boss", sub: q, idx: qSize(q) - 1 };
+  D.boss = { s: q, def: Q.boss, name: Q.boss.name, hp: 8, max: 8, hearts: 3, atk, combo: 0, shownHp: 8, shownHearts: 3 };
+  $("plAva").innerHTML = "";
+  $("bossBar").className = "bossbar boss";
+  $("dun").innerHTML = corridor(Q.fi, 1);
+  $("bossMon").className = "bossmon"; $("bossMon").innerHTML = bossFace(Q.boss);
+  D.title = `${Q.name} ボスせん`; $("drillProg").textContent = D.title;
+  renderBoss(); say(Q.boss.say);
+  bossIntro(q, Q.boss);
+}
+// なぞなぞの ボス（かなクイズの 画面で たたかう）
+function kanaBossTurn(right) {
+  const B = K.boss, b = B.def, el = $("bossMon");
+  const draw = () => { $("bossHp").style.width = Math.max(0, B.hp) / B.max * 100 + "%"; $("hearts").textContent = "♥".repeat(Math.max(0, B.hearts)) + "♡".repeat(3 - Math.max(0, B.hearts)); };
+  if (right) {
+    B.hp--;
+    swing(el).then(type => {
+      el.classList.remove("appear", "hit"); void el.offsetWidth; el.classList.add("hit");
+      flash(); bigShake(); pop(el, pickOne(HITWORD[type] || HITWORD.sword), "boom"); draw();
+      if (B.hp <= 0) { setTimeout(() => { sfx("great"); el.classList.add("ko"); say(b.win); }, 350); } else say(pickOne(b.hit));
+    });
+  } else {
+    B.hearts--;
+    sfx("puff");
+    fx(el, $("plAva"), PUFF, "puff", 520).then(() => { shake($("plAva")); pop($("plAva"), "ハート -1", "dmg"); draw(); say(B.hearts > 0 ? b.hint : b.lose); });
+  }
+  B.over = B.hp <= 0 || B.hearts <= 0;
+  B.win = B.hp <= 0;
+}
+
+/* ---------- メインの ちず：20ステージごとに けしきが かわる ---------- */
+const tree = (x, y, s = 1) => `<rect x="${x - 2 * s}" y="${y}" width="${4 * s}" height="${9 * s}" fill="#7a5230"/><circle cx="${x}" cy="${y - 3 * s}" r="${9 * s}" fill="#3f8a4a" stroke="#2a5a32" stroke-width="1.5"/><circle cx="${x - 3 * s}" cy="${y - 6 * s}" r="${3 * s}" fill="#5aa860"/>`;
+const GAPS = [[78, 85], [146, 85], [214, 85], [282, 85], [78, 193], [146, 193], [214, 193], [282, 193]];
+function scene(page) {
+  const fr = `<rect x="3" y="3" width="354" height="238" rx="18" fill="BG" stroke="#2a2026" stroke-width="5"/>`;
+  if (page === 0) { // そうげんと 川
+    let s = fr.replace("BG", "#a8d97f");
+    for (const [x, y] of [[60, 30], [200, 40], [300, 110], [120, 150], [250, 200], [40, 210]]) s += `<ellipse cx="${x}" cy="${y}" rx="26" ry="9" fill="#bfe69a"/>`;
+    s += `<path d="M3 139 C80 126 160 152 240 136 S330 128 357 142" stroke="#5ab4e6" stroke-width="18" fill="none"/><path d="M3 139 C80 126 160 152 240 136 S330 128 357 142" stroke="#bfe9ff" stroke-width="3" stroke-dasharray="8 12" fill="none"/>`;
+    GAPS.forEach(([x, y], i) => { s += i % 3 === 1 ? `<circle cx="${x}" cy="${y + 4}" r="3" fill="#ff8ab0"/><circle cx="${x + 8}" cy="${y}" r="3" fill="#ffe066"/><circle cx="${x - 7}" cy="${y - 2}" r="3" fill="#fff"/>` : tree(x, y - 2, .9); });
+    return { bg: s, top: `<path d="M2 129 h28 M2 149 h28" stroke="#7a5230" stroke-width="3"/><path d="M6 129 v20 M14 129 v20 M22 129 v20" stroke="#7a5230" stroke-width="2"/>`, road: "#d9b77a" };
+  }
+  if (page === 1) { // やま
+    let s = fr.replace("BG", "#dccfae");
+    for (const [x, y, w, h] of [[30, 100, 70, 80], [130, 98, 90, 92], [250, 100, 80, 84], [340, 102, 60, 70], [70, 208, 80, 84], [190, 210, 90, 88], [310, 208, 70, 76]]) s += `<path d="M${x - w / 2} ${y} L${x} ${y - h} L${x + w / 2} ${y}z" fill="#9a8a7a" stroke="#6e655e" stroke-width="2"/><path d="M${x - w / 7} ${y - h * .72} L${x} ${y - h} L${x + w / 7} ${y - h * .72} l-${w / 14} 6 -${w / 14} -6 -${w / 14} 6z" fill="#fff"/>`;
+    for (const [x, y] of GAPS) s += `<ellipse cx="${x}" cy="${y + 6}" rx="7" ry="4" fill="#8a8078"/>`;
+    return { bg: s, top: "", road: "#c8b89a" };
+  }
+  if (page === 3) { // うみ
+    let s = fr.replace("BG", "#4aa8de");
+    for (let y = 20; y < 240; y += 26) for (let x = 14 + (y % 52 ? 0 : 20); x < 350; x += 44) s += `<path d="M${x} ${y} q5 -5 10 0 q5 -5 10 0" stroke="#fff" stroke-width="1.6" fill="none" opacity=".55"/>`;
+    s += `<g transform="translate(176 136)"><path d="M-16 0 h32 l-6 8 h-20z" fill="#b0743a" stroke="#5a3a14" stroke-width="1.5"/><path d="M0 0 V-20 L12 -6z" fill="#fff" stroke="#5a3a14" stroke-width="1"/></g>`;
+    s += `<g transform="translate(110 192)"><path d="M0 0 q8 -6 16 0 q-8 6 -16 0z M16 0 l6 -5 v10z" fill="#ff9a4a"/></g>`;
+    return { bg: s, top: `<g transform="translate(24 214)"><path d="M0 0 q2 -22 -2 -34" stroke="#7a5230" stroke-width="4" fill="none"/><path d="M-2 -34 q-14 -4 -20 6 M-2 -34 q14 -6 20 4 M-2 -34 q-4 -14 -14 -14 M-2 -34 q6 -14 14 -12" stroke="#3f8a4a" stroke-width="5" fill="none" stroke-linecap="round"/></g>`, road: "#f0dfa8" };
+  }
+  const f = FLOORS[page] || FLOORS[2];
+  let s = `<defs><pattern id="brk" width="28" height="14" patternUnits="userSpaceOnUse"><rect width="28" height="14" fill="${f.wall2}"/><path d="M0 .5 H28 M0 7.5 H28 M7 0 V7 M21 7 V14" stroke="#0004" stroke-width="1.2"/></pattern><radialGradient id="tgb"><stop offset="0" stop-color="${f.light}" stop-opacity=".6"/><stop offset="1" stop-color="${f.light}" stop-opacity="0"/></radialGradient></defs>` + fr.replace("BG", "url(#brk)");
+  if (page >= 4) { for (const [x, y] of GAPS) s += `<ellipse cx="${x}" cy="${y + 3}" rx="14" ry="6" fill="#ff7a2a" class="glow"/><ellipse cx="${x}" cy="${y + 3}" rx="8" ry="3" fill="#ffd54a"/>`; s += `<path d="M300 40 v-22 h8 v6 h6 v-6 h8 v6 h6 v-6 h8 v22z" fill="#2a1410" opacity=".8"/>`; }
+  for (const [tx, ty] of [[18, 22], [342, 22], [18, 226], [342, 226]]) s += `<circle cx="${tx}" cy="${ty}" r="22" fill="url(#tgb)" class="glow"/><path class="flame" d="M${tx} ${ty - 9} q6 7 3 12 q-3 3 -6 0 q-3 -5 3 -12z" fill="${f.light}"/>`;
+  return { bg: s, top: "", road: f.floor };
 }
 
 function renderStage() {
@@ -1568,7 +1726,7 @@ function renderStage() {
   if (viewPage === null || viewPage >= pages) viewPage = myPage;
   const first = viewPage * PER + 1, last = Math.min(first + PER - 1, LAST);
   el.innerHTML = boardSVG(viewPage, cur, c);
-  $("pgLabel").textContent = `ちか${viewPage + 1}かい`;
+  $("pgLabel").textContent = `${viewPage + 1}. ${FLOORS[Math.min(viewPage, FLOORS.length - 1)].short}`;
   $("pgLabel").title = `${FLOORS[Math.min(viewPage, FLOORS.length - 1)].name}（${first}〜${last}）`;
   $("pgPrev").disabled = viewPage <= 0; $("pgNext").disabled = viewPage >= pages - 1;
   $("pgPrev").onclick = () => { viewPage--; renderStage(); };
@@ -1634,7 +1792,7 @@ function startBoss(s) {
 function say(t) { const el = $("bossSay"); el.textContent = t; el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop"); }
 // スマブラふうの ダメージ％。たおすと ふっとんで「キラーン☆」
 function knockout() {
-  const B = D.boss, b = BOSSES[B.s], m = $("bossMon");
+  const B = D.boss, b = B.def || BOSSES[B.s], m = $("bossMon");
   setTimeout(() => {
     sfx("great");
     flash(); bigShake();
@@ -1689,7 +1847,7 @@ function pop(target, text, cls) {
 function shake(el) { el.classList.remove("shake2"); void el.offsetWidth; el.classList.add("shake2"); }
 const PUFF = `<svg viewBox="0 0 50 40" width="50" height="40" aria-hidden="true"><circle cx="16" cy="22" r="12" fill="#b7d77a" opacity=".85"/><circle cx="30" cy="16" r="12" fill="#c9e08f" opacity=".85"/><circle cx="34" cy="28" r="10" fill="#a9cc68" opacity=".85"/></svg>`;
 function bossTurn(ok) {
-  const B = D.boss, b = BOSSES[B.s];
+  const B = D.boss, b = B.def || BOSSES[B.s];
   if (ok) {
     B.combo = (B.combo || 0) + 1;
     const dmg = B.atk + (B.combo >= 3 ? 1 : 0);
@@ -1723,6 +1881,7 @@ function stageResult() {
   // とちゅうで やめたら、のこりは ×として 数える（やめて クリアに ならないように）
   const st = D.stage, n = D.qs.length, ok = D.results.filter(r => r.ok).length;
   const clear = st.t === "boss" ? D.boss.win : ok >= Math.ceil(n * 0.7 - 1e-9);
+  if (st.sub) return { clear, got: questProgress(st.sub, st.idx, clear, st.t === "boss"), first: false };
   const before = cleared();
   let got = [];
   if (clear && st.s === before + 1) {
@@ -1735,7 +1894,7 @@ function stageResult() {
 }
 
 /* ---------- 画面の切りかえ ---------- */
-const MENU = ["home", "kaki", "storyMenu", "gridScreen", "adult", "equip", "lookEdit"];
+const MENU = ["home", "kaki", "storyMenu", "gridScreen", "adult", "equip", "lookEdit", "quest"];
 const SCREENS = [...MENU, "drill", "result", "kana", "lists"];
 const isMenu = () => MENU.some(id => !$(id).hidden);
 function show(id) {
@@ -1745,7 +1904,7 @@ function show(id) {
   if (id === "home") checkUpdate();
 }
 // 新しい版が出ていたら、ホームに いるときだけ 入れかえる（れんしゅうの とちゅうでは しない）
-const VER = "1018-0007";
+const VER = "1018-0029";
 function checkUpdate() {
   fetch("version.txt?" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : "").then(v => {
     v = v.trim();
@@ -1822,8 +1981,11 @@ function renderHome() {
   $("storyCard").hidden = !SL.length; $("storyNone").hidden = !!SL.length;
   $("pickName").textContent = `${T.name}（${T.kanji.length}字）`;
   $("kakiSub").textContent = `${n}もん`;
-  $("storySub").textContent = SL.length ? `お話 ${SL.length}こ` : "2年生だけ";
-  $("goStory").classList.toggle("off", !SL.length);
+  const qsub = q => !hasKey(q) ? `かぎ：ステージ${QUESTS[q].key}` : qBossDone(q) ? "クリア！" : `マス ${Math.min(qDone(q), qSize(q) - 1)}/${qSize(q) - 1}`;
+  $("storySub").textContent = SL.length ? qsub("maki") : "2年生だけ";
+  $("kanaSub").textContent = qsub("nazo");
+  $("goStory").classList.toggle("off", !SL.length || !hasKey("maki"));
+  $("goKana").classList.toggle("off", !hasKey("nazo"));
   const gm = GK[g].filter(k => status(k) === "master").length;
   $("gridSub").textContent = `おぼえた ${gm}/${GK[g].length}`;
   $("zukan").innerHTML = corridor(floorNo(curStage())) + `<div class="zt"><b>かんじ ずかん</b><small>おぼえた字は ひかる 金の いしに なるよ（${gm} / ${GK[g].length}）</small></div>`;
@@ -1845,8 +2007,8 @@ $("soundSeg").onclick = e => { const b = e.target.closest("button"); if (!b) ret
 $("levelSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.level = b.dataset.level; save(); renderHome(); };
 $("startBtn").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, S.settings.count || 5), "test", undefined, T.limit); };
 $("goKaki").onclick = () => show("kaki");
-$("goStory").onclick = () => show("storyMenu");
-$("goKana").onclick = startKana;
+$("goStory").onclick = () => openQuest("maki");
+$("goKana").onclick = () => openQuest("nazo");
 $("goGrid").onclick = () => show("gridScreen");
 $("goAdult").onclick = () => show("adult");
 $("goEquip").onclick = () => { renderEquip(); show("equip"); };
@@ -1890,9 +2052,9 @@ function renderEquip() {
     const row = document.createElement("div"); row.className = "eqrow";
     for (const it of ITEMS.filter(i => i.slot === slot && i.name !== "なし")) {
       const d = document.createElement("div");
-      const have = it.s <= c;
+      const have = it.sub ? qBossDone(it.sub) : it.s <= c;
       d.className = "eqitem" + (have ? "" : " no") + (eq[slot] === it ? " on" : "");
-      d.innerHTML = have ? `<b></b><small>つよさ +${it.pow}</small>` : `<b>？？？</b><small>ステージ${it.s}で ゲット</small>`;
+      d.innerHTML = have ? `<b></b><small>つよさ +${it.pow}</small>` : `<b>？？？</b><small>${it.sub ? QUESTS[it.sub].name + "の ボス" : "ステージ" + it.s}で ゲット</small>`;
       if (have) d.querySelector("b").textContent = it.name;
       row.appendChild(d);
     }
@@ -2192,21 +2354,21 @@ function finishDrill() {
     const st = D.stage, r = stageResult();
     if (st.t === "chest" && r.first) setTimeout(() => treasureShow(st.s, r.got), 300);
     if (st.t === "boss") {
-      const B = D.boss, b = BOSSES[st.s];
-      $("resHana").innerHTML = bossFace(st.s).replace('class="mon"', 'class="mon hm"' + (B.win ? ' style="transform:rotate(-20deg)"' : ""));
+      const B = D.boss, b = B.def || BOSSES[st.s];
+      $("resHana").innerHTML = bossFace(b).replace('class="mon"', 'class="mon hm"' + (B.win ? ' style="transform:rotate(-20deg)"' : ""));
       $("resGreat").textContent = B.win ? `${b.name}を やっつけた！` : "まけちゃった… でも おしい！";
       $("resNote").textContent = `「${B.win ? b.win : b.lose}」`;
       if (B.win) setTimeout(() => sfx("great"), 200);
     } else {
-      $("resGreat").textContent = r.clear ? `ステージ${st.s} クリア！ ${pickOne(PRAISE)}` : "あと すこし！ もういちど ちょうせん しよう";
+      $("resGreat").textContent = r.clear ? `${st.sub ? "マス" + (st.idx + 1) : "ステージ" + st.s} クリア！ ${pickOne(PRAISE)}` : "あと すこし！ もういちど ちょうせん しよう";
       $("resNote").textContent = r.clear ? "7わり いじょう ○ で クリアだよ。" : `${Math.ceil(D.qs.length * 0.7 - 1e-9)}もん ○ で クリア。${pickOne(CHEER)}`;
       if (r.clear && !perfect) $("resHana").innerHTML = "";
     }
     for (const it of r.got) { const sp = document.createElement("span"); sp.textContent = `そうび ゲット！ ${it.slot}：${it.name}`; $("resGot").appendChild(sp); }
     if (r.got.length) setTimeout(() => sfx("great"), 500);
     const s0 = st.s;
-    $("resAgain").textContent = r.clear ? "つぎの ステージへ" : "もういちど";
-    $("resAgain").onclick = () => startStage(r.clear ? curStage() : s0);
+    $("resAgain").textContent = r.clear ? (st.sub ? "ちずに もどる" : "つぎの ステージへ") : "もういちど";
+    $("resAgain").onclick = () => st.sub ? (r.clear ? openQuest(st.sub) : playQuest(st.sub, st.idx)) : startStage(r.clear ? curStage() : s0);
   } else $("resAgain").textContent = "もういちど";
   showXp(D.xp0);
   const list = $("resList"); list.textContent = "";
@@ -2232,7 +2394,23 @@ function showXp(x0) {
 
 /* ---------- ひらがな・カタカナ クイズ ---------- */
 let K = null;
-function startKana() {
+function startKana(fixed, quest) {
+  if (Array.isArray(fixed)) {
+    K = { qs: fixed.map(i => ({ i, s: DATA.kana[i][0], a: DATA.kana[i][1], b: DATA.kana[i][2], why: DATA.kana[i][3] })), i: 0, ok: 0, xp0: xpTotal(), quest };
+    show("kana"); loadKana();
+    const Q = QUESTS[quest.q];
+    startMob(curStage(), K.qs.length, "kana", false, Q.fi);
+    $("kanaProg").textContent = `${Q.name}　${quest.boss ? "ボス" : "マス" + (quest.idx + 1)}`;
+    if (quest.boss) {
+      MB = null;
+      K.boss = { def: Q.boss, hp: 6, max: 6, hearts: 3 };
+      $("bossBar").className = "bossbar boss"; $("dun").innerHTML = corridor(Q.fi, 1);
+      $("bossName").textContent = Q.boss.name; $("bossHp").style.width = "100%"; $("hearts").textContent = "♥♥♥"; $("bossPct").textContent = "";
+      $("bossMon").className = "bossmon"; $("bossMon").innerHTML = bossFace(Q.boss);
+      say(Q.boss.say); bossIntro("nazo", Q.boss);
+    }
+    return;
+  }
   const items = DATA.kana.map((x, i) => ({ i, s: x[0], a: x[1], b: x[2], why: x[3] }));
   const w = it => { const s = S.kstats[it.i] || {}; return s.st >= 2 ? 0.4 : s.ng ? 3 : 1.5; };
   const out = [];
@@ -2271,15 +2449,15 @@ function answerKana(o, btn) {
   $("kmsg").className = "msg " + (right ? "good" : "bad");
   const s = S.kstats[q.i] || { ok: 0, ng: 0, st: 0 };
   if (right) { s.ok++; s.st++; K.ok++; sfx("kanaok"); } else { s.ng++; s.st = 0; sfx("miss"); }
-  if (MB) mobTurn(right);
+  if (K.boss) kanaBossTurn(right); else if (MB) mobTurn(right);
   s.last = Date.now(); s.q = q.s.replace("＿", "（" + q.a + "）"); S.kstats[q.i] = s; save();
   $("kNext").hidden = false;
-  $("kNext").textContent = K.i + 1 >= K.qs.length ? "けっかを 見る" : "つぎへ";
+  $("kNext").textContent = K.i + 1 >= K.qs.length || (K.boss && K.boss.over) ? "けっかを 見る" : "つぎへ";
   if (right) { const myK = K, myI = K.i; setTimeout(() => { if (K === myK && K.i === myI && !$("kana").hidden) $("kNext").click(); }, 1700); }
 }
 $("kNext").onclick = () => {
   K.i++;
-  if (K.i < K.qs.length) { loadKana(); if (MB) mobAppear(true, K.i); return; }
+  if (K.i < K.qs.length && !(K.boss && K.boss.over)) { loadKana(); if (K.quest) $("kanaProg").textContent = `${QUESTS[K.quest.q].name}　${K.boss ? "ボス" : "マス" + (K.quest.idx + 1)}　${K.i + 1} / ${K.qs.length}`; if (MB) mobAppear(true, K.i); return; }
   $("resScore").textContent = `${K.qs.length}もん中 ${K.ok}もん ○`;
   const kp = K.ok === K.qs.length;
   $("resHana").innerHTML = kp ? HANA : "";
@@ -2289,6 +2467,22 @@ $("kNext").onclick = () => {
   $("resList").textContent = ""; $("resRetry").hidden = true;
   $("resAgain").onclick = startKana;
   showXp(K.xp0); $("resGot").textContent = ""; $("resAgain").textContent = "もういちど";
+  if (K.quest) {
+    const Qq = K.quest, Q = QUESTS[Qq.q], clear = Qq.boss ? K.boss.win : K.ok >= Math.ceil(K.qs.length * 0.7 - 1e-9);
+    const got = questProgress(Qq.q, Qq.idx, clear, !!Qq.boss);
+    if (Qq.boss) {
+      $("resHana").innerHTML = bossFace(Q.boss).replace('class="mon"', 'class="mon hm"');
+      $("resGreat").textContent = clear ? `${Q.boss.name}を やっつけた！` : "まけちゃった… でも おしい！";
+      $("resNote").textContent = `「${clear ? Q.boss.win : Q.boss.lose}」`;
+      if (clear) setTimeout(() => sfx("great"), 200);
+    } else {
+      $("resGreat").textContent = clear ? `マス${Qq.idx + 1} クリア！ ${pickOne(PRAISE)}` : "あと すこし！ もういちど ちょうせん しよう";
+      $("resNote").textContent = clear ? "7わり いじょう ○ で クリアだよ。" : `${Math.ceil(K.qs.length * 0.7 - 1e-9)}もん ○ で クリア。`;
+    }
+    for (const it of got) { const sp = document.createElement("span"); sp.textContent = `そうび ゲット！ ${it.slot}：${it.name}`; $("resGot").appendChild(sp); }
+    $("resAgain").textContent = clear ? "ちずに もどる" : "もういちど";
+    $("resAgain").onclick = () => clear ? openQuest(Qq.q) : playQuest(Qq.q, Qq.idx);
+  }
   show("result");
 };
 $("kanaBack").onclick = () => show("home");
