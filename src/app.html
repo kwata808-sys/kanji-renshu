@@ -837,7 +837,8 @@ function parseStory(st) {
 }
 function startStory(i) {
   const st = DATA.stories[gradeOf()][i], { qs, lines } = parseStory(st);
-  startDrill(qs, S.settings.mode);
+  // 長文は いつも「見ないで かく」。うすい お手本は 答えの ヒントに なるため
+  startDrill(qs, "test");
   D.story = lines; D.storyIdx = i; D.title = st.t;
   $("drillProg").textContent = `${st.t}　1 / ${qs.length}`;
   renderQ();
