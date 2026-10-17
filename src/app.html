@@ -1369,7 +1369,20 @@ function show(id) {
   for (const s of SCREENS) $(s).hidden = s !== id;
   window.scrollTo(0, 0);
   if (MENU.includes(id)) renderHome();
+  if (id === "home") checkUpdate();
 }
+// 新しい版が出ていたら、ホームに いるときだけ 入れかえる（れんしゅうの とちゅうでは しない）
+const VER = "/*VERSION*/";
+function checkUpdate() {
+  fetch("version.txt?" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : "").then(v => {
+    v = v.trim();
+    if (!v || v === VER || $("home").hidden) return;
+    // 同じ版で 何度も 読みなおさない（届くのが おくれたときの 空回り よけ）
+    try { if (sessionStorage.getItem("reloadedFor") === v) return; sessionStorage.setItem("reloadedFor", v); } catch (e) {}
+    location.reload();
+  }).catch(() => {});
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden && !$("home").hidden) checkUpdate(); });
 
 /* ---------- ホーム ---------- */
 const HANA = (() => {

@@ -475,7 +475,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2337</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2339</p>
 </section>
 
 <!-- 書きとり -->
@@ -1380,7 +1380,20 @@ function show(id) {
   for (const s of SCREENS) $(s).hidden = s !== id;
   window.scrollTo(0, 0);
   if (MENU.includes(id)) renderHome();
+  if (id === "home") checkUpdate();
 }
+// 新しい版が出ていたら、ホームに いるときだけ 入れかえる（れんしゅうの とちゅうでは しない）
+const VER = "1017-2339";
+function checkUpdate() {
+  fetch("version.txt?" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : "").then(v => {
+    v = v.trim();
+    if (!v || v === VER || $("home").hidden) return;
+    // 同じ版で 何度も 読みなおさない（届くのが おくれたときの 空回り よけ）
+    try { if (sessionStorage.getItem("reloadedFor") === v) return; sessionStorage.setItem("reloadedFor", v); } catch (e) {}
+    location.reload();
+  }).catch(() => {});
+}
+document.addEventListener("visibilitychange", () => { if (!document.hidden && !$("home").hidden) checkUpdate(); });
 
 /* ---------- ホーム ---------- */
 const HANA = (() => {

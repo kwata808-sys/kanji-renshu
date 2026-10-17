@@ -144,6 +144,7 @@ out = f"{ROOT}/docs"
 os.makedirs(out, exist_ok=True)
 open(f"{out}/index.html", "w").write(html)
 open(f"{out}/.nojekyll", "w").write("")
+open(f"{out}/version.txt", "w").write(ver_label)
 json.dump({"name": "かんじ練習帳", "short_name": "かんじ", "start_url": "./", "scope": "./", "display": "standalone",
            "background_color": "#f3f7f1", "theme_color": "#f3f7f1", "lang": "ja",
            "icons": [{"src": "icon-192.png", "sizes": "192x192", "type": "image/png"},
