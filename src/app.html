@@ -769,6 +769,16 @@ function fits(U, uL, t) {
 }
 // 子どもの字は全体がずれやすいので、書けた画から「ずれ」を覚えて差し引く
 function shiftBy(ps, o) { return ps.map(p => ({ x: p.x - o.x, y: p.y - o.y })); }
+// 位置と大きさを お手本に そろえてから 形だけ くらべる。ずれは マスの 2割くらいまで
+const LOOSE = { easy: 28, normal: 22, hard: 12 };
+function looseFit(raw, uL, t) {
+  const R = resample(raw, N), cen = ps => ({ x: ps.reduce((s, p) => s + p.x, 0) / N, y: ps.reduce((s, p) => s + p.y, 0) / N });
+  const cu = cen(R), ct = cen(t.pts);
+  if (dist(cu, ct) > (LOOSE[S.settings.level] || 22)) return false;
+  const spread = (ps, c) => ps.reduce((s, p) => s + dist(p, c), 0) / N, su = spread(R, cu), st = spread(t.pts, ct);
+  const k = t.L < 16 || su < 2 ? 1 : Math.max(0.6, Math.min(1.6, st / su));
+  return fits(R.map(p => ({ x: ct.x + (p.x - cu.x) * k, y: ct.y + (p.y - cu.y) * k })), uL * k, t);
+}
 function judge(raw, T, idx, off = { x: 0, y: 0 }) {
   let U = resample(shiftBy(raw, off), N);
   const uL = plen(raw);
@@ -780,6 +790,8 @@ function judge(raw, T, idx, off = { x: 0, y: 0 }) {
     const U2 = resample(shiftBy(raw, o), N);
     if (fits(U2, uL, t)) U = U2;
   }
+  // 形が合っていれば、場所が少し下・小さめ などでも みとめる（マスの中の位置は きびしく見ない）
+  if (!fits(U, uL, T[idx]) && looseFit(raw, uL, T[idx])) return "ok";
   if (fits(U, uL, T[idx])) {
     // もっと よく合う「あとの画」があれば、書き順ちがい
     const m = meanD(U, T[idx]);
