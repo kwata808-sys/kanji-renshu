@@ -401,6 +401,13 @@ button.eqitem { text-align: left; font: inherit; color: inherit; position: relat
 #home .tile4 { padding: 8px 6px; }
 .findbtn { flex: none; max-width: 76px; border: 2px solid #2a2026; background: #3f5a7a; color: #fff; border-radius: 12px; padding: 6px 8px; font-weight: 700; font-size: 12px; line-height: 1.3; box-shadow: inset 0 -3px 0 #0004; }
 .photobtn { display: flex; align-items: center; justify-content: center; }
+.paperchips { display: flex; flex-wrap: wrap; gap: 8px; }
+.pchip { font-family: var(--font-k); font-size: 22px; min-width: 48px; height: 48px; padding: 0 10px; border-radius: 10px; border: 2px solid var(--rule); background: var(--sheet); position: relative; }
+.pchip[data-v="ng"] { border-color: var(--red); background: var(--weak); }
+.pchip[data-v="ok"] { border-color: var(--green); background: var(--ok); }
+.pchip[data-v]::after { position: absolute; top: -9px; right: -7px; font-family: var(--font-ui); font-size: 14px; font-weight: 700; color: #fff; border-radius: 99px; width: 20px; height: 20px; display: grid; place-items: center; }
+.pchip[data-v="ng"]::after { content: "×"; background: var(--red); }
+.pchip[data-v="ok"]::after { content: "○"; background: var(--green); }
 .fchips { display: flex; flex-wrap: wrap; gap: 8px; }
 .findimg { width: 100%; max-height: 220px; object-fit: contain; border-radius: 12px; background: #000; }
 .findinput { width: 100%; box-sizing: border-box; min-width: 0; font: inherit; font-size: 24px; padding: 10px 12px; border: 2px solid var(--rule); border-radius: 12px; font-family: var(--font-k); }
@@ -816,6 +823,18 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
   <div class="topbar">
     <button class="back" id="listsBack">← もどる</button>
     <span class="label">大人の人へ</span>
+  </div>
+  <div class="sheet">
+    <h2 style="font-size:20px">答案用紙から とりこむ</h2>
+    <p class="muted" style="margin:0">学校の テストや プリントを 写真に とると、字を 読みとります。字を タップして、まちがえた字に ×、できた字に ○ を つけてください。×の字は「にがてな字」にも 入ります。</p>
+    <label class="btn primary big photobtn" for="paperFile">答案用紙を 写真に とる</label>
+    <input type="file" id="paperFile" accept="image/*" hidden>
+    <p class="msg" id="paperMsg"></p>
+    <div class="paperchips" id="paperChips"></div>
+    <div id="paperOpts" hidden>
+      <div class="seg" id="paperMode"><button data-m="ng">×だけ とりこむ</button><button data-m="all">○も ふくめて とりこむ</button></div>
+      <button class="btn primary" id="paperGo" style="margin-top:10px">リストに とりこむ</button>
+    </div>
   </div>
   <div class="sheet">
     <h2 style="font-size:20px" id="edTitle">新しいリスト</h2>
@@ -1925,20 +1944,27 @@ function drawBt() {
   $("pHpNum").textContent = `${Math.max(0, B.php)}/${B.pmax}`;
   $("bossAtk").textContent = `こうげき ${B.atk}　ぼうぎょ ${B.def}`;
 }
-function rpgTurn(ok, streak = 0) {
+function rpgTurn(ok, streak = 0, hits = 1) {
   const B = BT, f = B.foes[B.k], el = $("bossMon");
   if (ok) {
     // 3れんぞくで「かいしんの いちげき」
     const crit = streak >= 3 && streak % 3 === 0;
-    const dmg = Math.max(1, Math.round(B.atk * (0.9 + Math.random() * 0.2) * (crit ? 1.6 : 1)));
+    // 2字いじょうの ことばは コンボ：字の 数だけ れんぞくで きる（1字ふえるごとに 25% ふえる）
+    const dmg = Math.max(1, Math.round(B.atk * (0.9 + Math.random() * 0.2) * (crit ? 1.6 : 1) * (1 + 0.25 * (hits - 1))));
     f.hp -= dmg;
     const kill = f.hp <= 0;
     if (kill) { if (B.k === B.foes.length - 1) { B.win = true; B.over = true; } else B.next = true; }
-    swing(el).then(type => {
-      el.classList.remove("appear", "hit"); void el.offsetWidth; el.classList.add("hit");
+    swing(el).then(async type => {
+      // コンボ：1HIT、2HIT… と 字の 数だけ きりつける
+      const part = Math.max(1, Math.round(dmg / hits));
+      for (let j = 0; j < hits; j++) {
+        if (j) { await new Promise(r => setTimeout(r, 300)); sfx(j % 2 ? "slash" : "boom"); overlay(el, SLASH(j % 2 ? "#ffd54a" : "#9be7ff"), "slashfx", 400); }
+        el.classList.remove("appear", "hit"); void el.offsetWidth; el.classList.add("hit");
+        if (hits > 1) { pop(el, `${j + 1}HIT！`, "boom"); setTimeout(() => pop(el, `-${j === hits - 1 ? dmg - part * (hits - 1) : part}`, "dmg"), 100); bigShake(); }
+      }
       if (f.boss || crit || kill) { flash(); bigShake(); }
-      pop(el, crit ? "かいしんの いちげき！" : pickOne(HITWORD[type] || HITWORD.sword), "boom");
-      setTimeout(() => pop(el, `-${dmg}`, "dmg"), 120);
+      if (hits > 1) setTimeout(() => pop(el, crit ? "かいしんの コンボ！" : `${hits}れんげき！ ${dmg}ダメージ`, "boom"), 150);
+      else { pop(el, crit ? "かいしんの いちげき！" : pickOne(HITWORD[type] || HITWORD.sword), "boom"); setTimeout(() => pop(el, `-${dmg}`, "dmg"), 120); }
       drawBt();
       if (kill) {
         setTimeout(() => { el.classList.remove("hit"); void el.offsetWidth; el.classList.add(f.boss ? "ko" : "poof"); sfx(f.boss || B.win ? "great" : "kanaok"); }, 300);
@@ -2277,20 +2303,22 @@ $("goStory").onclick = () => openQuest("maki");
 $("goKana").onclick = () => openQuest("nazo");
 $("goFind").onclick = openFind;
 $("findFile").onchange = e => { const f = e.target.files && e.target.files[0]; if (!f) return; findPhoto = true; const img = $("findImg"); img.src = URL.createObjectURL(f); img.hidden = false; renderFind(); readPhoto(f); };
+// しゃしんを 小さくして GAS へ 送り、Googleドライブの 文字読みとりで 文字に する
+async function ocrText(f, max = 1600) {
+  const bmp = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = URL.createObjectURL(f); });
+  const k = Math.min(1, max / Math.max(bmp.naturalWidth, bmp.naturalHeight)), cv = document.createElement("canvas");
+  cv.width = Math.round(bmp.naturalWidth * k); cv.height = Math.round(bmp.naturalHeight * k);
+  cv.getContext("2d").drawImage(bmp, 0, 0, cv.width, cv.height);
+  const j = await call({ key: S.key, ocr: cv.toDataURL("image/jpeg", 0.85).split(",")[1], type: "image/jpeg" });
+  return j.text || "";
+}
 // しゃしんの 字を 読みとる（Googleドライブの 文字読みとり。記録の 共有を つかっている ときだけ）
 async function readPhoto(f) {
   if (!canSync()) return;
   const msg = $("findMsg");
   msg.textContent = "しゃしんの 字を よみとり中…";
   try {
-    // 大きい しゃしんは 小さくしてから 送る
-    const bmp = await new Promise((res, rej) => { const im = new Image(); im.onload = () => res(im); im.onerror = rej; im.src = URL.createObjectURL(f); });
-    const k = Math.min(1, 1600 / Math.max(bmp.naturalWidth, bmp.naturalHeight)), cv = document.createElement("canvas");
-    cv.width = Math.round(bmp.naturalWidth * k); cv.height = Math.round(bmp.naturalHeight * k);
-    cv.getContext("2d").drawImage(bmp, 0, 0, cv.width, cv.height);
-    const b64 = cv.toDataURL("image/jpeg", 0.85).split(",")[1];
-    const j = await call({ key: S.key, ocr: b64, type: "image/jpeg" });
-    const ks = [...new Set([...(j.text || "")].filter(c => DATA.strokes[c]))];
+    const ks = [...new Set([...(await ocrText(f))].filter(c => DATA.strokes[c]))];
     if (ks.length) { $("findText").value = ks.join(""); renderFind(); $("findMsg").textContent = `よみとれた！ ${ks.length}この 字。ちがう 字は 消してね。` + $("findMsg").textContent; }
     else msg.textContent = "字が よみとれなかったよ。下に 字を 入れてね";
   } catch (e) { msg.textContent = "よみとれなかったよ。下に 字を 入れてね"; }
@@ -2465,43 +2493,76 @@ document.addEventListener("click", e => { const b = e.target.closest("[data-back
 $("listsBtn").onclick = () => { editNew(); renderLists(); show("lists"); };
 
 
-/* ---------- BGM（オリジナルの みじかい 曲を くりかえす） ---------- */
-// 1こ＝8ぶおんぷ。0 は やすみ。mel は 上の メロディ、bass は ひくい 音
+/* ---------- BGM（オリジナルの 曲。メロディ・わおん・ベース・ドラムを かさねる） ---------- */
+// 1こま＝16ぶおんぷ。1小節＝16こま。mel は [おと, ながさ]（0 は やすみ）。chords は 小節ごとの わおん
+const CH = { maj7: [0, 4, 7, 11], m7: [0, 3, 7, 10], maj: [0, 4, 7], min: [0, 3, 7], dom7: [0, 4, 7, 10] };
 const BGM = {
-  home: { bpm: 126, mel: [72, 76, 79, 76, 77, 81, 79, 0, 76, 79, 84, 79, 81, 79, 76, 0, 74, 77, 81, 77, 79, 77, 76, 74, 72, 76, 79, 76, 72, 0, 72, 0],
-    bass: [48, 0, 55, 0, 53, 0, 55, 0, 52, 0, 55, 0, 57, 0, 55, 0, 50, 0, 57, 0, 55, 0, 50, 0, 48, 0, 55, 0, 48, 0, 48, 0] },
-  battle: { bpm: 152, mel: [69, 0, 72, 74, 76, 0, 74, 72, 74, 0, 76, 77, 79, 77, 76, 74, 72, 0, 74, 76, 77, 76, 74, 72, 71, 72, 74, 71, 69, 0, 0, 0],
-    bass: [45, 57, 45, 57, 41, 53, 41, 53, 43, 55, 43, 55, 40, 52, 40, 52, 45, 57, 45, 57, 41, 53, 41, 53, 44, 56, 44, 56, 45, 57, 45, 57] },
-  boss: { bpm: 166, mel: [62, 65, 69, 65, 70, 69, 65, 62, 61, 64, 67, 64, 69, 67, 64, 61, 62, 65, 69, 72, 70, 69, 67, 65, 64, 65, 67, 69, 70, 0, 69, 0],
-    bass: [38, 38, 50, 38, 38, 38, 50, 38, 46, 46, 58, 46, 45, 45, 57, 45, 38, 38, 50, 38, 43, 43, 55, 43, 45, 45, 57, 45, 45, 0, 45, 0] },
-  quest: { bpm: 112, mel: [67, 0, 71, 74, 72, 0, 71, 69, 67, 0, 64, 67, 69, 0, 0, 0, 67, 0, 71, 74, 76, 74, 72, 71, 69, 67, 66, 69, 67, 0, 0, 0],
-    bass: [43, 0, 0, 0, 40, 0, 0, 0, 36, 0, 0, 0, 38, 0, 0, 0, 43, 0, 0, 0, 40, 0, 0, 0, 38, 0, 0, 0, 43, 0, 0, 0] },
+  // ホーム：しずかで 上品。ゆっくりの わおんの 上に ながい メロディ
+  home: { bpm: 80, chords: [[62, "maj7"], [59, "m7"], [55, "maj7"], [57, "dom7"], [62, "maj7"], [54, "m7"], [52, "m7"], [57, "dom7"]],
+    mel: [[81, 8], [78, 4], [81, 4], [83, 8], [81, 4], [78, 4], [79, 12], [78, 4], [76, 8], [73, 4], [76, 4], [78, 8], [81, 4], [86, 4], [85, 8], [81, 8], [83, 6], [81, 2], [79, 4], [76, 4], [76, 8], [73, 8]],
+    lead: { type: "sine", vol: 0.05 }, arp: { every: 2, pat: [0, 1, 2, 3, 4, 3, 2, 1], type: "triangle", vol: 0.03 },
+    bass: { pat: "R.......F.......", type: "triangle", vol: 0.08, len: 7 } },
+  // ステージ：きんちょうかんの ある 短調。きざむ ベースと ドラム
+  battle: { bpm: 140, chords: [[57, "min"], [57, "min"], [53, "maj"], [55, "maj"], [57, "min"], [50, "min"], [52, "maj"], [52, "dom7"]],
+    mel: [[69, 2], [0, 2], [69, 2], [72, 2], [76, 4], [74, 2], [72, 2], [71, 2], [72, 2], [74, 4], [72, 2], [71, 2], [69, 4], [65, 2], [0, 2], [69, 2], [72, 2], [77, 4], [76, 2], [74, 2], [74, 4], [71, 4], [67, 4], [71, 4],
+      [69, 2], [0, 2], [69, 2], [72, 2], [76, 4], [79, 4], [77, 4], [74, 4], [72, 2], [74, 2], [77, 4], [76, 4], [80, 4], [83, 4], [80, 4], [81, 8], [80, 4], [76, 4]],
+    lead: { type: "square", vol: 0.035, cut: 2600 }, arp: { every: 1, pat: [0, 1, 2, 1, 3, 2, 1, 2], type: "square", vol: 0.012, cut: 1800 },
+    bass: { pat: "R.O.R.O.R.O.R.O.", type: "triangle", vol: 0.11, len: 1.6 },
+    drums: { k: "x.......x.......", s: "....x.......x...", h: "x.x.x.x.x.x.x.x." } },
+  // ボス：はげしく
+  boss: { bpm: 160, chords: [[62, "min"], [62, "min"], [58, "maj"], [60, "maj"], [62, "min"], [55, "min"], [57, "maj"], [57, "dom7"]],
+    mel: [[74, 2], [74, 2], [77, 2], [74, 2], [81, 4], [79, 2], [77, 2], [76, 2], [77, 2], [79, 2], [77, 2], [76, 4], [74, 4], [70, 2], [70, 2], [74, 2], [70, 2], [77, 4], [76, 2], [74, 2], [72, 4], [76, 4], [79, 4], [76, 4],
+      [74, 2], [77, 2], [81, 2], [86, 2], [84, 4], [81, 4], [82, 4], [79, 4], [74, 4], [79, 4], [81, 4], [85, 4], [88, 4], [85, 4], [81, 8], [79, 4], [73, 4]],
+    lead: { type: "sawtooth", vol: 0.03, cut: 3200 }, arp: { every: 1, pat: [0, 2, 1, 2, 0, 2, 1, 3], type: "square", vol: 0.014, cut: 2200 },
+    bass: { pat: "RRORRROR RRORROR".replace(" ", "R"), type: "sawtooth", vol: 0.05, len: 1.7, cut: 900 },
+    drums: { k: "x..x..x.x..x..x.", s: "....x.......x..x", h: "xxxxxxxxxxxxxxxx" } },
+  // サブクエスト：ふしぎな ふんいき
+  quest: { bpm: 100, chords: [[64, "m7"], [57, "dom7"], [64, "m7"], [62, "maj"], [64, "m7"], [57, "dom7"], [60, "maj"], [59, "dom7"]],
+    mel: [[76, 6], [79, 2], [78, 4], [76, 4], [73, 8], [76, 8], [79, 6], [81, 2], [83, 4], [81, 4], [78, 12], [0, 4], [76, 6], [79, 2], [78, 4], [76, 4], [73, 4], [76, 4], [79, 8], [76, 8], [72, 8], [75, 8], [71, 8]],
+    lead: { type: "triangle", vol: 0.06 }, arp: { every: 2, pat: [0, 2, 1, 3, 2, 4, 3, 1], type: "sine", vol: 0.035 },
+    bass: { pat: "R.......R.......", type: "triangle", vol: 0.09, len: 7 },
+    drums: { h: "..x...x...x...x." } },
 };
-const BG = { name: null, step: 0, next: 0, timer: 0, out: null, ac: null };
+// メロディを こまごとに ならべなおす
+for (const T of Object.values(BGM)) { T.melAt = []; let i = 0; for (const [n, len] of T.mel) { if (n) T.melAt[i] = [n, len]; i += len; } T.steps = T.chords.length * 16; }
+const BG = { name: null, step: 0, next: 0, timer: 0, out: null, ac: null, noise: null };
 function bgmPlay(name) {
   if (S.settings.bgm === false || S.settings.sound === false) name = null;
   if (BG.name === name) return;
   BG.name = name; BG.step = 0; BG.next = 0;
   clearInterval(BG.timer); BG.timer = 0;
-  if (BG.out) { try { BG.out.gain.setTargetAtTime(0, AC.currentTime, 0.05); } catch (e) {} BG.out = null; }
-  if (name) BG.timer = setInterval(bgmTick, 60);
+  if (BG.out) { try { BG.out.gain.setTargetAtTime(0, AC.currentTime, 0.08); } catch (e) {} BG.out = null; }
+  if (name) BG.timer = setInterval(bgmTick, 50);
+}
+function bgmTone(n, t0, len, v) {
+  const o = AC.createOscillator(), g = AC.createGain();
+  o.type = v.type; o.frequency.value = 440 * Math.pow(2, (n - 69) / 12);
+  g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(v.vol, t0 + Math.min(0.03, len / 4));
+  g.gain.setValueAtTime(v.vol, t0 + len * 0.6); g.gain.exponentialRampToValueAtTime(0.0001, t0 + len);
+  let node = o;
+  if (v.cut) { const f = AC.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = v.cut; o.connect(f); node = f; }
+  node.connect(g).connect(BG.out); o.start(t0); o.stop(t0 + len + 0.03);
+}
+function bgmDrum(kind, t0) {
+  if (!BG.noise || BG.noise.ac !== AC) { const b = AC.createBuffer(1, AC.sampleRate * 0.3, AC.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; BG.noise = { buf: b, ac: AC }; }
+  if (kind === "k") { const o = AC.createOscillator(), g = AC.createGain(); o.frequency.setValueAtTime(130, t0); o.frequency.exponentialRampToValueAtTime(40, t0 + 0.12); g.gain.setValueAtTime(0.35, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.15); o.connect(g).connect(BG.out); o.start(t0); o.stop(t0 + 0.16); return; }
+  const src = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(), len = kind === "s" ? 0.14 : 0.04;
+  src.buffer = BG.noise.buf; f.type = kind === "s" ? "bandpass" : "highpass"; f.frequency.value = kind === "s" ? 1800 : 7000;
+  g.gain.setValueAtTime(kind === "s" ? 0.16 : 0.05, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + len);
+  src.connect(f).connect(g).connect(BG.out); src.start(t0, Math.random() * 0.1); src.stop(t0 + len + 0.01);
 }
 function bgmTick() {
   // 音の じゅんびが できるまで（さいしょに さわるまで）は まつ
   if (!AC || AC.state !== "running" || !BG.name || document.hidden) return;
-  if (!BG.out || BG.ac !== AC) { BG.out = AC.createGain(); BG.out.gain.value = 0.5; BG.out.connect(AC.destination); BG.ac = AC; BG.next = 0; }
-  const T = BGM[BG.name], dt = 60 / T.bpm / 2;
+  if (!BG.out || BG.ac !== AC) { BG.out = AC.createGain(); BG.out.gain.value = 0.55; BG.out.connect(AC.destination); BG.ac = AC; BG.next = 0; }
+  const T = BGM[BG.name], dt = 60 / T.bpm / 4;
   if (BG.next < AC.currentTime) BG.next = AC.currentTime + 0.05;
   while (BG.next < AC.currentTime + 0.3) {
-    const i = BG.step % T.mel.length, m = T.mel[i], b = T.bass[i];
-    const tone = (n, type, vol, len) => {
-      const o = AC.createOscillator(), g = AC.createGain(), t0 = BG.next;
-      o.type = type; o.frequency.value = 440 * Math.pow(2, (n - 69) / 12);
-      g.gain.setValueAtTime(0.0001, t0); g.gain.exponentialRampToValueAtTime(vol, t0 + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t0 + len);
-      o.connect(g).connect(BG.out); o.start(t0); o.stop(t0 + len + 0.02);
-    };
-    if (m) tone(m, "square", 0.045, dt * 0.85);
-    if (b) tone(b, "triangle", 0.12, dt * 0.9);
+    const i = BG.step % T.steps, s = i % 16, [root, type] = T.chords[Math.floor(i / 16)], tones = CH[type];
+    const m = T.melAt[i]; if (m) bgmTone(m[0], BG.next, m[1] * dt * 0.95, T.lead);
+    if (s % T.arp.every === 0) { const k = T.arp.pat[(s / T.arp.every) % T.arp.pat.length]; bgmTone(root + tones[k % tones.length] + 12 * Math.floor(k / tones.length), BG.next, T.arp.every * dt * 0.9, T.arp); }
+    const b = T.bass.pat[s]; if (b && b !== ".") bgmTone(root - 24 + (b === "O" ? 12 : b === "F" ? 7 : 0), BG.next, T.bass.len * dt, T.bass);
+    if (T.drums) for (const kd of ["k", "s", "h"]) if (T.drums[kd] && T.drums[kd][s] === "x") bgmDrum(kd, BG.next);
     BG.next += dt; BG.step++;
   }
 }
@@ -2778,7 +2839,7 @@ function charDone() {
   if (!D.retrying) D.results.push({ q: D.q, ok: lastOk });
   D.streak = lastOk ? (D.streak || 0) + 1 : 0;
   if (D.streak >= 3 && D.streak % 3 === 0) setMsg(pickOne(STREAK), "good");
-  if (D.bt) { rpgTurn(lastOk, D.streak || 0); if (!lastOk && !D.bt.over) D.retry = true; }
+  if (D.bt) { rpgTurn(lastOk, D.streak || 0, D.slots.length); if (!lastOk && !D.bt.over) D.retry = true; }
   else if (D.boss) bossTurn(lastOk);
   else if (D.mob) mobTurn(lastOk);
   $("tools").hidden = true; $("nextBtn").hidden = false;
@@ -2787,7 +2848,7 @@ function charDone() {
   {
     // ○も △も 自動で つぎへ（△は 少し 長めに 見せる）
     const myD = D, myI = D.i;
-    setTimeout(() => { if (D === myD && D.i === myI && !$("drill").hidden) $("nextBtn").click(); }, D.bt ? (D.bt.over ? 2400 : 1700) : D.boss ? (D.boss.over ? 2200 : 1700) : D.mob ? 1600 : lastOk ? 1100 : 1800);
+    setTimeout(() => { if (D === myD && D.i === myI && !$("drill").hidden) $("nextBtn").click(); }, D.bt ? (D.bt.over ? 2400 : 1700) + (lastOk ? 300 * (D.slots.length - 1) : 0) : D.boss ? (D.boss.over ? 2200 : 1700) : D.mob ? 1600 : lastOk ? 1100 : 1800);
   }
 }
 function finishDrill() {
@@ -2990,7 +3051,7 @@ function parseList(text) {
     if (bad.length) { errs.push(`${at}「${bad.join("")}」は小学校で習う字ではないので書き順がありません`); return; }
     if (!kanjiOf(w).length) { errs.push(`${at}漢字が入っていません`); return; }
     // 「朝線校門」のように字だけ並べた行（辞書にある言葉なら言葉として扱う）
-    if (!m && tok.length === 1 && [...w].every(isK) && w.length > 1 && !readingOf(w)) { items.push({ k: w }); return; }
+    if (!m && tok.length === 1 && [...w].every(isK) && !readingOf(w)) { items.push({ k: w }); return; }
     let rest = tok.slice(1);
     let r = m ? m[2] : readingOf(w);
     // 辞書に無い言葉だけ、2つめを読みとして受けつける（「生活 せいかつ」）
@@ -3073,6 +3134,45 @@ function renderLists() {
     btns.append(e, d); r.append(nm, btns); box.appendChild(r);
   }
 }
+// 答案用紙：読みとった 文から 漢字の かたまり（言葉）を 取りだし、大人が ○× を つける
+let paperMode = "ng";
+$("paperFile").onchange = async e => {
+  const f = e.target.files && e.target.files[0]; if (!f) return;
+  const msg = $("paperMsg"), box = $("paperChips");
+  box.textContent = ""; $("paperOpts").hidden = true;
+  if (!canSync()) { msg.textContent = "読みとりには 共有の 合言葉が 必要です（上の 設定）"; return; }
+  msg.textContent = "読みとり中…（10びょう くらい）";
+  try {
+    const text = await ocrText(f, 2000);
+    // 漢字が つづいた ところを 1つの 言葉に する（小学校で 習う 字だけ）
+    const words = [...new Set((text.match(/[一-鿿々]+/g) || []).map(w => [...w].filter(c => isK(c)).join("")).filter(Boolean))].slice(0, 80);
+    if (!words.length) { msg.textContent = "字が 読みとれませんでした。明るい ところで、まっすぐ とってみてください"; return; }
+    msg.textContent = `${words.length}この 言葉が 見つかりました。まちがえた字を タップして × に（もう1回で ○、もう1回で なし）`;
+    for (const w of words) {
+      const b = document.createElement("button"); b.className = "pchip"; b.textContent = w;
+      b.onclick = () => { const v = b.dataset.v; if (!v) b.dataset.v = "ng"; else if (v === "ng") b.dataset.v = "ok"; else delete b.dataset.v; };
+      box.appendChild(b);
+    }
+    $("paperOpts").hidden = false;
+    for (const b of $("paperMode").children) b.setAttribute("aria-pressed", b.dataset.m === paperMode);
+  } catch (err) { msg.textContent = "読みとれませんでした。もういちど ためしてください"; }
+};
+$("paperMode").onclick = e => { const b = e.target.closest("button"); if (!b) return; paperMode = b.dataset.m; for (const x of $("paperMode").children) x.setAttribute("aria-pressed", x === b); };
+$("paperGo").onclick = () => {
+  const chips = [...$("paperChips").children], ng = chips.filter(b => b.dataset.v === "ng").map(b => b.textContent), ok = chips.filter(b => b.dataset.v === "ok").map(b => b.textContent);
+  const take = paperMode === "all" ? [...ng, ...ok] : ng;
+  if (!take.length) { $("paperMsg").textContent = paperMode === "all" ? "○か ×を つけた 字が ありません" : "×を つけた 字が ありません"; return; }
+  // ×の 字は にがてに する
+  for (const w of ng) for (const k of kanjiOf(w)) { const v = S.stats[k] || { ok: 0, ng: 0, st: 0, p: 0 }; v.ng++; v.st = 0; v.last = Date.now(); S.stats[k] = v; }
+  save();
+  const d = new Date();
+  if (!$("edName").value) $("edName").value = `テスト ${d.getMonth() + 1}月${d.getDate()}日`;
+  const cur = $("edText").value.trim();
+  $("edText").value = (cur ? cur + "\n" : "") + take.join("\n");
+  renderPreview();
+  $("paperMsg").textContent = `${take.length}こを 下の リストに 入れました（×の ${ng.length}こは にがてな字にも 入れました）。よみを たしかめて「保存する」を おしてください。`;
+  $("edName").scrollIntoView({ behavior: "smooth", block: "start" });
+};
 $("listsBack").onclick = () => show("adult");
 $("keyInput").value = S.key || "";
 $("keySave").onclick = () => { S.key = $("keyInput").value.trim(); local(); setSync(); pull(); };
