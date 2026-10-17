@@ -82,7 +82,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .stories { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px; }
 .storybtn { border: 2px solid var(--rule); background: var(--sheet); border-radius: 12px; padding: 10px 12px; text-align: left; display: grid; gap: 2px; font-family: var(--font-k); font-size: 17px; }
 .storybtn small { font-family: var(--font-ui); font-size: 12px; color: var(--pencil); }
-.question.story { display: block; font-size: 21px; line-height: 2.6; max-height: 38vh; overflow-y: auto; padding-right: 4px; }
+.question.story { display: block; font-size: 21px; line-height: 2.6; max-height: 26vh; overflow-y: auto; padding-right: 4px; }
 .question.story .word { display: inline-grid; vertical-align: bottom; margin: 0 2px; }
 .question.story .box, .question.story .kana { font-size: 21px; }
 .question.story .word .yomi { font-size: 12px; }
@@ -271,6 +271,26 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 /* 書くマス */
 .padwrap { display: grid; justify-items: center; gap: 10px; }
 body:has(#drill:not([hidden])) { overscroll-behavior: none; }
+/* 答える画面は 1まいに おさめて 動かさない。書くマスは のこった 高さに あわせて 大きさを かえる */
+html:has(#drill:not([hidden])), body:has(#drill:not([hidden])) { overflow: hidden; height: 100%; }
+#app:has(#drill:not([hidden])) { height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); box-sizing: border-box; padding: 8px 16px 10px; gap: 0; }
+#drill:not([hidden]) { display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0; }
+#drill .sheet { padding: 12px 16px; gap: 8px; flex: none; }
+#drill .topbar, #drill .bossbar { flex: none; }
+#drill .padwrap { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
+#drill .padbox { flex: 1; min-height: 0; width: 100%; container-type: size; display: grid; place-items: center; }
+#drill #pad { width: min(100cqw, 100cqh, 560px); height: auto; }
+#drill .msg, #drill .tools { flex: none; }
+/* ボス戦は 書くマスを 大きく のこすため、ボスの らんを 横1れつに つめる */
+#drill .bossbar { gap: 6px 10px; padding: 6px 10px; }
+#drill .arena { flex: 0 0 min(46%, 190px); height: 62px; padding: 0 2px; }
+#drill .bossmon .mon { width: 54px; height: 54px; }
+#drill .arena .pl .ava { width: 44px; height: 50px; }
+#drill .arena .vs { font-size: 16px; }
+#drill .bossinfo { gap: 3px; }
+#drill .bossinfo b { font-size: 15px; }
+#drill .hearts { font-size: 15px; }
+#drill .say { font-size: 13px; padding: 4px 10px; }
 /* ダブルタップや ピンチで 画面が 大きく ならないように する */
 * { touch-action: manipulation; }
 html, body { -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
@@ -475,7 +495,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2341</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2344</p>
 </section>
 
 <!-- 書きとり -->
@@ -503,6 +523,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     <div class="row"><button class="speak" id="speakBtn">よみあげ</button><span class="muted" id="modeNote"></span></div>
   </div>
   <div class="padwrap">
+    <div class="padbox">
     <svg id="pad" viewBox="0 0 109 109" role="img" aria-label="ここに字を書く">
       <line class="guide" x1="54.5" y1="0" x2="54.5" y2="109"/>
       <line class="guide" x1="0" y1="54.5" x2="109" y2="54.5"/>
@@ -511,6 +532,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
       <g class="ink" id="lInk"></g>
       <g id="lTop"></g>
     </svg>
+    </div>
     <div class="msg" id="msg" aria-live="polite"></div>
     <div class="tools" id="tools">
       <button class="btn ghost" id="hintBtn">ヒント</button>
@@ -1384,7 +1406,7 @@ function show(id) {
   if (id === "home") checkUpdate();
 }
 // 新しい版が出ていたら、ホームに いるときだけ 入れかえる（れんしゅうの とちゅうでは しない）
-const VER = "1017-2341";
+const VER = "1017-2344";
 function checkUpdate() {
   fetch("version.txt?" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : "").then(v => {
     v = v.trim();
@@ -2015,6 +2037,8 @@ $("listsBack").onclick = () => show("adult");
 $("keyInput").value = S.key || "";
 $("keySave").onclick = () => { S.key = $("keyInput").value.trim(); local(); setSync(); pull(); };
 
+// 答える画面では 画面ぜんたいを 動かさない（長文の 文の中だけは 動かせる）
+document.addEventListener("touchmove", e => { if (!$("drill").hidden && !e.target.closest(".question.story")) e.preventDefault(); }, { passive: false });
 // iPhone・iPad の Safari は 拡大禁止の 指定を 無視するので、ピンチと ダブルタップを 直接 止める
 for (const ev of ["gesturestart", "gesturechange"]) document.addEventListener(ev, e => e.preventDefault(), { passive: false });
 let lastTap = 0;
