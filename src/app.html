@@ -350,6 +350,47 @@ html:has(#drill:not([hidden])), body:has(#drill:not([hidden])) { overflow: hidde
 @keyframes flash { from { opacity: .85; } to { opacity: 0; } }
 .bigshake { animation: bigshake .45s; }
 @keyframes bigshake { 15% { transform: translate(-9px, 4px); } 30% { transform: translate(8px, -5px); } 45% { transform: translate(-6px, 3px); } 60% { transform: translate(5px, -2px); } 80% { transform: translate(-2px, 1px); } }
+/* RPG：じぶんの HP・てきの HP */
+.php { position: absolute; left: 54px; bottom: 6px; width: min(42%, 180px); z-index: 2; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px; color: #fff; text-shadow: 0 1px 2px #000; font-size: 11px; font-weight: 700; }
+.php .hp { height: 9px; background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.7); border-radius: 99px; overflow: hidden; }
+.php .hp i { display: block; height: 100%; transition: width .4s; }
+.php b { font-variant-numeric: tabular-nums; font-size: 11px; }
+.bossbar:not(.rpg) .php { display: none; }
+.bossbar.rpg .ehp .hp { display: block; }
+.bossbar.rpg .wave { display: block; }
+.bossbar.rpg.boss .hearts, .bossbar.rpg .pct, .bossbar.rpg .hearts { display: none; }
+.bossbar.rpg .atkl { bottom: auto; top: 26px; right: 8px; }
+/* アイテムを 手に入れた！ */
+#getItem { background: rgba(0,0,0,.55); }
+.dqwin { width: min(92vw, 420px); background: #12121a; color: #fff; border: 4px solid #fff; border-radius: 12px; box-shadow: 0 0 0 4px #12121a, 0 12px 40px rgba(0,0,0,.6); padding: 16px; display: grid; justify-items: center; gap: 8px; animation: gotin .4s cubic-bezier(.2,.9,.3,1.3) both; }
+.gicon .ava { width: 120px; height: 132px; display: block; filter: drop-shadow(0 0 16px #ffd54a); }
+.gtext { margin: 0; font-size: 21px; font-weight: 700; text-align: center; }
+.gstat { margin: 0; font-size: 14px; color: #ffe08a; text-align: center; }
+.gbtns { display: grid; gap: 8px; width: 100%; }
+.gbtns .ghost { color: #fff; border-color: #fff8; }
+/* そうび がめん */
+.stline { display: flex; align-items: baseline; gap: 8px; }
+.stline b { font-size: 14px; min-width: 5em; }
+.stline span { font-size: 22px; font-weight: 700; color: var(--hana); font-variant-numeric: tabular-nums; }
+.stline small { font-size: 11px; color: var(--pencil); }
+.bonus { display: grid; gap: 6px; background: #fff8e1; border: 2px solid var(--gold); border-radius: 12px; padding: 10px; }
+.bonus .label b { font-size: 20px; color: var(--hana); }
+.bonus .btn { padding: 8px 10px; min-height: 40px; font-size: 14px; }
+button.eqitem { text-align: left; font: inherit; color: inherit; position: relative; }
+.eqitem .tag { position: absolute; top: -8px; right: 6px; font-style: normal; font-size: 10px; font-weight: 700; background: var(--green); color: #fff; border-radius: 99px; padding: 1px 8px; }
+.eqitem .tag.new { background: var(--hana); }
+/* ホーム：つよさ・字を さがす */
+.stats3 { font-size: 12px; font-weight: 700; color: var(--hana); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.avabox { position: relative; }
+.ptbadge { position: absolute; top: -6px; right: -6px; background: var(--hana); color: #fff; font-style: normal; font-size: 11px; font-weight: 700; border-radius: 99px; padding: 2px 7px; }
+.findbtn { flex: none; border: 2px solid #2a2026; background: #3f5a7a; color: #fff; border-radius: 12px; padding: 6px 8px; font-weight: 700; font-size: 12px; line-height: 1.3; box-shadow: inset 0 -3px 0 #0004; }
+.photobtn { display: flex; align-items: center; justify-content: center; }
+.fchips { display: flex; flex-wrap: wrap; gap: 8px; }
+.findimg { width: 100%; max-height: 220px; object-fit: contain; border-radius: 12px; background: #000; }
+.findinput { font: inherit; font-size: 24px; padding: 10px 12px; border: 2px solid var(--rule); border-radius: 12px; font-family: var(--font-k); }
+.fchip { font-family: var(--font-k); font-size: 26px; width: 48px; height: 48px; display: grid; place-items: center; border-radius: 10px; background: radial-gradient(circle at 35% 30%, #fffbe0, #f2c230 70%); border: 2px solid #b88a12; }
+.fchip.old { background: var(--page); border-color: var(--rule); color: var(--pencil); }
+.foundlist { font-family: var(--font-k); font-size: 26px; letter-spacing: .1em; overflow-wrap: anywhere; }
 .bossbar.small .arena { height: 84px; }
 .bossbar.small .say { display: none; }
 .bossbar.small #bossMon { width: 52px; margin-left: -26px; bottom: 4px; }
@@ -454,12 +495,13 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
 <section id="home" class="screen">
   <span id="sync" class="sync" hidden></span>
   <div class="hero2">
-    <button class="avabox" id="goEquip" aria-label="そうびを 見る"><div id="avatar"></div><span>そうび</span></button>
+    <button class="avabox" id="goEquip" aria-label="そうびを 見る"><div id="avatar"></div><span>そうび</span><em class="ptbadge" id="ptBadge" hidden></em></button>
     <div class="herostat">
-      <div class="lvline"><span class="lvbadge"><small>レベル</small><b id="lvNum">1</b></span><span class="atk">こうげき力<b id="atkNum">1</b></span></div>
+      <div class="lvline"><span class="lvbadge"><small>レベル</small><b id="lvNum">1</b></span><span class="stats3" id="stats3"></span></div>
       <div class="xpbar"><i id="xpFill"></i></div>
       <small id="xpNext"></small>
     </div>
+    <button class="findbtn" id="goFind">しゃしんで<br>字を<br>さがす</button>
   </div>
   <div class="seg grades" id="gradeSeg">
     <button data-g="1">1年</button><button data-g="2">2年</button><button data-g="3">3年</button>
@@ -547,6 +589,35 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     <div id="storyList" class="stories"></div>
   </div>
   <p class="muted" id="storyNone" hidden>長文は いまは 2年生だけです。メニューで 2年を えらんでね。</p>
+</section>
+
+<!-- アイテムを 手に入れた！ -->
+<div id="getItem" class="cover" hidden>
+  <div class="dqwin">
+    <div class="gicon" id="giIcon"></div>
+    <p class="gtext" id="giText"></p>
+    <p class="gstat" id="giStat"></p>
+    <div class="gbtns"><button class="btn primary big" id="giEquip">そうびする</button><button class="btn ghost" id="giBag">ふくろに しまう</button></div>
+  </div>
+</div>
+
+<!-- 字を さがす -->
+<section id="find" class="screen" hidden>
+  <div class="topbar"><button class="back" data-back="home">← メニュー</button><span class="label">字を さがす</span></div>
+  <div class="sheet">
+    <h2 style="font-size:20px">まちで 字を さがそう！</h2>
+    <p class="muted" style="margin:0">かんばんや ポスターの 字を しゃしんに とって、その字を 見ないで かけたら 1字 1ポイント！</p>
+    <label class="btn primary big photobtn" for="findFile">しゃしんを とる</label>
+    <input type="file" id="findFile" accept="image/*" hidden>
+    <img id="findImg" class="findimg" alt="とった しゃしん" hidden>
+    <div class="label">しゃしんの 中の 字（大人の人と いっしょに 入れてね）</div>
+    <input id="findText" class="findinput" placeholder="れい：駅前 公園" autocomplete="off">
+    <small class="muted">iPhone・iPad は、しゃしんの 字を ながおし →「コピー」→ ここに はりつけ でも 入るよ</small>
+    <div class="fchips" id="findChips"></div>
+    <p class="msg" id="findMsg"></p>
+    <button class="btn primary big" id="findGo">この字で テスト！</button>
+  </div>
+  <div class="sheet"><div class="label">見つけた 字</div><div class="foundlist" id="foundList"></div></div>
 </section>
 
 <!-- はじめての キャラづくり（これを おえないと はじまらない） -->
@@ -655,6 +726,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
       <div class="pl" id="plAva"></div>
       <div class="bossmon" id="bossMon"></div>
       <small class="atkl" id="bossAtk"></small>
+      <div class="php" id="pHp"><span>HP</span><div class="hp"><i id="pHpBar"></i></div><b id="pHpNum"></b></div>
     </div>
     <div class="say" id="bossSay" aria-live="polite"></div>
   </div>
@@ -1152,6 +1224,11 @@ const ITEMS = [
   { s: 75, slot: "アクセ", name: "うんこの おまもり", pow: 7, look: "unko" },
   { s: 999, sub: "nazo", slot: "アクセ", name: "なぞときの すず", pow: 3, look: "ring" },
   { s: 999, sub: "maki", slot: "たて", name: "ちしきの たて", pow: 4, c: "#3b7bd6", shape: "kite", mark: "star" },
+  { s: 999, shop: 4, slot: "ぶき", name: "ひかりの ブーメラン", pow: 5, type: "sword", c: "#9be7ff", glow: "#e6fbff" },
+  { s: 999, shop: 3, slot: "あたま", name: "まほうの ぼうし", pow: 4, look: "wizard" },
+  { s: 999, shop: 5, slot: "からだ", name: "ゆうしゃの よろい", pow: 6, c: "#3b7bd6", armor: "#cfd8e3", cape: "#e8473a" },
+  { s: 999, shop: 4, slot: "たて", name: "かがみの たて", pow: 6, c: "#d8e6f2", shape: "kite", mark: "star" },
+  { s: 999, shop: 3, slot: "アクセ", name: "せいれいの ゆびわ", pow: 5, look: "ring" },
 ];
 // ぶきの かたち：にぎりを 原点に、上（マイナス）へ のびる
 function weaponShape(w) {
@@ -1164,13 +1241,47 @@ function weaponShape(w) {
   return glow + `<rect x="-3" y="0" width="6" height="14" rx="2" fill="#6b4a1e" stroke="${k}" stroke-width="1.2"/><circle cx="0" cy="17" r="3.5" fill="#f2c230" stroke="${k}" stroke-width="1"/><rect x="-13" y="-5" width="26" height="6" rx="2" fill="#f2c230" stroke="${k}" stroke-width="1.5"/><path d="M-5 -5 L-5 -70 L0 -84 L5 -70 L5 -5z" fill="${w.c}" stroke="${k}" stroke-width="2"/>` + rainbow;
 }
 const weaponIcon = (w, size = 54) => `<svg viewBox="-34 -100 68 122" width="${size * 0.56}" height="${size}" aria-hidden="true">${weaponShape(w)}</svg>`;
-function equipped(c = cleared()) {
-  const eq = {};
-  for (const it of ITEMS) if ((it.sub ? qBossDone(it.sub) : it.s <= c) && (!eq[it.slot] || it.pow >= eq[it.slot].pow)) eq[it.slot] = it;
+// アイテムの のうりょく：ぶき＝こうげき、あたま・からだ・たて＝ぼうぎょ、アクセ＝たいりょく
+const itemStat = it => !it || !it.pow ? {} : it.slot === "ぶき" ? { atk: it.pow * 2 } : it.slot === "アクセ" ? { hp: it.pow * 4 } : { def: it.pow };
+const statText = it => { const s = itemStat(it); return s.atk ? `こうげき +${s.atk}` : s.def ? `ぼうぎょ +${s.def}` : s.hp ? `たいりょく +${s.hp}` : "のうりょく なし"; };
+const SHOP = ITEMS.filter(it => it.shop);
+const shopMask = () => (S.stats["かいもの"] && S.stats["かいもの"].ok) || 0;
+// もっているか：ステージで 手に入る もの・サブクエストの ボス・ポイントで こうかん
+function owned(it, c = cleared()) {
+  if (it.shop) return !!(shopMask() & (1 << SHOP.indexOf(it)));
+  if (it.sub) return qBossDone(it.sub);
+  return it.s <= c;
+}
+function bestEq() { const eq = {}; for (const it of ITEMS) if (owned(it) && (!eq[it.slot] || it.pow >= eq[it.slot].pow)) eq[it.slot] = it; return eq; }
+const baseOf = slot => ITEMS.find(it => it.slot === slot && it.s === 0);
+// つけている そうびは 自分で えらぶ（記録には 数字1つで のこす）
+function equipped() {
+  const st = S.stats["そうび"];
+  if (!st) return bestEq();
+  const eq = {}; let code = st.ok;
+  SLOTS.forEach(slot => { const it = ITEMS[code % 100 - 1]; code = Math.floor(code / 100); eq[slot] = it && it.slot === slot && owned(it) ? it : baseOf(slot); });
   return eq;
 }
-const power = eq => SLOTS.reduce((a, k) => a + (eq[k] ? eq[k].pow : 0), 0);
-const attack = eq => 1 + Math.floor(power(eq) / 6);
+function setEquip(eq) {
+  let code = 0;
+  SLOTS.slice().reverse().forEach(slot => { code = code * 100 + (ITEMS.indexOf(eq[slot]) + 1); });
+  S.stats["そうび"] = { ok: code, ng: 0, st: 0, p: 0, last: Date.now() }; save();
+}
+// ボーナスポイント：まちで 見つけた 字を かけたら 1ポイント
+const upg = () => { const v = (S.stats["のうりょく"] && S.stats["のうりょく"].ok) || 0; return { hp: v % 1000, atk: Math.floor(v / 1000) % 1000, def: Math.floor(v / 1e6) }; };
+function setUpg(u) { S.stats["のうりょく"] = { ok: u.hp + u.atk * 1000 + u.def * 1e6, ng: 0, st: 0, p: 0, last: Date.now() }; save(); }
+const foundList = () => Object.keys(S.stats).filter(k => k.startsWith("見つけた")).map(k => k.slice(4));
+const pointsLeft = () => { const u = upg(); return foundList().length - u.hp - u.atk - u.def - SHOP.filter(it => owned(it)).reduce((a, it) => a + it.shop, 0); };
+// じぶんの つよさ：レベル ＋ ボーナス ＋ そうび
+function me(eq = equipped()) {
+  const L = levelOf(xpTotal()).L, u = upg();
+  const base = { hp: 30 + 5 * (L - 1) + u.hp * 5, atk: 3 + (L - 1) + u.atk, def: 1 + Math.floor((L - 1) / 2) + u.def };
+  const add = { hp: 0, atk: 0, def: 0 };
+  for (const slot of SLOTS) { const s = itemStat(eq[slot]); for (const k in s) add[k] += s[k]; }
+  return { L, base, add, hp: base.hp + add.hp, atk: base.atk + add.atk, def: base.def + add.def };
+}
+const attack = eq => me(eq).atk;
+
 
 // じぶんの キャラ（そうびで 見た目が かわる）
 // じぶんの キャラ：パーツを くみあわせる。そうびは その うえに かさなる
@@ -1258,6 +1369,7 @@ function avatar(eq, look = myLook()) {
     helmet: `<path d="M26 32 q0 -24 24 -24 q24 0 24 24 h-6 v-4 h-36 v4z" fill="#c4ccd6" stroke="#3a3a3a" stroke-width="2"/><rect x="47" y="10" width="6" height="18" fill="#9aa5b1"/><path d="M50 8 q12 -10 20 0 q-10 -2 -20 4z" fill="#e8473a"/>`,
     goggles: `<rect x="28" y="20" width="44" height="5" fill="#5a3d22"/><circle cx="41" cy="22" r="6" fill="#9be7ff" stroke="#3a3a3a" stroke-width="2"/><circle cx="59" cy="22" r="6" fill="#9be7ff" stroke="#3a3a3a" stroke-width="2"/><circle cx="39" cy="20" r="1.6" fill="#fff"/><circle cx="57" cy="20" r="1.6" fill="#fff"/>`,
     dragon: `<path d="M26 32 q0 -24 24 -24 q24 0 24 24 h-6 v-4 h-36 v4z" fill="#3a9a5a" stroke="#3a3a3a" stroke-width="2"/><path d="M30 14 l-8 -12 14 8z M70 14 l8 -12 -14 8z" fill="#f2e2b0" stroke="#3a3a3a" stroke-width="1.2"/><path d="M42 12 l3 -6 3 6 M52 12 l3 -6 3 6" fill="#f2c230"/>`,
+    wizard: `<path d="M26 30 L52 -8 L74 30z" fill="#6c5a8a" stroke="#3a3a3a" stroke-width="2"/><path d="M22 30 h56" stroke="#3a3a3a" stroke-width="5" stroke-linecap="round"/><circle cx="56" cy="12" r="3" fill="#ffd54a"/><circle cx="46" cy="20" r="2" fill="#ffd54a"/>`,
     crown: `<path d="M32 16 l4 -12 7 8 7 -10 7 10 7 -8 4 12z" fill="#f2c230" stroke="#b88a12" stroke-width="1.5"/><circle cx="50" cy="10" r="2" fill="#e8473a"/>`,
   };
   s += hats[head.look] || "";
@@ -1580,10 +1692,9 @@ function treasureShow(s, got) {
     const nm = document.createElement("div"); nm.className = "tname"; nm.textContent = T.name;
     const sub = document.createElement("div"); sub.className = "tsub"; sub.textContent = "+50 けいけんち";
     g.append(h, ic, nm, sub);
-    for (const it of got) { const e = document.createElement("div"); e.className = "tsub"; e.textContent = `そうび ゲット！ ${it.slot}：${it.name}`; g.appendChild(e); }
     for (const q in QUESTS) if (QUESTS[q].key === s) { const e = document.createElement("div"); e.className = "tkey"; e.textContent = `「${QUESTS[q].keyName}」も 手に入れた！ ホームの「${QUESTS[q].name}」に 入れるよ`; g.appendChild(e); }
     g.hidden = false; $("tTap").hidden = false;
-    setTimeout(() => { el.onclick = () => { el.hidden = true; el.onclick = null; }; }, 500);
+    setTimeout(() => { el.onclick = () => { el.hidden = true; el.onclick = null; if (got.length) giveItems(got); }; }, 500);
   }, 2300 * q);
 }
 
@@ -1671,18 +1782,14 @@ function playQuest(q, i) {
 }
 // まきものの ボス：お話の ことばから 出る
 function startSubBoss(q) {
-  const Q = QUESTS[q], words = (DATA.stories[gradeOf()] || []).flatMap(st => parseStory(st).qs), atk = attack(equipped());
-  startDrill(pick(words, 12), "test");
-  D.mob = MB = null;
+  const Q = QUESTS[q], words = (DATA.stories[gradeOf()] || []).flatMap(st => parseStory(st).qs), P = me();
+  const qs = pick(words, 12);
+  startDrill(qs, "test");
+  D.qs0 = qs.slice();
   D.stage = { s: q, t: "boss", sub: q, idx: qSize(q) - 1 };
-  D.boss = { s: q, def: Q.boss, name: Q.boss.name, hp: 8, max: 8, hearts: 3, atk, combo: 0, shownHp: 8, shownHearts: 3 };
-  $("plAva").innerHTML = "";
-  $("bossBar").className = "bossbar boss";
-  $("dun").innerHTML = corridor(Q.fi, 1);
-  $("bossMon").className = "bossmon"; $("bossMon").innerHTML = bossFace(Q.boss);
-  D.title = `${Q.name} ボスせん`; $("drillProg").textContent = D.title;
-  renderBoss(); say(Q.boss.say);
-  bossIntro(q, Q.boss); bgmPlay("boss");
+  D.title = `${Q.name} ボスせん`;
+  // サブクエストの ボスは いまの つよさに あわせる（6かい くらい あてると たおせる）
+  startBattle([{ boss: Q.boss, name: Q.boss.name, hp: P.atk * 6, atk: P.def + Math.ceil(P.hp / 4) }], Q.fi, q);
 }
 // なぞなぞの ボス（かなクイズの 画面で たたかう）
 function kanaBossTurn(right) {
@@ -1736,6 +1843,110 @@ function scene(page) {
   return { bg: s, top: "", road: f.floor };
 }
 
+
+/* ---------- RPGの たたかい ---------- */
+// 字を ただしく かけたら こうげき。ヒントを 見たり まちがえると てきの こうげき。HPが 0で やりなおし
+// てきの つよさは ステージで きまる（1ステージ だいたい 3〜8もんで たおせる くらい）
+const foeAtk = s => 6 + 0.85 * s;
+const foeTotal = s => 5 * (5 + 0.6 * s);
+function makeFoes(s) {
+  const t = stageType(s);
+  if (t === "boss") { const b = BOSSES[s]; return [{ boss: b, name: b.name, hp: Math.round(foeTotal(s) * 1.6), atk: Math.round(foeAtk(s) * 1.3) }]; }
+  const n = t === "chest" ? 3 : 2 + (s % 2), out = [];
+  for (let i = 0; i < n; i++) {
+    const m = t === "chest" && i === n - 1 ? MIMIC : MOBS[(s * 5 + i * 3) % MOBS.length];
+    const hp = Math.max(4, Math.round(foeTotal(s) / n * (0.85 + Math.random() * 0.3)));
+    out.push({ m, name: m.name, hp, atk: Math.round(foeAtk(s) * (m === MIMIC ? 1.2 : 1)) });
+  }
+  return out;
+}
+function startBattle(foes, fi, bossKey) {
+  const P = me();
+  foes.forEach(f => { f.max = f.hp; });
+  D.bt = { foes, k: 0, fi, php: P.hp, pmax: P.hp, atk: P.atk, def: P.def, win: false, dead: false, over: false };
+  D.mob = MB = null;
+  const bar = $("bossBar");
+  $("drill").insertBefore(bar, $("drill").querySelector(".sheet"));
+  bar.hidden = false; bar.className = "bossbar rpg" + (bossKey ? " boss" : "");
+  $("dun").innerHTML = corridor(fi, bossKey ? (bossKey === LAST ? LAST : 1) : 0);
+  $("plAva").innerHTML = avatar(equipped());
+  showFoe(false);
+  drawBt();
+  $("drillProg").textContent = `${D.title}　もんだい 1`;
+  if (bossKey) { bossIntro(bossKey, foes[0].boss === BOSSES[bossKey] ? undefined : foes[0].boss); bgmPlay("boss"); }
+}
+function showFoe(walk) {
+  const B = D.bt, f = B.foes[B.k], el = $("bossMon"), dn = $("dun"), myB = B, k = B.k;
+  $("wave").textContent = `てき ${k + 1} / ${B.foes.length}`;
+  $("bossName").textContent = f.name;
+  el.className = "bossmon"; el.innerHTML = "";
+  drawBt();
+  const come = () => {
+    if (D.bt !== myB || myB.k !== k) return;
+    dn.classList.remove("walk");
+    el.innerHTML = f.boss ? bossFace(f.boss) : mobSVG(f.m, B.fi); el.classList.add("appear");
+    say(f.boss ? f.boss.say : f.m === MIMIC ? "たからばこ…？ と おもったら ミミックだ！" : `${f.name}が あらわれた！（HP ${f.max}）`);
+  };
+  if (walk && !reduced) { dn.classList.remove("walk"); void dn.offsetWidth; dn.classList.add("walk"); say("おくへ すすむ…"); setTimeout(come, 860); }
+  else come();
+}
+function drawBt() {
+  const B = D.bt, f = B.foes[B.k];
+  $("bossHp").style.width = Math.max(0, f.hp) / f.max * 100 + "%";
+  $("pHpBar").style.width = Math.max(0, B.php) / B.pmax * 100 + "%";
+  $("pHpBar").style.background = B.php / B.pmax < 0.3 ? "linear-gradient(#ff8a7a,#e8473a)" : "linear-gradient(#9ff0b0,#3faa5a)";
+  $("pHpNum").textContent = `${Math.max(0, B.php)}/${B.pmax}`;
+  $("bossAtk").textContent = `こうげき ${B.atk}　ぼうぎょ ${B.def}`;
+}
+function rpgTurn(ok) {
+  const B = D.bt, f = B.foes[B.k], el = $("bossMon");
+  if (ok) {
+    // 3れんぞくで「かいしんの いちげき」
+    const crit = (D.streak || 0) >= 3 && D.streak % 3 === 0;
+    const dmg = Math.max(1, Math.round(B.atk * (0.9 + Math.random() * 0.2) * (crit ? 1.6 : 1)));
+    f.hp -= dmg;
+    const kill = f.hp <= 0;
+    if (kill) { if (B.k === B.foes.length - 1) { B.win = true; B.over = true; } else B.next = true; }
+    swing(el).then(type => {
+      el.classList.remove("appear", "hit"); void el.offsetWidth; el.classList.add("hit");
+      if (f.boss || crit || kill) { flash(); bigShake(); }
+      pop(el, crit ? "かいしんの いちげき！" : pickOne(HITWORD[type] || HITWORD.sword), "boom");
+      setTimeout(() => pop(el, `-${dmg}`, "dmg"), 120);
+      drawBt();
+      if (kill) {
+        setTimeout(() => { el.classList.remove("hit"); void el.offsetWidth; el.classList.add(f.boss ? "ko" : "poof"); sfx(f.boss || B.win ? "great" : "kanaok"); }, 300);
+        say(f.boss ? f.boss.win : B.win ? `${f.name}を たおした！ ぜんぶ やっつけた！` : `${f.name}を たおした！`);
+      } else say(f.boss ? pickOne(f.boss.hit) : `${f.name}に ${dmg}の ダメージ！ のこり HP ${f.hp}`);
+    });
+  } else {
+    const dmg = Math.max(1, Math.round(f.atk * (0.85 + Math.random() * 0.3) - B.def));
+    B.php -= dmg;
+    if (B.php <= 0) { B.php = 0; B.dead = true; B.over = true; }
+    sfx("puff");
+    fx(el, $("plAva"), PUFF, "puff", 520).then(() => {
+      shake($("plAva")); bigShake(); pop($("plAva"), `-${dmg}`, "dmg"); drawBt();
+      say(B.dead ? "ちからつきた…" : `${f.name}の こうげき！ ${dmg}の ダメージを うけた`);
+    });
+  }
+}
+
+/* ---------- アイテムを 手に入れた！（ドラクエふうの まど） ---------- */
+let giQueue = [];
+function giveItems(list) { giQueue = giQueue.concat(list); if ($("getItem").hidden) nextGive(); }
+function nextGive() {
+  const it = giQueue.shift(), el = $("getItem");
+  if (!it) { el.hidden = true; return; }
+  const eq = equipped(), cur = eq[it.slot];
+  $("giIcon").innerHTML = avatar({ ...eq, [it.slot]: it });
+  $("giText").textContent = `${it.name}を 手に入れた！`;
+  $("giStat").textContent = `${it.slot}：${statText(it)}　（いま：${cur ? cur.name + "　" + statText(cur) : "なし"}）`;
+  el.hidden = false; sfx("great");
+  $("giEquip").onclick = () => { setEquip({ ...equipped(), [it.slot]: it }); markSeen(it); sfx("ok"); nextGive(); };
+  $("giBag").onclick = () => { nextGive(); };
+}
+const seenSet = () => { try { return new Set(JSON.parse(localStorage.getItem("seenItems") || "[]")); } catch (e) { return new Set(); } };
+function markSeen(...its) { const s = seenSet(); its.forEach(it => s.add(ITEMS.indexOf(it))); try { localStorage.setItem("seenItems", JSON.stringify([...s])); } catch (e) {} }
+
 function renderStage() {
   const cur = curStage(), c = cleared(), el = $("stageMap");
   const pages = Math.ceil(LAST / PER), myPage = Math.floor((cur - 1) / PER);
@@ -1763,7 +1974,9 @@ function renderStage() {
   $("teaser").title = B.tease;
   const eq = equipped();
   $("avatar").innerHTML = avatar(eq);
-  $("atkNum").textContent = attack(eq);
+  const P = me(eq), pl = pointsLeft();
+  $("stats3").textContent = `HP ${P.hp}　こうげき ${P.atk}　ぼうぎょ ${P.def}`;
+  $("ptBadge").hidden = pl < 1; $("ptBadge").textContent = `${pl}P`;
   const lv = levelOf(xpTotal());
   $("lvNum").textContent = lv.L;
   $("xpFill").style.width = (lv.cur / lv.need * 100) + "%";
@@ -1783,12 +1996,12 @@ function stageQs(s, pool, n) {
   return qs;
 }
 function startStage(s) {
-  if (stageType(s) === "boss") return startBoss(s);
-  const T = targetsOf("all");
-  startDrill(stageQs(s, T.pool, S.settings.count || 5), "test", undefined, T.limit);
-  D.stage = { s, t: stageType(s) }; D.title = `ステージ${s}`;
-  $("drillProg").textContent = `ステージ${s}　1 / ${D.qs.length}`;
-  D.mob = startMob(s, D.qs.length, "drill", stageType(s) === "chest");
+  const T = targetsOf("all"), t = stageType(s), qs = stageQs(s, T.pool, 12);
+  startDrill(qs, "test", undefined, T.limit);
+  D.qs0 = qs.slice();
+  D.stage = { s, t };
+  D.title = t === "boss" ? `ステージ${s} ボスせん` : `ステージ${s}`;
+  startBattle(makeFoes(s), floorNo(s), t === "boss" ? s : 0);
 }
 function startBoss(s) {
   const T = targetsOf("all"), b = BOSSES[s], i = BOSS_ORDER.indexOf(s) + 1, atk = attack(equipped());
@@ -1896,7 +2109,7 @@ function bossTurn(ok) {
 function stageResult() {
   // とちゅうで やめたら、のこりは ×として 数える（やめて クリアに ならないように）
   const st = D.stage, n = D.qs.length, ok = D.results.filter(r => r.ok).length;
-  const clear = st.t === "boss" ? D.boss.win : ok >= Math.ceil(n * 0.7 - 1e-9);
+  const clear = D.bt ? D.bt.win : st.t === "boss" ? D.boss.win : ok >= Math.ceil(n * 0.7 - 1e-9);
   if (st.sub) return { clear, got: questProgress(st.sub, st.idx, clear, st.t === "boss"), first: false };
   const before = cleared();
   let got = [];
@@ -1910,7 +2123,7 @@ function stageResult() {
 }
 
 /* ---------- 画面の切りかえ ---------- */
-const MENU = ["home", "kaki", "storyMenu", "gridScreen", "adult", "equip", "lookEdit", "quest"];
+const MENU = ["home", "kaki", "storyMenu", "gridScreen", "adult", "equip", "lookEdit", "quest", "find"];
 const SCREENS = [...MENU, "drill", "result", "kana", "lists", "hello"];
 const isMenu = () => MENU.some(id => !$(id).hidden);
 function show(id) {
@@ -2029,6 +2242,15 @@ $("startBtn").onclick = () => { const T = targetsOf(S.settings.list); startDrill
 $("goKaki").onclick = () => show("kaki");
 $("goStory").onclick = () => openQuest("maki");
 $("goKana").onclick = () => openQuest("nazo");
+$("goFind").onclick = openFind;
+$("findFile").onchange = e => { const f = e.target.files && e.target.files[0]; if (!f) return; findPhoto = true; const img = $("findImg"); img.src = URL.createObjectURL(f); img.hidden = false; renderFind(); };
+$("findText").oninput = renderFind;
+$("findGo").onclick = () => {
+  const found = new Set(foundList()), ks = findKanji().filter(k => !found.has(k));
+  if (!ks.length) return;
+  startDrill(ks.map(k => (qFor(k)[0]) || fallbackQ(k)), "test", undefined, ks);
+  D.find = ks; D.title = "見つけた 字"; $("drillProg").textContent = `見つけた 字　1 / ${ks.length}`;
+};
 $("goGrid").onclick = () => show("gridScreen");
 $("goAdult").onclick = () => show("adult");
 $("goEquip").onclick = () => { renderEquip(); show("equip"); };
@@ -2107,36 +2329,71 @@ $("helloNext").onclick = () => {
 $("helloBack").onclick = () => { if (hstep > 0) { hstep--; renderHello(); } };
 $("helloAdult").onclick = () => show("adult");
 function renderEquip() {
-  const c = cleared(), eq = equipped();
+  const c = cleared(), eq = equipped(), P = me(eq), seen = seenSet(), pts = pointsLeft();
   $("eqAvatar").innerHTML = avatar(eq);
-  $("eqPow").textContent = `こうげき力 ${attack(eq)}`;
-  $("eqNote").textContent = `ステージ ${c} まで クリア。そうびは いちばん つよい ものを 自動で つけているよ。`;
+  $("eqPow").textContent = `レベル ${P.L}`;
+  $("eqNote").innerHTML = ["たいりょく", "こうげき", "ぼうぎょ"].map((nm, i) => { const k = ["hp", "atk", "def"][i]; return `<div class="stline"><b>${nm}</b><span>${P[k]}</span><small>（じぶん ${P.base[k]} ＋ そうび ${P.add[k]}）</small></div>`; }).join("");
   const el = $("eqList"); el.textContent = "";
+  // ボーナスポイント
+  const bp = document.createElement("div"); bp.className = "bonus";
+  bp.innerHTML = `<div class="label">ボーナスポイント <b>${pts}</b></div><small class="muted">まちで 見つけた 字を かけると 1ポイント。つよさを 上げたり、レアな そうびと こうかん できるよ。</small><div class="row"></div>`;
+  const row = bp.querySelector(".row");
+  for (const [k, nm, plus] of [["hp", "たいりょく", "+5"], ["atk", "こうげき", "+1"], ["def", "ぼうぎょ", "+1"]]) {
+    const b = document.createElement("button"); b.className = "btn ghost"; b.textContent = `${nm} ${plus}（1）`; b.disabled = pts < 1;
+    b.onclick = () => { const u = upg(); u[k]++; setUpg(u); sfx("kanaok"); renderEquip(); };
+    row.appendChild(b);
+  }
+  el.appendChild(bp);
   for (const slot of SLOTS) {
     const h = document.createElement("div"); h.className = "label"; h.textContent = slot; el.appendChild(h);
-    const row = document.createElement("div"); row.className = "eqrow";
+    const r = document.createElement("div"); r.className = "eqrow";
     for (const it of ITEMS.filter(i => i.slot === slot && i.name !== "なし")) {
-      const d = document.createElement("div");
-      const have = it.sub ? qBossDone(it.sub) : it.s <= c;
-      d.className = "eqitem" + (have ? "" : " no") + (eq[slot] === it ? " on" : "");
-      d.innerHTML = have ? `<b></b><small>つよさ +${it.pow}</small>` : `<b>？？？</b><small>${it.sub ? QUESTS[it.sub].name + "の ボス" : "ステージ" + it.s}で ゲット</small>`;
-      if (have) d.querySelector("b").textContent = it.name;
-      row.appendChild(d);
+      const have = owned(it, c), on = eq[slot] === it, d = document.createElement("button");
+      d.className = "eqitem" + (have ? "" : " no") + (on ? " on" : "");
+      if (have) {
+        d.innerHTML = `<b></b><small>${statText(it)}</small>${on ? '<em class="tag">そうびちゅう</em>' : seen.has(ITEMS.indexOf(it)) || it.s === 0 ? "" : '<em class="tag new">NEW</em>'}`;
+        d.querySelector("b").textContent = it.name;
+        d.onclick = () => { if (on) return; setEquip({ ...equipped(), [slot]: it }); sfx("ok"); renderEquip(); };
+      } else if (it.shop) {
+        d.innerHTML = `<b></b><small>${statText(it)}・${it.shop}ポイント</small>`;
+        d.querySelector("b").textContent = it.name;
+        d.disabled = pts < it.shop;
+        d.onclick = () => { if (pointsLeft() < it.shop) return; S.stats["かいもの"] = { ok: shopMask() | (1 << SHOP.indexOf(it)), ng: 0, st: 0, p: 0, last: Date.now() }; save(); giveItems([it]); renderEquip(); };
+      } else {
+        d.disabled = true;
+        d.innerHTML = `<b>？？？</b><small>${it.sub ? QUESTS[it.sub].name + "の ボス" : "ステージ" + it.s}で 手に入る</small>`;
+      }
+      r.appendChild(d);
     }
-    el.appendChild(row);
+    el.appendChild(r);
   }
+  markSeen(...ITEMS.filter(it => owned(it, c)));
   // たからばこで 見つけた おたから
   const h = document.createElement("div"); h.className = "label"; h.textContent = "おたから"; el.appendChild(h);
-  const row = document.createElement("div"); row.className = "eqrow";
+  const tr = document.createElement("div"); tr.className = "eqrow";
   for (let st = 5; st < LAST; st += 10) {
     const t = treasureOf(st), have = st <= c, d = document.createElement("div");
     d.className = "eqitem trs" + (have ? " on" : " no");
     d.innerHTML = have ? `${tIcon(t, 36)}<b></b>` : `<b>？？？</b><small>ステージ${st}の たからばこ</small>`;
     if (have) d.querySelector("b").textContent = t.name;
-    row.appendChild(d);
+    tr.appendChild(d);
   }
-  el.appendChild(row);
+  el.appendChild(tr);
 }
+
+/* ---------- 字を さがす（まちの 字で ボーナス） ---------- */
+// しゃしんは ほぞんしない。見つけた 字を 見ないで かけたら 1字 1ポイント
+let findPhoto = false;
+function findKanji() { return [...new Set([...$("findText").value].filter(c => DATA.strokes[c]))]; }
+function renderFind() {
+  const ks = findKanji(), found = new Set(foundList()), box = $("findChips"); box.textContent = "";
+  for (const k of ks) { const s = document.createElement("span"); s.className = "fchip" + (found.has(k) ? " old" : ""); s.textContent = k; s.title = found.has(k) ? "もう 見つけた" : "あたらしい"; box.appendChild(s); }
+  const fresh = ks.filter(k => !found.has(k));
+  $("findGo").disabled = !findPhoto || !fresh.length;
+  $("findMsg").textContent = !findPhoto ? "まず しゃしんを とってね" : !ks.length ? "しゃしんの 中の 字を 入れてね" : !fresh.length ? "ぜんぶ もう 見つけた 字だよ。ほかの 字を さがそう！" : `あたらしい 字 ${fresh.length}こ。かけたら ${fresh.length}ポイント！`;
+  const fl = $("foundList"); fl.textContent = foundList().join("") || "まだ ないよ";
+}
+function openFind() { findPhoto = false; $("findImg").hidden = true; $("findText").value = ""; show("find"); renderFind(); }
 document.addEventListener("click", e => { const b = e.target.closest("[data-back]"); if (b) show(b.dataset.back); });
 $("listsBtn").onclick = () => { editNew(); renderLists(); show("lists"); };
 
@@ -2328,7 +2585,17 @@ $("hintBtn").onclick = () => { setMsg("つぎの 1画は ここ"); hintStroke();
 $("showBtn").onclick = showAnswer;
 $("redoBtn").onclick = () => { $("lInk").textContent = ""; D.n = 0; D.off = { x: 0, y: 0 }; D.pairs = []; markStart(); setMsg("はじめから かこう"); };
 $("drillBack").onclick = () => { if (D.results.length) finishDrill(); else show(D.story ? "storyMenu" : D.only ? "gridScreen" : D.stage ? "home" : "kaki"); };
-$("nextBtn").onclick = () => { D.i++; if (D.i >= D.qs.length || (D.boss && D.boss.over)) finishDrill(); else { loadQ(); if (D.mob) mobAppear(true, D.i); } };
+$("nextBtn").onclick = () => {
+  if (D.bt) {
+    D.i++;
+    if (D.bt.over) return finishDrill();
+    // 問題が たりなければ もういちど くりかえす
+    if (D.i >= D.qs.length) D.qs = D.qs.concat(D.qs0);
+    loadQ(); $("drillProg").textContent = `${D.title}　もんだい ${D.i + 1}`;
+    if (D.bt.next) { D.bt.k++; D.bt.next = false; showFoe(true); }
+    return;
+  }
+  D.i++; if (D.i >= D.qs.length || (D.boss && D.boss.over)) finishDrill(); else { loadQ(); if (D.mob) mobAppear(true, D.i); } };
 $("speakBtn").onclick = () => {
   try {
     const text = D.story ? D.story.map(l => l.map(p => typeof p === "string" ? p : p.r).join("")).join("。") : D.q.s.replace("＿", D.q.r);
@@ -2434,20 +2701,21 @@ function charDone() {
   const lastOk = D.results[D.results.length - 1].ok;
   D.streak = lastOk ? (D.streak || 0) + 1 : 0;
   if (D.streak >= 3 && D.streak % 3 === 0) setMsg(pickOne(STREAK), "good");
-  if (D.boss) bossTurn(lastOk);
+  if (D.bt) rpgTurn(lastOk);
+  else if (D.boss) bossTurn(lastOk);
   else if (D.mob) mobTurn(lastOk);
   $("tools").hidden = true; $("nextBtn").hidden = false;
-  $("nextBtn").textContent = D.i + 1 >= D.qs.length || (D.boss && D.boss.over) ? "けっかを 見る" : "つぎへ";
+  $("nextBtn").textContent = (D.bt ? D.bt.over : D.i + 1 >= D.qs.length) || (D.boss && D.boss.over) ? "けっかを 見る" : "つぎへ";
   // 自動で つぎへ（ボス戦は こうげきの えんしゅつを 見てから）
   {
     // ○も △も 自動で つぎへ（△は 少し 長めに 見せる）
     const myD = D, myI = D.i;
-    setTimeout(() => { if (D === myD && D.i === myI && !$("drill").hidden) $("nextBtn").click(); }, D.boss ? (D.boss.over ? 2200 : 1700) : D.mob ? 1600 : lastOk ? 1100 : 1800);
+    setTimeout(() => { if (D === myD && D.i === myI && !$("drill").hidden) $("nextBtn").click(); }, D.bt ? (D.bt.over ? 2400 : 1700) : D.boss ? (D.boss.over ? 2200 : 1700) : D.mob ? 1600 : lastOk ? 1100 : 1800);
   }
 }
 function finishDrill() {
   if (D.qs.length === 1 && D.only) { show("gridScreen"); return; }
-  const n = D.stage ? D.qs.length : D.results.length, ok = D.results.filter(r => r.ok).length;
+  const n = D.stage && !D.bt ? D.qs.length : D.results.length, ok = D.results.filter(r => r.ok).length;
   $("resScore").textContent = `${n}もん中 ${ok}もん ○`;
   const perfect = n > 0 && ok === n;
   if (D.story) { const si = D.storyIdx; $("resAgain").onclick = () => startStory(si); }
@@ -2459,7 +2727,15 @@ function finishDrill() {
   if (D.stage) {
     const st = D.stage, r = stageResult();
     if (st.t === "chest" && r.first) setTimeout(() => treasureShow(st.s, r.got), 300);
-    if (st.t === "boss") {
+    else if (r.got.length) setTimeout(() => giveItems(r.got), 600);
+    if (D.bt) {
+      const B = D.bt, f = B.foes[B.foes.length - 1], b = f.boss;
+      if (b) $("resHana").innerHTML = bossFace(b).replace('class="mon"', 'class="mon hm"' + (B.win ? ' style="transform:rotate(-20deg)"' : ""));
+      else $("resHana").innerHTML = B.win && perfect ? HANA : "";
+      $("resGreat").textContent = B.win ? (b ? `${b.name}を やっつけた！` : `${st.sub ? "マス" + (st.idx + 1) : "ステージ" + st.s} クリア！ ${pickOne(PRAISE)}`) : B.dead ? "ちからつきた… でも おしい！" : "とちゅうで やめたよ";
+      $("resNote").textContent = B.win ? (b ? `「${b.win}」` : `てきを ${B.foes.length}たい たおした！ のこり HP ${B.php}/${B.pmax}`) : B.dead ? "HPが 0に なったら ステージの さいしょから。そうびを 見なおしたり、レベルを 上げて また ちょうせん しよう！" : "";
+      if (B.win) setTimeout(() => sfx("great"), 200);
+    } else if (st.t === "boss") {
       const B = D.boss, b = B.def || BOSSES[st.s];
       $("resHana").innerHTML = bossFace(b).replace('class="mon"', 'class="mon hm"' + (B.win ? ' style="transform:rotate(-20deg)"' : ""));
       $("resGreat").textContent = B.win ? `${b.name}を やっつけた！` : "まけちゃった… でも おしい！";
@@ -2470,8 +2746,6 @@ function finishDrill() {
       $("resNote").textContent = r.clear ? "7わり いじょう ○ で クリアだよ。" : `${Math.ceil(D.qs.length * 0.7 - 1e-9)}もん ○ で クリア。${pickOne(CHEER)}`;
       if (r.clear && !perfect) $("resHana").innerHTML = "";
     }
-    for (const it of r.got) { const sp = document.createElement("span"); sp.textContent = `そうび ゲット！ ${it.slot}：${it.name}`; $("resGot").appendChild(sp); }
-    if (r.got.length) setTimeout(() => sfx("great"), 500);
     const s0 = st.s;
     $("resAgain").textContent = r.clear ? (st.sub ? "ちずに もどる" : "つぎの ステージへ") : "もういちど";
     $("resAgain").onclick = () => st.sub ? (r.clear ? openQuest(st.sub) : playQuest(st.sub, st.idx)) : startStage(r.clear ? curStage() : s0);
@@ -2487,7 +2761,16 @@ function finishDrill() {
   const wrong = D.results.filter(r => !r.ok).map(r => r.q);
   $("resRetry").hidden = !wrong.length;
   $("resRetry").onclick = () => startDrill(wrong, "test", undefined, D.limit);
-  if (!D.story && !D.stage) $("resAgain").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, S.settings.count || 5), "test", undefined, T.limit); };
+  if (D.find) {
+    const got = [];
+    D.results.forEach((r, i) => { const k = D.find[i]; if (r.ok && k && !S.stats["見つけた" + k]) { S.stats["見つけた" + k] = { ok: 1, ng: 0, st: 1, p: 0, last: Date.now() }; got.push(k); } });
+    save();
+    $("resGreat").textContent = got.length ? `ボーナスポイント +${got.length}！` : "おしい！ れんしゅう してから また ちょうせん しよう";
+    $("resNote").textContent = got.length ? `「${got.join("")}」を おぼえた！ ポイントは「そうび」の がめんで つかえるよ` : "見ないで かけたら ポイントに なるよ";
+    if (got.length) setTimeout(() => sfx("great"), 200);
+    $("resAgain").textContent = "もっと さがす"; $("resAgain").onclick = openFind;
+  }
+  if (!D.story && !D.stage && !D.find) $("resAgain").onclick = () => { const T = targetsOf(S.settings.list); startDrill(pick(T.pool, S.settings.count || 5), "test", undefined, T.limit); };
   show("result");
 }
 $("resHome").onclick = () => show("home");
@@ -2585,7 +2868,7 @@ $("kNext").onclick = () => {
       $("resGreat").textContent = clear ? `マス${Qq.idx + 1} クリア！ ${pickOne(PRAISE)}` : "あと すこし！ もういちど ちょうせん しよう";
       $("resNote").textContent = clear ? "7わり いじょう ○ で クリアだよ。" : `${Math.ceil(K.qs.length * 0.7 - 1e-9)}もん ○ で クリア。`;
     }
-    for (const it of got) { const sp = document.createElement("span"); sp.textContent = `そうび ゲット！ ${it.slot}：${it.name}`; $("resGot").appendChild(sp); }
+    if (got.length) setTimeout(() => giveItems(got), 600);
     $("resAgain").textContent = clear ? "ちずに もどる" : "もういちど";
     $("resAgain").onclick = () => clear ? openQuest(Qq.q) : playQuest(Qq.q, Qq.idx);
   }
@@ -2709,6 +2992,8 @@ document.addEventListener("touchmove", e => { if (!$("drill").hidden && !e.targe
 for (const ev of ["gesturestart", "gesturechange"]) document.addEventListener(ev, e => e.preventDefault(), { passive: false });
 let lastTap = 0;
 document.addEventListener("touchend", e => { const t = Date.now(); if (t - lastTap < 350 && !e.target.closest("input,textarea")) { e.preventDefault(); const b = e.target.closest("button"); if (b && !b.disabled) b.click(); } lastTap = t; }, { passive: false });
+// はじめて：いまの いちばん つよい そうびを つけておく（古い 時こくに して、ほかの 端末で えらんだ ものを うわがき しない）
+if (!S.stats["そうび"]) { const eq = bestEq(); let code = 0; SLOTS.slice().reverse().forEach(slot => { code = code * 100 + (ITEMS.indexOf(eq[slot]) + 1); }); S.stats["そうび"] = { ok: code, ng: 0, st: 0, p: 0, last: 1 }; local(); }
 show("home");
 setSync();
 pull();
