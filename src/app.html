@@ -396,6 +396,12 @@ button.eqitem { text-align: left; font: inherit; color: inherit; position: relat
 .hero2 > * { min-width: 0; }
 .avabox { position: relative; }
 .ptbadge { position: absolute; top: -6px; right: -6px; background: var(--hana); color: #fff; font-style: normal; font-size: 11px; font-weight: 700; border-radius: 99px; padding: 2px 7px; }
+.dangerbtn { border: 2px solid #1a0a1a; border-radius: 12px; padding: 6px 12px; color: #fff; display: flex; align-items: center; justify-content: space-between; gap: 8px; flex-wrap: nowrap; min-height: 40px;
+  background: #3a1f3a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='14'%3E%3Cpath d='M0 .5H28M0 7.5H28M7 0V7M21 7V14' stroke='%23000' stroke-opacity='.3' stroke-width='1.2'/%3E%3C/svg%3E"); box-shadow: inset 0 -4px 0 #0006, 0 0 12px #d06aff55; text-shadow: 0 1px 2px #000; }
+.dangerbtn b { flex: none; font-size: 16px; letter-spacing: .06em; color: #f0c8ff; }
+.dangerbtn small { font-size: 10px; text-align: right; min-width: 0; font-weight: 700; color: #ffe08a; }
+.dangerbtn:disabled { opacity: .5; box-shadow: none; }
+#home { gap: 10px; }
 .findbtn small { display: block; font-size: 9px; opacity: .85; }
 #home .tile4 b { font-size: 15px; line-height: 1.3; }
 #home .tile4 { padding: 8px 6px; }
@@ -537,6 +543,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     <div class="pg"><button id="pgPrev" aria-label="まえの ばん">◀</button><span id="pgLabel"></span><button id="pgNext" aria-label="つぎの ばん">▶</button></div>
   </div>
   <button class="btn primary big gonext" id="goNext"></button>
+  <button class="dangerbtn" id="goDanger"><b>きけんダンジョン</b><small id="dangerSub"></small></button>
   <div class="menu4">
     <button class="tile4 t-kaki" id="goKaki"><i class="room">くんれんじょう</i><b>じゆうに<br>かきとり</b><small id="kakiSub"></small></button>
     <button class="tile4 t-story" id="goStory"><i class="room">まきものの とう</i><b>長文</b><small id="storySub"></small></button>
@@ -1273,6 +1280,12 @@ const ITEMS = [
   { s: 999, shop: 5, slot: "からだ", name: "ゆうしゃの よろい", pow: 6, c: "#3b7bd6", armor: "#cfd8e3", cape: "#e8473a" },
   { s: 999, shop: 4, slot: "たて", name: "かがみの たて", pow: 6, c: "#d8e6f2", shape: "kite", mark: "star" },
   { s: 999, shop: 3, slot: "アクセ", name: "せいれいの ゆびわ", pow: 5, look: "ring" },
+  { s: 999, rare: 0, slot: "ぶき", name: "やみを きる つるぎ", pow: 8, type: "sword", c: "#7a4ad6", glow: "#c39bff" },
+  { s: 999, rare: 1, slot: "アクセ", name: "いのちの ペンダント", pow: 8, look: "ring" },
+  { s: 999, rare: 2, slot: "たて", name: "にがてを はねかえす たて", pow: 8, c: "#7a4ad6", shape: "kite", mark: "star" },
+  { s: 999, rare: 3, slot: "あたま", name: "ほのおの かんむり", pow: 7, look: "crown" },
+  { s: 999, rare: 4, slot: "からだ", name: "ドラゴンの よろい", pow: 10, c: "#3a9a5a", armor: "#f2c230", cape: "#7a4ad6" },
+  { s: 999, rare: 5, slot: "ぶき", name: "かみなりの おおおの", pow: 11, type: "hammer", c: "#ffd54a" },
 ];
 // ぶきの かたち：にぎりを 原点に、上（マイナス）へ のびる
 function weaponShape(w) {
@@ -1291,7 +1304,9 @@ const statText = it => { const s = itemStat(it); return s.atk ? `こうげき +$
 const SHOP = ITEMS.filter(it => it.shop);
 const shopMask = () => (S.stats["かいもの"] && S.stats["かいもの"].ok) || 0;
 // もっているか：ステージで 手に入る もの・サブクエストの ボス・ポイントで こうかん
+const rareMask = () => (S.stats["レア"] && S.stats["レア"].ok) || 0;
 function owned(it, c = cleared()) {
+  if (it.rare !== undefined) return !!(rareMask() & (1 << it.rare));
   if (it.shop) return !!(shopMask() & (1 << SHOP.indexOf(it)));
   if (it.sub) return qBossDone(it.sub);
   return it.s <= c;
@@ -1575,6 +1590,7 @@ const FLOORS = [
   { name: "くらやみ どうくつ", short: "どうくつ", wall: "#7a6656", wall2: "#5e4d41", floor: "#9c8669", ceil: "#4a3c36", back: "#1c1418", light: "#ffcf6a" },
   { name: "ざぶざぶ うみ", short: "うみ", wall: "#7f9db5", wall2: "#5f7f99", floor: "#e8d6a8", ceil: "#4b627a", back: "#16202c", light: "#bfefff" },
   { name: "マグマの おしろ", short: "おしろ", wall: "#8f5a4a", wall2: "#6e4234", floor: "#c0866a", ceil: "#4f2a22", back: "#2a0e08", light: "#ff9a4a" },
+  { name: "きけんな ダンジョン", short: "きけん", wall: "#4a2a4a", wall2: "#3a1f3a", floor: "#5a3a5a", ceil: "#2a142a", back: "#0a040a", light: "#d06aff", danger: true },
 ];
 const floorNo = s => Math.min(FLOORS.length - 1, Math.floor((s - 1) / 20));
 // おくゆきの ある 通路。まん中（150,52）に むかって 小さく なる
@@ -1720,6 +1736,21 @@ function coins() {
     if (c.animate) c.animate([{ transform: "translate(-50%,-50%) scale(.4)", opacity: 1 }, { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy}px)) scale(1.1)`, opacity: 1, offset: .5 }, { transform: `translate(calc(-50% + ${dx * 1.3}px), calc(-50% + ${dy + 260}px)) scale(.9)`, opacity: 0 }], { duration: 1300 + Math.random() * 400, easing: "ease-out", fill: "forwards" });
     setTimeout(() => c.remove(), 1800);
   }
+}
+function treasureShowRare(it) {
+  const el = $("treasure"), ch = $("tChest");
+  el.hidden = false; el.onclick = null;
+  $("tGot").hidden = true; $("tTap").hidden = true; $("tRays").className = "rays";
+  ch.innerHTML = BIGCHEST(false).replace(/#c98a3a/g, "#5a3a7a").replace(/#e0a24e/g, "#7a4ad6"); ch.className = "tchest drop"; setTimeout(() => sfx("thud"), 350);
+  setTimeout(() => { ch.className = "tchest wiggle"; sfx("kanaok"); }, 700);
+  setTimeout(() => { ch.innerHTML = BIGCHEST(true).replace(/#c98a3a/g, "#5a3a7a").replace(/#b8742e/g, "#6a3ac6"); ch.className = "tchest open"; $("tRays").className = "rays on"; sfx("great"); if (!reduced) coins(); }, 1700);
+  setTimeout(() => {
+    const g = $("tGot"); g.innerHTML = "<h3>レアそうび ゲット！</h3>";
+    const nm = document.createElement("div"); nm.className = "tname"; nm.textContent = it.name;
+    const sub = document.createElement("div"); sub.className = "tsub"; sub.textContent = `${it.slot}：${statText(it)}`;
+    g.append(nm, sub); g.hidden = false; $("tTap").hidden = false;
+    setTimeout(() => { el.onclick = () => { el.hidden = true; el.onclick = null; giveItems([it]); }; }, 500);
+  }, 2300);
 }
 function treasureShow(s, got) {
   const el = $("treasure"), ch = $("tChest"), T = treasureOf(s);
@@ -2006,6 +2037,32 @@ function nextGive() {
 const seenSet = () => { try { return new Set(JSON.parse(localStorage.getItem("seenItems") || "[]")); } catch (e) { return new Set(); } };
 function markSeen(...its) { const s = seenSet(); its.forEach(it => s.add(ITEMS.indexOf(it))); try { localStorage.setItem("seenItems", JSON.stringify([...s])); } catch (e) {} }
 
+
+/* ---------- きけんダンジョン（にがてな字だけ。てきが つよく、クリアで レアそうび） ---------- */
+const DANGER_FI = FLOORS.length - 1;
+const NIGATE = { name: "にがて大まおう", c: "#5a3a7a", eyes: "angry", mouth: "grin", hat: "crown",
+  say: "フハハ！ ここは きみの にがてな字だけの ダンジョン！ かけるものなら かいてみろ！", hit: ["ぐぬぬ… その字、おぼえたな!?", "にがてが へっていく〜！", "まさか… かけるように なったのか！"],
+  hint: "フハハ！ やっぱり にがてだな！", win: "まけた… きみの にがては もう にがてじゃない…！", lose: "フハハ！ また にがてを れんしゅうして こい！" };
+const weakKanji = () => targetsOf("weak").kanji;
+function startDanger() {
+  const T = targetsOf("weak");
+  if (!T.pool.length) return;
+  const qs = pick(T.pool, Math.min(8, T.pool.length)), P = me();
+  startDrill(qs, "test", undefined, T.limit);
+  D.qs0 = qs.slice(); D.danger = true; D.title = "きけんダンジョン";
+  // てきは じぶんより すこし つよい（2かい あてて たおす・3〜4かい まちがえると ちからつきる）
+  const n = Math.min(4, Math.max(2, qs.length - 1)), foes = [];
+  for (let i = 0; i < n; i++) { const m = MOBS[(i * 3 + 2) % MOBS.length]; foes.push({ m, name: "やみの " + m.name, hp: Math.round(P.atk * 1.6), atk: P.def + Math.ceil(P.hp / 3.5) }); }
+  foes.push({ boss: NIGATE, name: NIGATE.name, hp: Math.round(P.atk * 3.5), atk: P.def + Math.ceil(P.hp / 3) });
+  startBattle(foes, DANGER_FI, 0);
+  $("bossBar").classList.add("boss");
+  // はいる ときの けいこく
+  $("iKind").textContent = "きけん！"; $("iFace").innerHTML = mobSVG(foes[0].m, DANGER_FI); $("iName").textContent = "きけんな ダンジョン";
+  $("intro").querySelector(".ibody span").textContent = `に はいった！ にがてな字 ${T.kanji.length}こ`;
+  $("intro").hidden = false; sfx("warn"); bgmPlay("boss");
+  const close = () => { $("intro").hidden = true; $("intro").onclick = null; $("intro").querySelector(".ibody span").textContent = "が あらわれた！"; };
+  setTimeout(close, 3000); setTimeout(() => { $("intro").onclick = close; }, 400);
+}
 function renderStage() {
   const cur = curStage(), c = cleared(), el = $("stageMap");
   const pages = Math.ceil(LAST / PER), myPage = Math.floor((cur - 1) / PER);
@@ -2033,6 +2090,9 @@ function renderStage() {
   $("teaser").title = B.tease;
   const eq = equipped();
   $("avatar").innerHTML = avatar(eq);
+  const wk = weakKanji().length, rareLeft = ITEMS.filter(it => it.rare !== undefined && !owned(it)).length;
+  $("goDanger").disabled = !wk;
+  $("dangerSub").textContent = wk ? `にがてな字 ${wk}こ・レアそうび のこり ${rareLeft}こ` : "にがてな字が ないので はいれない（すごい！）";
   const P = me(eq), pl = pointsLeft();
   $("stats3").textContent = `HP ${P.hp}　こうげき ${P.atk}　ぼうぎょ ${P.def}`;
   $("ptBadge").hidden = pl < 1; $("ptBadge").textContent = `${pl}P`;
@@ -2302,6 +2362,7 @@ $("goKaki").onclick = () => show("kaki");
 $("goStory").onclick = () => openQuest("maki");
 $("goKana").onclick = () => openQuest("nazo");
 $("goFind").onclick = openFind;
+$("goDanger").onclick = () => { if (weakKanji().length) startDanger(); };
 $("findFile").onchange = e => { const f = e.target.files && e.target.files[0]; if (!f) return; findPhoto = true; const img = $("findImg"); img.src = URL.createObjectURL(f); img.hidden = false; renderFind(); readPhoto(f); };
 // しゃしんを 小さくして GAS へ 送り、Googleドライブの 文字読みとりで 文字に する
 async function ocrText(f, max = 1600) {
@@ -2456,7 +2517,7 @@ function renderEquip() {
         d.onclick = () => { if (pointsLeft() < it.shop) return; S.stats["かいもの"] = { ok: shopMask() | (1 << SHOP.indexOf(it)), ng: 0, st: 0, p: 0, last: Date.now() }; save(); giveItems([it]); renderEquip(); };
       } else {
         d.disabled = true;
-        d.innerHTML = `<b>？？？</b><small>${it.sub ? QUESTS[it.sub].name + "の ボス" : "ステージ" + it.s}で 手に入る</small>`;
+        d.innerHTML = `<b>？？？</b><small>${it.rare !== undefined ? "きけんダンジョン" : it.sub ? QUESTS[it.sub].name + "の ボス" : "ステージ" + it.s}で 手に入る</small>`;
       }
       r.appendChild(d);
     }
@@ -2899,7 +2960,20 @@ function finishDrill() {
   const wrong = D.results.filter(r => !r.ok).map(r => r.q);
   $("resRetry").hidden = !wrong.length;
   $("resRetry").onclick = () => startDrill(wrong, "test", undefined, D.limit);
-  if (D.bt && !D.stage) {
+  if (D.danger) {
+    const B = D.bt, it = ITEMS.find(x => x.rare !== undefined && !owned(x));
+    $("resHana").innerHTML = bossFace(NIGATE).replace('class="mon"', 'class="mon hm"' + (B.win ? ' style="transform:rotate(-20deg)"' : ""));
+    $("resAgain").textContent = "もういちど いどむ"; $("resAgain").onclick = () => weakKanji().length ? startDanger() : show("home");
+    if (B.win) {
+      $("resGreat").textContent = "きけんダンジョン クリア！";
+      if (it) { S.stats["レア"] = { ok: rareMask() | (1 << it.rare), ng: 0, st: 0, p: 0, last: Date.now() }; save(); setTimeout(() => treasureShowRare(it), 400); }
+      $("resNote").textContent = it ? "「" + NIGATE.win + "」 レアそうびを 手に入れた！" : "「" + NIGATE.win + "」 レアそうびは ぜんぶ あつめた！";
+    } else {
+      $("resGreat").textContent = B.dead ? "ちからつきた… でも おしい！" : "とちゅうで にげだした！";
+      $("resNote").textContent = "にがてな字を くんれんじょうで れんしゅうして、そうびを つよくして また いどもう！";
+    }
+    $("resGot").textContent = weakKanji().length ? `のこりの にがてな字：${weakKanji().join("")}` : "にがてな字は ぜんぶ なくなった！";
+  } else if (D.bt && !D.stage) {
     if (D.bt.dead) { $("resGreat").textContent = "ちからつきた… でも おしい！"; $("resNote").textContent = "HPが 0に なったら おしまい。そうびを 見なおして また ちょうせん しよう！"; $("resHana").innerHTML = ""; }
     else if (D.bt.win && !D.find) $("resGreat").textContent = `てきを ぜんぶ たおした！ ${pickOne(PRAISE)}`;
   }
