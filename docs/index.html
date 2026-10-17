@@ -228,7 +228,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・版 1017-1954</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・版 1017-2005</p>
 </section>
 
 <!-- 書きとり -->
@@ -327,7 +327,7 @@ const TOL = { easy: 20, normal: 15, hard: 11 };
 const N = 32;
 
 /* ---------- 記録（スプレッドシートで iPhone・iPad 共有。つながらない間はこの端末に保存） ---------- */
-const SYNC_URL = "";
+const SYNC_URL = "https://script.google.com/macros/s/AKfycbxebH-M70EpaspOH337DCWHn2w55HHxTzypjcpj2Ki_E_onMT9t94CXUPiAqV1pulgvPw/exec";
 const LSKEY = "kanji-renshu-v1";
 let S = { lists: [], listsT: 0, stats: {}, kstats: {}, settings: { mode: "test", level: "normal", list: "g2" }, key: "", pending: false };
 try { const s = JSON.parse(localStorage.getItem(LSKEY) || "null"); if (s) S = Object.assign(S, s, { settings: Object.assign(S.settings, s.settings || {}) }); } catch (e) {}
