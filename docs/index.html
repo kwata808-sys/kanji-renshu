@@ -160,12 +160,29 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .atk b { font-size: 20px; }
 .sq .k { color: var(--gold); font-size: 18px; }
 .sq.chest { background: #fff8e1; border-color: #e9c46a; }
-.teaser { display: flex; align-items: center; gap: 10px; background: #fff3e8; border: 2px dashed #e9b07a; border-radius: 14px; padding: 6px 12px; }
-.teaser .mon { width: 48px; height: 48px; display: block; }
+.teaser { display: flex; align-items: center; gap: 8px; padding: 0 4px; min-width: 0; }
+.boardwrap { display: grid; gap: 4px; }
+.boardnav { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-weight: 700; color: #5a3d22; font-size: 13px; }
+.boardnav .pg { display: flex; align-items: center; gap: 6px; flex: none; }
+#home { gap: 12px; }
+#home .seg.grades button { padding: 8px 2px; font-size: 16px; }
+#home .tile4 { min-height: 64px; }
+.boardnav button { border: 2px solid #8b6b4a; background: #f6ead6; color: #5a3d22; border-radius: 99px; width: 36px; height: 30px; font-size: 13px; }
+.boardnav button:disabled { opacity: .3; }
+.sugoroku { width: 100%; height: auto; display: block; }
+.sugoroku .node { cursor: pointer; }
+.sugoroku .node.lock { opacity: .55; cursor: default; }
+.sugoroku .node:focus-visible circle { stroke: var(--hint); }
+.sugoroku .nowring { animation: ring 1.4s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes ring { 50% { transform: scale(1.12); opacity: .5; } }
+.sugoroku .meava { filter: drop-shadow(0 2px 2px rgba(0,0,0,.25)); }
+@media (prefers-reduced-motion: reduce) { .sugoroku .nowring { animation: none; } }
+.teaser .mon { width: 34px; height: 34px; display: block; }
 .ttext { display: grid; min-width: 0; }
 .ttext small { font-size: 11px; color: var(--pencil); font-weight: 700; }
 .ttext b { font-family: var(--font-k); font-size: 17px; }
-.ttext span { font-size: 12px; overflow-wrap: anywhere; }
+.ttext span { font-size: 12px; overflow-wrap: anywhere; color: var(--pencil); }
+.ttext b { font-size: 15px; }
 .bossbar { flex-wrap: wrap; position: relative; }
 .say { flex-basis: 100%; background: #fff; border: 2px solid var(--ink); border-radius: 14px; padding: 8px 12px; font-weight: 700; font-size: 15px; position: relative; }
 .say::before { content: ""; position: absolute; top: -10px; left: 26px; border: 8px solid transparent; border-bottom-color: var(--ink); border-top: 0; }
@@ -268,10 +285,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
 <!-- ホーム -->
 <!-- メニュー -->
 <section id="home" class="screen">
-  <div class="title">
-    <h1>かんじ練習帳</h1>
-    <span id="sync" class="sync"></span>
-  </div>
+  <span id="sync" class="sync" hidden></span>
   <div class="hero2">
     <button class="avabox" id="goEquip" aria-label="そうびを 見る"><div id="avatar"></div><span>そうび</span></button>
     <div class="herostat">
@@ -284,8 +298,11 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     <button data-g="1">1年</button><button data-g="2">2年</button><button data-g="3">3年</button>
     <button data-g="4">4年</button><button data-g="5">5年</button><button data-g="6">6年</button>
   </div>
-  <div class="board" id="stageMap" aria-label="ステージ"></div>
-  <div class="teaser" id="teaser"></div>
+  <div class="boardwrap" id="stageMap" aria-label="ステージ"></div>
+  <div class="boardnav">
+    <div class="teaser" id="teaser"></div>
+    <div class="pg"><button id="pgPrev" aria-label="まえの ばん">◀</button><span id="pgLabel"></span><button id="pgNext" aria-label="つぎの ばん">▶</button></div>
+  </div>
   <button class="btn primary big gonext" id="goNext"></button>
   <div class="menu4">
     <button class="tile4 t-kaki" id="goKaki"><b>じゆうに<br>かきとり</b><small id="kakiSub"></small></button>
@@ -403,7 +420,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2129</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1017-2133</p>
 </section>
 
 <!-- 書きとり -->
@@ -941,29 +958,75 @@ const STREAK = ["3れんぞく！ のってるね！", "とまらない！ れ�
 const CHEER = ["まちがえて おぼえるのが いちばん つよくなるよ", "だいじょうぶ！ つぎは かける！", "ヒントを 見ても いいんだよ。おぼえれば かち！"];
 const pickOne = a => a[Math.floor(Math.random() * a.length)];
 
+// すごろくの 盤：1まい 20ステージ。くねくね道の 上に 丸い マス
+const PER = 20;
+let viewPage = null;
+function boardSVG(page, cur, c) {
+  const first = page * PER + 1, last = Math.min(first + PER - 1, LAST), n = last - first + 1;
+  const xs = [44, 112, 180, 248, 316], ys = [58, 112, 166, 220];
+  const pos = i => { const r = Math.floor(i / 5), k = i % 5; return { x: xs[r % 2 ? 4 - k : k], y: ys[r] }; };
+  let d = "";
+  for (let i = 0; i < n; i++) {
+    const p = pos(i);
+    if (!i) { d = `M${p.x} ${p.y}`; continue; }
+    const q = pos(i - 1);
+    if (p.y === q.y) d += ` L${p.x} ${p.y}`;
+    else { const cx = q.x > 180 ? q.x + 42 : q.x - 42; d += ` C${cx} ${q.y} ${cx} ${p.y} ${p.x} ${p.y}`; }
+  }
+  let g = `<svg viewBox="0 0 360 244" class="sugoroku" role="img" aria-label="すごろく ステージ${first}から${last}">`;
+  g += `<rect x="3" y="3" width="354" height="238" rx="18" fill="#f6ead6" stroke="#8b6b4a" stroke-width="5"/>`;
+  g += `<path d="${d}" fill="none" stroke="#7a5a3a" stroke-width="22" stroke-linecap="round" stroke-linejoin="round"/>`;
+  g += `<path d="${d}" fill="none" stroke="#a5825a" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>`;
+  const bubble = (x, y, text, fill) => {
+    const w = text.length * 10 + 14;
+    const bx = Math.max(6, Math.min(354 - w, x - w / 2));
+    return `<g class="sign"><rect x="${bx}" y="${y - 32}" width="${w}" height="18" rx="9" fill="${fill}" stroke="#7a5a3a" stroke-width="1.5"/><path d="M${x - 4} ${y - 15} l4 6 4 -6z" fill="${fill}" stroke="#7a5a3a" stroke-width="1.5"/><text x="${bx + w / 2}" y="${y - 19}" text-anchor="middle" font-size="10" font-weight="700" fill="#5a3d22">${text}</text></g>`;
+  };
+  let nodes = "", signs = "", me = "";
+  for (let i = 0; i < n; i++) {
+    const st = first + i, t = stageType(st), p = pos(i), done = st <= c, now = st === cur, lock = st > cur;
+    const r = t === "boss" ? 21 : t === "chest" ? 18 : 15;
+    const fill = t === "boss" ? "#fde4e1" : t === "chest" ? "#fff3cf" : done ? "#e3f1e8" : "#ffffff";
+    nodes += `<g class="node${lock ? " lock" : ""}" data-s="${st}" tabindex="0" role="button" aria-label="ステージ${st}">`;
+    if (now) nodes += `<circle cx="${p.x}" cy="${p.y}" r="${r + 6}" fill="none" stroke="#2e7a57" stroke-width="4" class="nowring"/>`;
+    nodes += `<circle cx="${p.x}" cy="${p.y}" r="${r}" fill="${fill}" stroke="#5a3d22" stroke-width="3"/>`;
+    if (t === "boss") nodes += bossFace(st).replace('<svg class="mon"', `<svg x="${p.x - 17}" y="${p.y - 17}" width="34" height="34"`);
+    else if (t === "chest") nodes += CHEST.replace('<svg class="mon"', `<svg x="${p.x - 13}" y="${p.y - 13}" width="26" height="26"`);
+    else nodes += `<text x="${p.x}" y="${p.y + 5}" text-anchor="middle" font-size="14" font-weight="700" fill="#5a3d22">${st}</text>`;
+    if (done) nodes += `<circle cx="${p.x}" cy="${p.y}" r="${r - 3}" fill="none" stroke="#e8473a" stroke-width="2.5" opacity=".7"/>`;
+    nodes += `</g>`;
+    if (now) me = avatar(equipped()).replace('<svg class="ava"', `<svg x="${p.x - 17}" y="${p.y - 56}" width="34" height="38" class="meava"`);
+    else if (i === 0) signs += bubble(p.x, p.y - r + 15, "スタート", "#fff");
+    else if (st === last) signs += bubble(p.x, p.y - r + 15, "ゴール！", "#ffe08a");
+    else if (t === "boss") signs += bubble(p.x, p.y - r + 15, "ストップ！ボス", "#ffd6cf");
+    else if (t === "chest") signs += bubble(p.x, p.y - r + 15, "チャンス！", "#fff3cf");
+  }
+  return g + nodes + signs + me + `</svg>`;
+}
 function renderStage() {
   const cur = curStage(), c = cleared(), el = $("stageMap");
-  el.textContent = "";
-  const start = Math.min(Math.max(1, cur - 3), LAST - 11), cols = 6;
-  for (let i = 0; i < 12; i++) {
-    const s = start + i, t = stageType(s), r = Math.floor(i / cols), col = i % cols;
-    const b = document.createElement("button");
-    b.className = "sq " + t + (s <= c ? " done" : "") + (s === cur ? " now" : "") + (s > cur ? " lock" : "");
-    b.style.gridRow = r + 1; b.style.gridColumn = r % 2 ? cols - col : col + 1;
-    b.innerHTML = `<span class="n">${s}</span>` + (t === "boss" ? bossFace(s) : t === "chest" ? CHEST : `<span class="k">★</span>`);
-    if (s === cur) b.insertAdjacentHTML("beforeend", '<span class="me">きみ</span>');
-    b.setAttribute("aria-label", `ステージ${s}`);
-    b.onclick = () => { if (s <= cur) startStage(s); };
-    el.appendChild(b);
-  }
+  const pages = Math.ceil(LAST / PER), myPage = Math.floor((cur - 1) / PER);
+  if (viewPage === null || viewPage >= pages) viewPage = myPage;
+  const first = viewPage * PER + 1, last = Math.min(first + PER - 1, LAST);
+  el.innerHTML = boardSVG(viewPage, cur, c);
+  $("pgLabel").textContent = `${first}〜${last}`;
+  $("pgPrev").disabled = viewPage <= 0; $("pgNext").disabled = viewPage >= pages - 1;
+  $("pgPrev").onclick = () => { viewPage--; renderStage(); };
+  $("pgNext").onclick = () => { viewPage++; renderStage(); };
+  el.querySelectorAll(".node").forEach(nd => {
+    const st = +nd.dataset.s;
+    const go = () => { if (st <= cur) startStage(st); };
+    nd.addEventListener("click", go);
+    nd.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); go(); } });
+  });
   const t = stageType(cur);
   $("goNext").textContent = c >= LAST ? "ぜんクリア！ もういちど うんこ大まおうと たたかう" : t === "boss" ? `ステージ${cur}：${BOSSES[cur].name}と たたかう！` : t === "chest" ? `ステージ${cur}：たからばこ ステージ！` : `ステージ${cur}に ちょうせん！`;
   $("goNext").onclick = () => startStage(cur);
   // つぎの ボスの よこく
   const nb = BOSS_ORDER.find(s => s >= cur) || LAST, B = BOSSES[nb];
-  $("teaser").innerHTML = `<div class="tface">${bossFace(nb)}</div><div class="ttext"><small>つぎの ボス・ステージ${nb}</small><b></b><span></span></div>`;
+  $("teaser").innerHTML = `<div class="tface">${bossFace(nb)}</div><div class="ttext"><small>つぎの ボス（ステージ${nb}）</small><b></b></div>`;
   $("teaser").querySelector("b").textContent = B.name;
-  $("teaser").querySelector("span").textContent = `「${B.tease}」`;
+  $("teaser").title = B.tease;
   const eq = equipped();
   $("avatar").innerHTML = avatar(eq);
   $("atkNum").textContent = attack(eq);
