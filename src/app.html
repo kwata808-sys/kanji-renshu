@@ -174,6 +174,11 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     <div class="seg" id="countSeg">
       <button data-n="5">5もん</button><button data-n="10">10もん</button>
     </div>
+    <span class="label">文の しゅるい</span>
+    <div class="seg" id="unkoSeg">
+      <button data-u="0">ふつうの文</button>
+      <button data-u="1">うんこ文<small id="unkoNote"></small></button>
+    </div>
     <button id="startBtn" class="btn primary big">はじめる</button>
   </div>
 
@@ -407,8 +412,16 @@ const kanjiOf = w => [...w].filter(isK);
 const GK = {};
 for (let g = 1; g <= 6; g++) GK[g] = Object.keys(DATA.grade).filter(k => DATA.grade[k] === g).sort((a, b) => DATA.strokes[a].length - DATA.strokes[b].length);
 const STEP = 10;
-const ALLQ = [];
-for (const g in DATA.q) for (const [w, r, s] of DATA.q[g]) ALLQ.push({ w, r, s, g: +g });
+// うんこ文を えらんだ学年は、文を うんこ文に さしかえる
+let ALLQ = [];
+function buildQ() {
+  ALLQ = [];
+  for (const g in DATA.q) {
+    const src = S.settings.unko && DATA.unko[g] ? DATA.unko[g] : DATA.q[g];
+    for (const [w, r, s] of src) ALLQ.push({ w, r, s, g: +g });
+  }
+}
+buildQ();
 const gradeOf = () => S.settings.grade || 2;
 function qFor(k) {
   // その字の学年の問題を先に使う
@@ -601,6 +614,10 @@ function chip(box, cls, id, html, title) {
 function renderHome() {
   const g = gradeOf();
   for (const b of $("gradeSeg").children) b.setAttribute("aria-pressed", +b.dataset.g === g);
+  const hasU = !!DATA.unko[g];
+  for (const b of $("unkoSeg").children) b.setAttribute("aria-pressed", (b.dataset.u === "1") === (!!S.settings.unko && hasU));
+  $("unkoSeg").children[1].disabled = !hasU;
+  $("unkoNote").textContent = hasU ? "わらって おぼえよう" : "いまは 2年生だけ";
   for (const b of $("countSeg").children) b.setAttribute("aria-pressed", +b.dataset.n === (S.settings.count || 5));
   for (const b of $("soundSeg").children) b.setAttribute("aria-pressed", (b.dataset.s === "1") === (S.settings.sound !== false));
   const weakN = Object.keys(S.stats).filter(k => isK(k) && status(k) === "weak").length;
@@ -640,6 +657,7 @@ function renderHome() {
   $("counts").innerHTML = `<span>おぼえた <b>${c.master}</b></span><span>にがて <b>${c.weak}</b></span><span>ぜんぶ <b>${T.kanji.length}</b></span>`;
 }
 $("gradeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.grade = +b.dataset.g; if (S.settings.list === "all" || /^u\d+$/.test(S.settings.list)) S.settings.list = "all"; save(); renderHome(); };
+$("unkoSeg").onclick = e => { const b = e.target.closest("button"); if (!b || b.disabled) return; S.settings.unko = b.dataset.u === "1"; buildQ(); save(); renderHome(); };
 $("countSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.count = +b.dataset.n; save(); renderHome(); };
 $("soundSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.sound = b.dataset.s === "1"; save(); renderHome(); if (S.settings.sound) sfx("ok"); };
 $("modeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.mode = b.dataset.mode; save(); renderHome(); };

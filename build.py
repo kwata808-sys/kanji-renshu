@@ -31,21 +31,27 @@ def make_icons(out):
         dr.ellipse([m, m, size - m, size - m], outline="#ff6b57", width=max(3, size // 28))
         im.save(f"{out}/icon-{size}.png")
 
-qs, errs = [], []
-for line in open(f"{ROOT}/src/questions.txt"):
-    line = line.strip()
-    if not line or line.startswith("#"): continue
-    w, r, s = line.split("|")
-    if s.count("＿") != 1: errs.append(f"＿が1つでない: {line}")
-    for c in s:
-        if c in grade and grade[c] >= 2: errs.append(f"文に2年以上の漢字 {c}: {line}")
-    for c in w:
-        if re.match(r"[一-鿿]", c) and c not in strokes: errs.append(f"書き順なし {c}: {line}")
-    qs.append([w, r, s])
-g2 = [k for k, g in grade.items() if g == 2]
-covered = set("".join(q[0] for q in qs))
-missing = [k for k in g2 if k not in covered]
-if missing: errs.append("問題のない2年の字: " + "".join(missing))
+errs = []
+def load_questions(name):
+    """2年生の文つき問題を読み、文に答えの字が出ていないかなどを検査する"""
+    out = []
+    for line in open(f"{ROOT}/src/{name}"):
+        line = line.strip()
+        if not line or line.startswith("#"): continue
+        w, r, s = line.split("|")
+        if s.count("＿") != 1: errs.append(f"{name} ＿が1つでない: {line}")
+        for c in s:
+            if c in grade and grade[c] >= 2: errs.append(f"{name} 文に2年以上の漢字 {c}: {line}")
+        for c in w:
+            if re.match(r"[\u4e00-\u9fff]", c) and c not in strokes: errs.append(f"{name} 書き順なし {c}: {line}")
+        out.append([w, r, s])
+    g2 = [k for k, g in grade.items() if g == 2]
+    covered = set("".join(q[0] for q in out))
+    missing = [k for k in g2 if k not in covered]
+    if missing: errs.append(f"{name} 問題のない2年の字: " + "".join(missing))
+    return out
+qs = load_questions("questions.txt")
+unko = {"2": load_questions("unko2.txt")}
 
 kana = []
 for line in open(f"{ROOT}/src/kana.txt"):
@@ -93,7 +99,7 @@ if errs:
 q = {str(g): (qs if g == 2 else words[g]) for g in range(1, 7)}
 nq = {g: len(v) for g, v in q.items()}
 none = [k for k in grade if not any(k in x[0] for x in q[str(grade[k])])]
-data = {"dic": dic, "strokes": strokes, "read": readings, "grade": grade, "q": q, "kana": kana}
+data = {"unko": unko, "dic": dic, "strokes": strokes, "read": readings, "grade": grade, "q": q, "kana": kana}
 # 共有先（GASのURL）は config.json に置く。無ければ端末だけに保存する
 cfg = json.load(open(f"{ROOT}/config.json")) if os.path.exists(f"{ROOT}/config.json") else {}
 body = open(f"{ROOT}/src/app.html").read()
