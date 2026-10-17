@@ -136,6 +136,15 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .tile4 small { font-size: 11px; opacity: .75; overflow-wrap: anywhere; }
 .t-kaki { background: var(--ok); } .t-story { background: var(--t-story); } .t-kana { background: var(--t-kana); } .t-grid { background: var(--t-grid); }
 .tile4.off { opacity: .55; }
+/* ホームの へや：石の かべに 色の ついた あかり */
+#home .tile4 { color: #fff; border: 2px solid #2a2026; box-shadow: inset 0 -4px 0 #0004; text-shadow: 0 1px 2px #0008;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='14'%3E%3Cpath d='M0 .5H28M0 7.5H28M7 0V7M21 7V14' stroke='%23000' stroke-opacity='.22' stroke-width='1.2'/%3E%3C/svg%3E"), radial-gradient(circle at 50% 0%, var(--lt) 0%, transparent 70%); }
+#home .t-kaki { background-color: #3f6a52; --lt: #b9f0c8aa; }
+#home .t-story { background-color: #7a5a36; --lt: #ffe2a8aa; }
+#home .t-kana { background-color: #3f5a7a; --lt: #bfe0ffaa; }
+#home .t-grid { background-color: #5e4a7a; --lt: #ecd4ffaa; }
+#home .tile4 small { opacity: .9; color: #ffe9a8; }
+.tile4 .room { font-style: normal; font-size: 10px; font-weight: 700; letter-spacing: .04em; color: #ffe9a8; opacity: .95; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .bossbar { display: flex; align-items: center; gap: 12px; background: #fff3e8; border: 2px solid #e9b07a; border-radius: 14px; padding: 8px 12px; }
 .bossmon .mon { width: 70px; height: 70px; display: block; }
 .arena { flex-basis: 100%; position: relative; display: flex; align-items: center; justify-content: space-between; padding: 0 8px; height: 84px; overflow: visible; }
@@ -253,6 +262,19 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .cellbtn[data-s="master"] { background: var(--ok); border-color: var(--green); }
 .cellbtn[data-s="master"]::after { content: ""; position: absolute; inset: 3px; border: 2px solid var(--red); border-radius: 50%; opacity: .55; }
 .cellbtn[data-s="weak"] { background: var(--weak); border-color: var(--red); }
+/* かんじずかん */
+.zukan { position: relative; height: 96px; border-radius: 14px; overflow: hidden; border: 2px solid #2a2026; }
+.zukan svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.zukan .zt { position: absolute; inset: 0; display: grid; align-content: center; justify-items: center; gap: 2px; color: #fff; text-shadow: 0 2px 3px #000; text-align: center; padding: 0 12px; }
+.zukan .zt b { font-family: var(--font-k); font-size: 24px; letter-spacing: .08em; }
+.zukan .zt small { font-size: 12px; font-weight: 700; color: #ffe9a8; }
+.sheet.stone { background: #3b3236 url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='28' height='14'%3E%3Cpath d='M0 .5H28M0 7.5H28M7 0V7M21 7V14' stroke='%23000' stroke-opacity='.25' stroke-width='1.2'/%3E%3C/svg%3E"); border-color: #2a2026; color: #f3eee6; }
+.sheet.stone .legend, .sheet.stone .counts { color: #e6dccf; }
+.sheet.stone .cellbtn { background: #6b5e60; border: 2px solid #2a2026; color: #e6dccf; box-shadow: inset 0 -3px 0 #0003; }
+.sheet.stone .cellbtn[data-s="ok"] { background: #a5d6b7; color: #1d2721; }
+.sheet.stone .cellbtn[data-s="master"] { background: radial-gradient(circle at 35% 30%, #fffbe0, #f2c230 70%); border-color: #b88a12; color: #5a3d12; box-shadow: 0 0 10px #ffd54a99; }
+.sheet.stone .cellbtn[data-s="master"]::after { border-color: #e8473a; }
+.sheet.stone .cellbtn[data-s="weak"] { background: #f3b3a8; border-color: #e8473a; color: #5a1a12; }
 .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--pencil); }
 .legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--rule); vertical-align: -2px; margin-right: 4px; }
 .counts { display: flex; gap: 18px; flex-wrap: wrap; font-variant-numeric: tabular-nums; }
@@ -279,14 +301,14 @@ html:has(#drill:not([hidden])), body:has(#drill:not([hidden])) { overflow: hidde
 #app:has(#drill:not([hidden])) { height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)); box-sizing: border-box; padding: 8px 16px 10px; gap: 0; }
 #drill:not([hidden]) { display: flex; flex-direction: column; gap: 10px; height: 100%; min-height: 0; }
 #drill .sheet { padding: 12px 16px; gap: 8px; flex: none; }
-#drill .topbar, #drill .bossbar { flex: none; }
+#drill .topbar, .bossbar { flex: none; }
 #drill .padwrap { flex: 1; min-height: 0; display: flex; flex-direction: column; align-items: center; gap: 8px; }
 #drill .padbox { flex: 1; min-height: 0; width: 100%; container-type: size; display: grid; place-items: center; }
 #drill #pad { width: min(100cqw, 100cqh, 560px); height: auto; }
 #drill .msg, #drill .tools { flex: none; }
 /* ダンジョンの たたかい：おくゆきの ある 通路。てきは おくから ちかづいてくる */
-#drill .bossbar { display: grid; gap: 6px; padding: 0; background: none; border: 0; }
-#drill .arena { height: 124px; padding: 0; display: block; position: relative; }
+.bossbar { display: grid; gap: 6px; padding: 0; background: none; border: 0; }
+.bossbar .arena { height: 124px; padding: 0; display: block; position: relative; }
 .dun { position: absolute; inset: 0; border-radius: 12px; overflow: hidden; border: 2px solid #2a2026; background: #1c1418; }
 .dun svg { width: 100%; height: 100%; display: block; }
 .dun .world { transform-origin: 150px 52px; transform-box: view-box; }
@@ -308,24 +330,30 @@ html:has(#drill:not([hidden])), body:has(#drill:not([hidden])) { overflow: hidde
 #bossMon.flee { animation: flee .6s ease-in forwards; }
 @keyframes flee { 30% { transform: translateY(6px) scaleY(.85); } 100% { transform: translateY(-38px) scale(.15); opacity: 0; } }
 #plAva { position: absolute; left: 6px; bottom: 0; z-index: 2; }
-#drill .arena .pl .ava { width: 44px; height: 50px; filter: drop-shadow(0 3px 2px rgba(0,0,0,.4)); }
+.bossbar .arena .pl .ava { width: 44px; height: 50px; filter: drop-shadow(0 3px 2px rgba(0,0,0,.4)); }
 .dun.walk ~ #plAva { animation: bob .21s ease-in-out 4 alternate; }
 @keyframes bob { to { transform: translateY(-4px); } }
 .wave, .hearts { position: absolute; left: 10px; top: 6px; z-index: 2; font-weight: 700; color: #fff; text-shadow: 0 1px 2px #000; font-size: 13px; letter-spacing: .06em; }
-#drill .hearts { font-size: 16px; color: #ff6b6b; }
+.bossbar .hearts { font-size: 16px; color: #ff6b6b; }
 .ehp { position: absolute; top: 6px; left: 50%; transform: translateX(-50%); width: 46%; display: grid; gap: 2px; z-index: 2; text-align: center; }
 .ehp b { font-size: 12px; color: #fff; text-shadow: 0 1px 2px #000; font-family: var(--font-ui); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ehp .hp { height: 8px; background: rgba(0,0,0,.5); border: 1px solid rgba(255,255,255,.6); }
 .ehp .hp i { background: linear-gradient(#ff8a7a, #e8473a); }
 .bossbar.mob .ehp .hp, .bossbar.mob .hearts, .bossbar.mob .pct, .bossbar.boss .wave { display: none; }
-#drill .pct { right: 8px; top: 2px; font-size: 22px; z-index: 2; }
+.bossbar .pct { right: 8px; top: 2px; font-size: 22px; z-index: 2; }
 .atkl { position: absolute; right: 8px; bottom: 5px; z-index: 2; color: #ffe08a; font-weight: 700; font-size: 11px; text-shadow: 0 1px 2px #000; }
-#drill .say { font-size: 13px; padding: 4px 10px; border-radius: 10px; }
-#drill .say::before { left: 50%; }
+.bossbar .say { font-size: 13px; padding: 4px 10px; border-radius: 10px; }
+.bossbar .say::before { left: 50%; }
 .flash { position: absolute; inset: 0; border-radius: 12px; background: #fff; z-index: 3; pointer-events: none; animation: flash .25s ease-out forwards; }
 @keyframes flash { from { opacity: .85; } to { opacity: 0; } }
 .bigshake { animation: bigshake .45s; }
 @keyframes bigshake { 15% { transform: translate(-9px, 4px); } 30% { transform: translate(8px, -5px); } 45% { transform: translate(-6px, 3px); } 60% { transform: translate(5px, -2px); } 80% { transform: translate(-2px, 1px); } }
+.bossbar.small .arena { height: 84px; }
+.bossbar.small .say { display: none; }
+.bossbar.small #bossMon { width: 52px; margin-left: -26px; bottom: 4px; }
+.bossbar.small #bossMon .mon { width: 52px; height: 52px; }
+.bossbar.small .arena .pl .ava { width: 34px; height: 40px; }
+#kana .bossbar { margin-bottom: 2px; }
 .bossbar.boss .dun { border-color: #5a0f12; box-shadow: 0 0 0 2px #e8473a55, 0 0 16px #e8473a66; }
 /* ボス登場・たからばこ：画面いっぱいの えんしゅつ */
 .cover { position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; overflow: hidden; touch-action: none; }
@@ -441,10 +469,10 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
   </div>
   <button class="btn primary big gonext" id="goNext"></button>
   <div class="menu4">
-    <button class="tile4 t-kaki" id="goKaki"><b>じゆうに<br>かきとり</b><small id="kakiSub"></small></button>
-    <button class="tile4 t-story" id="goStory"><b>長文</b><small id="storySub"></small></button>
-    <button class="tile4 t-kana" id="goKana"><b>ひらがな<br>カタカナ</b><small>を・お など</small></button>
-    <button class="tile4 t-grid" id="goGrid"><b>字の<br>いちらん</b><small id="gridSub"></small></button>
+    <button class="tile4 t-kaki" id="goKaki"><i class="room">くんれんじょう</i><b>じゆうに<br>かきとり</b><small id="kakiSub"></small></button>
+    <button class="tile4 t-story" id="goStory"><i class="room">まきものの へや</i><b>長文</b><small id="storySub"></small></button>
+    <button class="tile4 t-kana" id="goKana"><i class="room">なぞなぞの とびら</i><b>ひらがな<br>カタカナ</b><small>を・お など</small></button>
+    <button class="tile4 t-grid" id="goGrid"><i class="room">かんじ ずかん</i><b>字の<br>いちらん</b><small id="gridSub"></small></button>
   </div>
   <button class="adultlink" id="goAdult">大人の人へ（リスト登録・共有・せってい）</button>
 </section>
@@ -521,16 +549,17 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
 <!-- 字の いちらん -->
 <section id="gridScreen" class="screen" hidden>
   <div class="topbar"><button class="back" data-back="home">← メニュー</button><span class="label">字の いちらん</span></div>
-  <div class="sheet">
+  <div class="zukan" id="zukan"></div>
+  <div class="sheet stone">
     <div class="row" style="justify-content:space-between">
       <h2 style="font-size:20px" id="gridTitle"></h2>
       <div class="counts" id="counts"></div>
     </div>
     <div class="legend">
-      <span><i style="background:var(--ok);border-color:var(--green)"></i>おぼえた（3回つづけて○）</span>
-      <span><i style="background:var(--ok)"></i>かけた</span>
-      <span><i style="background:var(--weak);border-color:var(--red)"></i>にがて</span>
-      <span><i></i>まだ</span>
+      <span><i style="background:#f2c230;border-color:#b88a12"></i>おぼえた（3回つづけて○）</span>
+      <span><i style="background:#a5d6b7"></i>かけた</span>
+      <span><i style="background:#f3b3a8;border-color:#e8473a"></i>にがて</span>
+      <span><i style="background:#6b5e60"></i>まだ</span>
     </div>
     <div id="grid" class="grid"></div>
     <p class="muted" style="margin:0">字を おすと、かきじゅんを 見ながら れんしゅうできます。</p>
@@ -571,7 +600,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1018-0003</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1018-0007</p>
 </section>
 
 <!-- ボス登場・たからばこ（全画面に かさねる） -->
@@ -1399,7 +1428,6 @@ const MOBS = [
   { name: "モグモグラ", c: ["#8a6a4a", "#6a7a8a", "#6a7a4a", "#7a5a7a", "#7a4a3a"], d: c => `<ellipse cx="50" cy="64" rx="34" ry="28" fill="${c}" ${MK}/><ellipse cx="50" cy="72" rx="14" ry="10" fill="#e9c9a0"/><circle cx="50" cy="66" r="5" fill="#ff7b8a" stroke="#2a2a2a" stroke-width="2"/><path d="M14 80 l-6 6 M18 84 l-4 8 M86 80 l6 6 M82 84 l4 8" stroke="#2a2a2a" stroke-width="3" stroke-linecap="round"/><rect x="34" y="28" width="32" height="12" rx="6" fill="#f2c230" ${MK}/><circle cx="50" cy="30" r="5" fill="#fff8b0" ${MK}/>` + `<circle cx="40" cy="54" r="4" fill="#222"/><circle cx="60" cy="54" r="4" fill="#222"/>` },
 ];
 const MIMIC = { name: "ミミック", c: ["#c98a3a"], d: () => `<rect x="12" y="50" width="76" height="40" rx="6" fill="#c98a3a" ${MK}/><path d="M14 50 L22 18 Q50 8 78 18 L86 50z" fill="#e0a24e" ${MK}/><path d="M18 50 h64 l-6 8 -6 -8 -6 8 -6 -8 -6 8 -6 -8 -6 8 -6 -8 -6 8 -6 -8z" fill="#fff" stroke="#2a2a2a" stroke-width="2"/><path d="M40 58 q10 20 22 4" fill="#ff7b8a" stroke="#2a2a2a" stroke-width="2"/><circle cx="36" cy="32" r="6" fill="#fff" stroke="#2a2a2a" stroke-width="2"/><circle cx="64" cy="32" r="6" fill="#fff" stroke="#2a2a2a" stroke-width="2"/><circle cx="37" cy="33" r="3" fill="#222"/><circle cx="63" cy="33" r="3" fill="#222"/>` };
-const mobFor = (s, i, n) => stageType(s) === "chest" && i === n - 1 ? MIMIC : MOBS[(s * 5 + i * 3) % MOBS.length];
 const mobSVG = (m, fi) => `<svg class="mon" viewBox="0 0 100 100" aria-hidden="true">${m.d(m.c[fi % m.c.length])}</svg>`;
 
 // たからばこの おたから（5・15・25…95）
@@ -1423,24 +1451,28 @@ const BIGCHEST = open => `<svg viewBox="0 0 100 100" aria-hidden="true">`
   + (open ? "" : `<path d="M12 52 q0 -32 38 -32 q38 0 38 32z" fill="#e0a24e" stroke="#5a3a14" stroke-width="3"/><path d="M24 52 q0 -24 26 -26 q26 2 26 26" stroke="#f2c230" stroke-width="5" fill="none"/>`)
   + `<rect x="43" y="${open ? 50 : 46}" width="14" height="18" rx="3" fill="#f2c230" stroke="#5a3a14" stroke-width="2"/><circle cx="50" cy="${open ? 58 : 54}" r="2.5" fill="#5a3a14"/></svg>`;
 
-// ふつうの ステージ：1もん ごとに ざこが 1ぴき。たおすと おくへ すすむ（パズドラふう）
-function startMob(s) {
-  const fi = floorNo(s);
-  D.mob = { s, fi, n: D.qs.length };
-  $("bossBar").hidden = false; $("bossBar").className = "bossbar mob";
+// ざこ戦：1もん ごとに ざこが 1ぴき。たおすと おくへ すすむ（パズドラふう）
+// 書きとり・長文・かなクイズ どこでも つかう。らんは いまの 画面へ うつして つかう
+let MB = null;
+function startMob(s, n, where, chest) {
+  const fi = floorNo(s), bar = $("bossBar"), host = $(where || "drill");
+  host.insertBefore(bar, host.querySelector(".sheet"));
+  MB = { s, fi, n, chest: !!chest };
+  bar.hidden = false; bar.className = "bossbar mob" + (where === "story" ? " small" : "");
   $("dun").innerHTML = corridor(fi);
   $("plAva").innerHTML = avatar(equipped());
   $("bossAtk").textContent = `こうげき力 ${attack(equipped())}`;
-  mobAppear(false);
+  mobAppear(false, 0);
+  return MB;
 }
-function mobAppear(walk) {
-  const M = D.mob, m = mobFor(M.s, D.i, M.n), dn = $("dun"), el = $("bossMon"), myD = D;
-  M.cur = m;
-  $("wave").textContent = `BATTLE ${D.i + 1} / ${M.n}`;
+function mobAppear(walk, i) {
+  const M = MB, m = M.chest && i === M.n - 1 ? MIMIC : MOBS[(M.s * 5 + i * 3) % MOBS.length], dn = $("dun"), el = $("bossMon");
+  M.cur = m; M.i = i;
+  $("wave").textContent = `BATTLE ${i + 1} / ${M.n}`;
   $("bossName").textContent = m.name;
   el.className = "bossmon"; el.innerHTML = "";
   const come = () => {
-    if (D !== myD) return;
+    if (MB !== M || M.i !== i) return;
     dn.classList.remove("walk");
     el.innerHTML = mobSVG(m, M.fi); el.classList.add("appear");
     say(m === MIMIC ? "たからばこ…？ と おもったら ミミックだ！" : `${m.name}が あらわれた！`);
@@ -1463,7 +1495,7 @@ function swing(target) {
 function flash() { const f = document.createElement("div"); f.className = "flash"; $("arena").appendChild(f); setTimeout(() => f.remove(), 300); }
 function bigShake() { const b = $("bossBar"); b.classList.remove("bigshake"); void b.offsetWidth; b.classList.add("bigshake"); }
 function mobTurn(ok) {
-  const M = D.mob, el = $("bossMon"), m = M.cur;
+  const M = MB, el = $("bossMon"), m = M.cur;
   if (ok) {
     swing(el).then(type => {
       pop(el, pickOne(HITWORD[type] || HITWORD.sword), "boom");
@@ -1582,12 +1614,12 @@ function startStage(s) {
   startDrill(stageQs(s, T.pool, S.settings.count || 5), "test", undefined, T.limit);
   D.stage = { s, t: stageType(s) }; D.title = `ステージ${s}`;
   $("drillProg").textContent = `ステージ${s}　1 / ${D.qs.length}`;
-  startMob(s);
+  D.mob = startMob(s, D.qs.length, "drill", stageType(s) === "chest");
 }
 function startBoss(s) {
   const T = targetsOf("all"), b = BOSSES[s], i = BOSS_ORDER.indexOf(s) + 1, atk = attack(equipped());
   startDrill(stageQs(s, T.pool, 20), "test", undefined, T.limit);
-  D.stage = { s, t: "boss" };
+  D.stage = { s, t: "boss" }; D.mob = MB = null;
   D.boss = { s, name: b.name, hp: 4 + i * 2, max: 4 + i * 2, hearts: 3, atk, combo: 0, shownHp: 4 + i * 2, shownHearts: 3 };
   $("plAva").innerHTML = "";
   $("bossBar").className = "bossbar boss";
@@ -1713,7 +1745,7 @@ function show(id) {
   if (id === "home") checkUpdate();
 }
 // 新しい版が出ていたら、ホームに いるときだけ 入れかえる（れんしゅうの とちゅうでは しない）
-const VER = "1018-0003";
+const VER = "1018-0007";
 function checkUpdate() {
   fetch("version.txt?" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : "").then(v => {
     v = v.trim();
@@ -1794,6 +1826,7 @@ function renderHome() {
   $("goStory").classList.toggle("off", !SL.length);
   const gm = GK[g].filter(k => status(k) === "master").length;
   $("gridSub").textContent = `おぼえた ${gm}/${GK[g].length}`;
+  $("zukan").innerHTML = corridor(floorNo(curStage())) + `<div class="zt"><b>かんじ ずかん</b><small>おぼえた字は ひかる 金の いしに なるよ（${gm} / ${GK[g].length}）</small></div>`;
   renderStage();
   const sl = $("storyList"); sl.textContent = "";
   SL.forEach((st, i) => {
@@ -1888,6 +1921,7 @@ function startDrill(qs, mode, only, limit) {
   $("bossMon").innerHTML = ""; $("bossBar").hidden = true;
   show("drill");
   loadQ();
+  D.mob = startMob(curStage(), qs.length);
 }
 function loadQ() {
   const q = D.qs[D.i];
@@ -1969,6 +2003,7 @@ function startStory(i) {
   // 長文は いつも「見ないで かく」。うすい お手本は 答えの ヒントに なるため
   startDrill(qs, "test");
   D.story = lines; D.storyIdx = i; D.title = st.t;
+  $("bossBar").classList.add("small");
   $("drillProg").textContent = `${st.t}　1 / ${qs.length}`;
   renderQ();
 }
@@ -2025,7 +2060,7 @@ $("hintBtn").onclick = () => { setMsg("つぎの 1画は ここ"); hintStroke();
 $("showBtn").onclick = showAnswer;
 $("redoBtn").onclick = () => { $("lInk").textContent = ""; D.n = 0; D.off = { x: 0, y: 0 }; D.pairs = []; markStart(); setMsg("はじめから かこう"); };
 $("drillBack").onclick = () => { if (D.results.length) finishDrill(); else show(D.story ? "storyMenu" : D.only ? "gridScreen" : D.stage ? "home" : "kaki"); };
-$("nextBtn").onclick = () => { D.i++; if (D.i >= D.qs.length || (D.boss && D.boss.over)) finishDrill(); else { loadQ(); if (D.mob) mobAppear(true); } };
+$("nextBtn").onclick = () => { D.i++; if (D.i >= D.qs.length || (D.boss && D.boss.over)) finishDrill(); else { loadQ(); if (D.mob) mobAppear(true, D.i); } };
 $("speakBtn").onclick = () => {
   try {
     const text = D.story ? D.story.map(l => l.map(p => typeof p === "string" ? p : p.r).join("")).join("。") : D.q.s.replace("＿", D.q.r);
@@ -2208,6 +2243,7 @@ function startKana() {
   }
   K = { qs: out, i: 0, ok: 0, xp0: xpTotal() };
   show("kana"); loadKana();
+  startMob(curStage(), out.length, "kana");
 }
 function loadKana() {
   const q = K.qs[K.i];
@@ -2235,14 +2271,15 @@ function answerKana(o, btn) {
   $("kmsg").className = "msg " + (right ? "good" : "bad");
   const s = S.kstats[q.i] || { ok: 0, ng: 0, st: 0 };
   if (right) { s.ok++; s.st++; K.ok++; sfx("kanaok"); } else { s.ng++; s.st = 0; sfx("miss"); }
+  if (MB) mobTurn(right);
   s.last = Date.now(); s.q = q.s.replace("＿", "（" + q.a + "）"); S.kstats[q.i] = s; save();
   $("kNext").hidden = false;
   $("kNext").textContent = K.i + 1 >= K.qs.length ? "けっかを 見る" : "つぎへ";
-  if (right) { const myK = K, myI = K.i; setTimeout(() => { if (K === myK && K.i === myI && !$("kana").hidden) $("kNext").click(); }, 1300); }
+  if (right) { const myK = K, myI = K.i; setTimeout(() => { if (K === myK && K.i === myI && !$("kana").hidden) $("kNext").click(); }, 1700); }
 }
 $("kNext").onclick = () => {
   K.i++;
-  if (K.i < K.qs.length) return loadKana();
+  if (K.i < K.qs.length) { loadKana(); if (MB) mobAppear(true, K.i); return; }
   $("resScore").textContent = `${K.qs.length}もん中 ${K.ok}もん ○`;
   const kp = K.ok === K.qs.length;
   $("resHana").innerHTML = kp ? HANA : "";
