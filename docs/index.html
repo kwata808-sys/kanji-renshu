@@ -803,7 +803,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1018-0904</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1018-0915</p>
 </section>
 
 <!-- ボス登場・たからばこ（全画面に かさねる） -->
@@ -952,6 +952,15 @@ const LSKEY = "kanji-renshu-v1";
 let S = { lists: [], listsT: 0, stats: {}, kstats: {}, settings: { mode: "test", level: "normal", list: "all", grade: 2, count: 5, sound: true }, key: "", pending: false };
 try { const s = JSON.parse(localStorage.getItem(LSKEY) || "null"); if (s) S = Object.assign(S, s, { settings: Object.assign(S.settings, s.settings || {}) }); } catch (e) {}
 if (S.settings.list === "g2") S.settings.list = "all";
+// リリース：この 時こくより まえの 記録（大人の テスト）は すてる。合言葉・学年・音の 設定は のこす
+// シートや ほかの 端末から 古い 記録が とどいても、ここで すてるので もどらない
+const RESET_AT = 1792282553000;
+function dropOld() {
+  for (const m of [S.stats, S.kstats]) for (const k in m) { const t = m[k].last || 0; if (t !== 1 && t < RESET_AT) delete m[k]; }
+  if ((S.listsT || 0) < RESET_AT) { S.lists = []; S.listsT = RESET_AT; }
+}
+dropOld();
+try { if (localStorage.getItem("resetAt") !== String(RESET_AT)) { for (const k of ["stageQ", "seenItems"]) localStorage.removeItem(k); localStorage.setItem("resetAt", String(RESET_AT)); S.pending = true; } } catch (e) {}
 let syncing = false, again = false, saveTimer = null;
 
 function local() { try { localStorage.setItem(LSKEY, JSON.stringify(S)); } catch (e) {} }
@@ -1000,6 +1009,7 @@ function merge(r) {
   if ((r.listsT || 0) > (S.listsT || 0)) { S.lists = r.lists || []; S.listsT = r.listsT; }
   S.stats = mergeMap(S.stats, r.stats);
   S.kstats = mergeMap(S.kstats, r.kstats);
+  dropOld();
   local();
 }
 function setSync(st) {
@@ -2607,7 +2617,7 @@ function show(id) {
   if (id === "home") checkUpdate();
 }
 // 新しい版が出ていたら、ホームに いるときだけ 入れかえる（れんしゅうの とちゅうでは しない）
-const VER = "1018-0904";
+const VER = "1018-0915";
 function checkUpdate() {
   fetch("version.txt?" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : "").then(v => {
     v = v.trim();
