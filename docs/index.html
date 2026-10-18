@@ -526,6 +526,65 @@ textarea { min-height: 180px; font-family: var(--font-k); line-height: 1.7; }
 pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-family: var(--font-k); font-size: 15px; margin: 0; overflow-x: auto; line-height: 1.7; }
 
 @media (prefers-reduced-motion: reduce) { .shake { animation: none; } }
+/* ---------- アクションの えんしゅつ（パズドラふう）：画面 いっぱいに とびだす ---------- */
+#fxl { position: fixed; inset: 0; pointer-events: none; z-index: 45; overflow: hidden; }
+#fxl > * { position: absolute; pointer-events: none; }
+.orb { width: 26px; height: 26px; border-radius: 50%; transform: translate(-50%,-50%); border: 1.5px solid #fff9; background: radial-gradient(circle at 35% 30%, #fff 0 10%, #fff0 38%), radial-gradient(circle, #0000 50%, #0006 100%), var(--c); box-shadow: 0 0 12px 3px var(--c); }
+.fspark { width: 20px; height: 4px; border-radius: 2px; box-shadow: 0 0 6px currentColor; }
+.fring { width: 60px; height: 60px; border-radius: 50%; border: 5px solid #ffd54a; box-sizing: border-box; box-shadow: 0 0 12px #fff8; }
+.shard { clip-path: polygon(50% 0, 100% 70%, 20% 100%); }
+.dnum { transform: translate(-50%,-50%); font-family: var(--font-ui); font-weight: 900; font-style: italic; font-size: 36px; line-height: 1; color: #ffe14a; white-space: nowrap; text-shadow: 2px 2px 0 #6a1a00, -2px 2px 0 #6a1a00, 2px -2px 0 #6a1a00, -2px -2px 0 #6a1a00, 0 3px 0 #6a1a00, 0 0 14px #ff8a00; }
+.dnum.crit { font-size: 46px; color: #fff; text-shadow: 2px 2px 0 #b00010, -2px 2px 0 #b00010, 2px -2px 0 #b00010, -2px -2px 0 #b00010, 0 4px 0 #b00010, 0 0 18px #ff3a2a; }
+.dnum.hurt { font-size: 32px; color: #fff; text-shadow: 2px 2px 0 #c0101a, -2px 2px 0 #c0101a, 2px -2px 0 #c0101a, -2px -2px 0 #c0101a, 0 0 10px #ff0000; }
+.onoma { font-family: var(--font-k); font-weight: 700; font-size: 30px; color: #fff; white-space: nowrap; text-shadow: 3px 3px 0 #e8473a, -2px -2px 0 #e8473a, 2px -2px 0 #e8473a, -2px 2px 0 #e8473a, 0 0 12px #ffd54a; }
+.fcombo { transform: translate(-50%,-50%); font-family: var(--font-ui); font-weight: 900; font-style: italic; font-size: 22px; color: #fff; white-space: nowrap; text-shadow: 2px 2px 0 #1a3aa0, -2px 2px 0 #1a3aa0, 2px -2px 0 #1a3aa0, -2px -2px 0 #1a3aa0, 0 0 14px #3aa0ff; }
+.fcombo b { font-size: 40px; color: #ffe14a; }
+.slash2 svg { width: 170px; height: 170px; display: block; }
+.sflash, .vign, .cutin { left: 0 !important; top: 0 !important; width: 100%; height: 100%; }
+.vign { box-shadow: inset 0 0 90px 40px rgba(255,20,20,.75); }
+.claw svg { width: 240px; height: 200px; display: block; }
+.cutin { display: grid; place-items: center; background: rgba(0,0,0,.45); animation: cfade 1s ease forwards; }
+@keyframes cfade { 0% { opacity: 0; } 10% { opacity: 1; } 85% { opacity: 1; } 100% { opacity: 0; } }
+.cband { width: 140%; padding: 0 20%; box-sizing: border-box; height: 156px; transform: skewY(-8deg); position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; gap: 4px; background: linear-gradient(90deg, #c0161d, #ff6a1a 50%, #ffc21a); box-shadow: 0 0 0 4px #fff, 0 0 40px #ff8a00; animation: cband 1s cubic-bezier(.2,.9,.3,1) forwards; }
+.cband::before { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, #fff5 0 2px, #fff0 2px 26px, #fff3 26px 30px, #fff0 30px 64px); animation: speed .25s linear infinite; }
+@keyframes speed { to { background-position: -64px 0; } }
+@keyframes cband { 0% { transform: skewY(-8deg) scaleY(0); } 14% { transform: skewY(-8deg) scaleY(1.08); } 22%, 84% { transform: skewY(-8deg) scaleY(1); } 100% { transform: skewY(-8deg) scaleY(0); } }
+.cava { position: relative; animation: cava .9s cubic-bezier(.2,.9,.3,1) both; }
+.cava .ava { width: clamp(96px, 28vw, 150px); height: auto; aspect-ratio: 100 / 110; display: block; filter: drop-shadow(4px 4px 0 #0006); }
+@keyframes cava { 0% { transform: skewY(8deg) translateX(-60vw) scale(1.4); } 30% { transform: skewY(8deg) translateX(0) scale(1.15); } 100% { transform: skewY(8deg) translateX(18px) scale(1.1); } }
+.ctxt { position: relative; display: grid; gap: 2px; animation: ctxt .9s cubic-bezier(.2,.9,.3,1.4) .12s both; }
+.ctxt b { font-family: var(--font-ui); font-weight: 900; font-style: italic; font-size: clamp(20px, 6.2vw, 40px); color: #fff; line-height: 1.1; white-space: nowrap; text-shadow: 3px 3px 0 #6a0a00, -2px -2px 0 #6a0a00, 2px -2px 0 #6a0a00, -2px 2px 0 #6a0a00; }
+.ctxt small { font-weight: 900; font-size: 15px; color: #fff6b0; text-shadow: 0 2px 0 #6a0a00; }
+@keyframes ctxt { 0% { transform: skewY(8deg) scale(3); opacity: 0; } 30% { transform: skewY(8deg) scale(1); opacity: 1; } 100% { transform: skewY(8deg) scale(1.05); } }
+.vict { left: 0 !important; top: 34% !important; width: 100%; text-align: center; }
+.vict b { display: inline-block; font-family: var(--font-ui); font-weight: 900; font-style: italic; font-size: clamp(26px, 8.4vw, 60px); white-space: nowrap; color: #ffe14a; text-shadow: 3px 3px 0 #7a3a00, -3px -3px 0 #7a3a00, 3px -3px 0 #7a3a00, -3px 3px 0 #7a3a00, 0 6px 0 #7a3a00, 0 0 30px #ffb21a; animation: vict 1.7s cubic-bezier(.2,.9,.3,1.4) both; }
+.vict.lose b { color: #ff7a7a; text-shadow: 3px 3px 0 #2a0000, -3px -3px 0 #2a0000, 3px -3px 0 #2a0000, -3px 3px 0 #2a0000, 0 0 30px #ff0000; }
+@keyframes vict { 0% { transform: scale(4) rotate(-8deg); opacity: 0; } 22% { transform: scale(1) rotate(-4deg); opacity: 1; } 82% { transform: scale(1.06) rotate(-4deg); opacity: 1; } 100% { transform: scale(1.1) rotate(-4deg); opacity: 0; } }
+.dust { width: 28px; height: 16px; border-radius: 50%; background: radial-gradient(#e8dccaee, #e8dcca00 70%); }
+.gcoin { width: 16px; height: 16px; border-radius: 50%; background: radial-gradient(circle at 35% 35%, #fff6b0, #f2c230 55%, #b88a12); }
+/* てきの いき・かげ・ボスの オーラ */
+#bossMon::after { content: ""; position: absolute; left: 14%; right: 14%; bottom: -3px; height: 10px; border-radius: 50%; background: radial-gradient(#000a, #0000 70%); z-index: -1; }
+#bossMon .mon { animation: breathe 1.7s ease-in-out infinite; transform-origin: 50% 95%; }
+#bossMon .mon.fly { animation: hover 1.3s ease-in-out infinite; }
+@keyframes breathe { 50% { transform: scale(1.04, .96); } }
+@keyframes hover { 50% { transform: translateY(-7%); } }
+.bossbar.boss #bossMon::before { content: ""; position: absolute; inset: -18% -25%; border-radius: 50%; background: radial-gradient(#ff5a3d77, #ff5a3d00 65%); animation: aura 1.1s ease-in-out infinite alternate; z-index: -1; }
+@keyframes aura { to { transform: scale(1.18); opacity: .5; } }
+.dun .motes circle { animation: mote 5s linear infinite; }
+@keyframes mote { 0% { transform: translate(0, 0); opacity: 0; } 20% { opacity: .9; } 100% { transform: translate(6px, -34px); opacity: 0; } }
+/* HPバー：へった ぶんが すこし おくれて きえる */
+.ehp .hp, .php .hp { position: relative; }
+.ehp .hp i, .php .hp i { position: absolute; left: 0; top: 0; bottom: 0; transition: width .18s ease-out; }
+.ehp .hp i.chipbar, .php .hp i.chipbar { background: #fff6b0 !important; transition: width .5s ease-in .45s; }
+/* たたかいの 画面：高さに よゆうが あれば 大きく。てきも 大きく */
+.bossbar .arena { height: clamp(124px, calc(124px + (100dvh - 700px) * .45), 270px); container-type: size; }
+#bossMon { width: 88px; margin-left: -44px; width: 72cqh; margin-left: -36cqh; }
+#bossMon .mon { width: 100%; height: auto; aspect-ratio: 1; }
+.bossbar.boss #bossMon { width: 106px; margin-left: -53px; width: 86cqh; margin-left: -43cqh; }
+.bossbar.boss #bossMon .mon { width: 100%; height: auto; }
+.bossbar .arena .pl .ava { width: 50px; height: 56px; width: 42cqh; height: 46cqh; }
+.php { left: 56px; left: calc(8px + 40cqh); }
+@media (prefers-reduced-motion: reduce) { #bossMon .mon, .dun .motes circle, .bossbar.boss #bossMon::before, .cutin, .cband, .cava, .ctxt, .vict b { animation: none; } }
 </style>
 
 <div id="app">
@@ -744,7 +803,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1018-0835</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1018-0904</p>
 </section>
 
 <!-- ボス登場・たからばこ（全画面に かさねる） -->
@@ -771,12 +830,12 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
       <div class="dun" id="dun"></div>
       <div class="wave" id="wave"></div>
       <span class="hearts" id="hearts"></span>
-      <div class="ehp" id="ehp"><b id="bossName"></b><div class="hp"><i id="bossHp"></i></div></div>
+      <div class="ehp" id="ehp"><b id="bossName"></b><div class="hp"><i class="chipbar" id="bossChip"></i><i id="bossHp"></i></div></div>
       <div class="pct" id="bossPct">0%</div>
       <div class="pl" id="plAva"></div>
       <div class="bossmon" id="bossMon"></div>
       <small class="atkl" id="bossAtk"></small>
-      <div class="php" id="pHp"><span>HP</span><div class="hp"><i id="pHpBar"></i></div><b id="pHpNum"></b></div>
+      <div class="php" id="pHp"><span>HP</span><div class="hp"><i class="chipbar" id="pHpChip"></i><i id="pHpBar"></i></div><b id="pHpNum"></b></div>
     </div>
     <div class="say" id="bossSay" aria-live="polite"></div>
   </div>
@@ -1167,6 +1226,14 @@ function sfx(kind) {
     play(kind);
   } catch (e) {}
 }
+// ざらざらした 音（フィルターで 高さを うごかす）
+function noise(len, type, f0, f1, vol, at = 0) {
+  const buf = AC.createBuffer(1, Math.ceil(AC.sampleRate * len), AC.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  const src = AC.createBufferSource(), f = AC.createBiquadFilter(), g = AC.createGain(), t0 = AC.currentTime + at;
+  src.buffer = buf; f.type = type; f.frequency.setValueAtTime(f0, t0); f.frequency.exponentialRampToValueAtTime(f1, t0 + len);
+  g.gain.value = vol; src.connect(f).connect(g).connect(AC.destination); src.start(t0);
+}
 function play(kind) {
   try {
     if (kind === "shoot") {
@@ -1211,6 +1278,39 @@ function play(kind) {
       o.type = "sine"; o.frequency.setValueAtTime(140, t0); o.frequency.exponentialRampToValueAtTime(45, t0 + 0.3);
       g.gain.setValueAtTime(0.5, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + 0.35);
       o.connect(g).connect(AC.destination); o.start(t0); o.stop(t0 + 0.36);
+      return;
+    }
+    if (kind.startsWith("orb")) {
+      // コンボの 音：つづくほど 高く なる
+      const f = 660 * Math.pow(2, [0, 2, 4, 7, 9, 12, 14, 16, 19, 21][+kind.slice(3) || 0] / 12), t0 = AC.currentTime;
+      for (const [m, ty, v] of [[1, "sine", .2], [2, "triangle", .06], [3, "sine", .03]]) {
+        const o = AC.createOscillator(), g = AC.createGain();
+        o.type = ty; o.frequency.setValueAtTime(f * m, t0); o.frequency.exponentialRampToValueAtTime(f * m * 1.02, t0 + .3);
+        g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(v, t0 + .01); g.gain.exponentialRampToValueAtTime(.0001, t0 + .4);
+        o.connect(g).connect(AC.destination); o.start(t0); o.stop(t0 + .42);
+      }
+      return;
+    }
+    if (kind === "hit") {
+      // ドスッ：ひくい キック ＋ みじかい ざらざら
+      const t0 = AC.currentTime, o = AC.createOscillator(), g = AC.createGain();
+      o.type = "sine"; o.frequency.setValueAtTime(190, t0); o.frequency.exponentialRampToValueAtTime(42, t0 + .16);
+      g.gain.setValueAtTime(.8, t0); g.gain.exponentialRampToValueAtTime(.0001, t0 + .2);
+      o.connect(g).connect(AC.destination); o.start(t0); o.stop(t0 + .22);
+      noise(.12, "bandpass", 1800, 900, .45);
+      return;
+    }
+    if (kind === "claw") { noise(.28, "bandpass", 4000, 700, .6); noise(.22, "bandpass", 3500, 600, .5, .07); return; }
+    if (kind === "growl" || kind === "shatter" || kind === "cutin") {
+      const t0 = AC.currentTime, o = AC.createOscillator(), g = AC.createGain(), lp = AC.createBiquadFilter();
+      if (kind === "growl") { o.type = "sawtooth"; o.frequency.setValueAtTime(120, t0); o.frequency.exponentialRampToValueAtTime(60, t0 + .4); lp.frequency.value = 700; g.gain.setValueAtTime(.0001, t0); g.gain.exponentialRampToValueAtTime(.2, t0 + .05); g.gain.exponentialRampToValueAtTime(.0001, t0 + .42); }
+      if (kind === "shatter") { o.type = "sine"; o.frequency.setValueAtTime(1400, t0); o.frequency.exponentialRampToValueAtTime(300, t0 + .4); lp.frequency.value = 6000; g.gain.setValueAtTime(.12, t0); g.gain.exponentialRampToValueAtTime(.0001, t0 + .42); noise(.5, "highpass", 3000, 8000, .35); }
+      if (kind === "cutin") {
+        // シュバッ ＋ ジャーン
+        o.type = "sine"; o.frequency.value = 1; g.gain.value = 0; noise(.35, "bandpass", 500, 6000, .4);
+        for (const fr of [523.25, 659.25, 783.99, 1046.5]) { const c = AC.createOscillator(), cg = AC.createGain(), t1 = t0 + .15; c.type = "triangle"; c.frequency.value = fr; cg.gain.setValueAtTime(.0001, t1); cg.gain.exponentialRampToValueAtTime(.07, t1 + .02); cg.gain.exponentialRampToValueAtTime(.0001, t1 + .7); c.connect(cg).connect(AC.destination); c.start(t1); c.stop(t1 + .72); }
+      }
+      o.connect(lp).connect(g).connect(AC.destination); o.start(t0); o.stop(t0 + .45);
       return;
     }
     const notes = { ok: [[880, 0], [1175, .12]], miss: [[220, 0]], great: [[784, 0], [988, .12], [1175, .24], [1568, .36]], kanaok: [[988, 0], [1319, .1]] }[kind];
@@ -1301,12 +1401,12 @@ const ITEMS = [
 // ぶきの かたち：にぎりを 原点に、上（マイナス）へ のびる
 function weaponShape(w) {
   const k = "#3a3a3a";
-  if (w.type === "hammer") return `<rect x="-2.5" y="-58" width="5" height="72" rx="2" fill="#7a5230" stroke="${k}" stroke-width="1.5"/><rect x="-18" y="-84" width="36" height="26" rx="5" fill="${w.c}" stroke="${k}" stroke-width="2"/><path d="M-10 -84 q4 -14 10 -6 q4 -12 10 6z" fill="#ffd54a" stroke="#e8473a" stroke-width="1.5"/>`;
-  if (w.type === "spear") return `<rect x="-2" y="-72" width="4" height="90" rx="2" fill="#8b6b4a" stroke="${k}" stroke-width="1.2"/><path d="M-8 -70 L0 -96 L8 -70z" fill="${w.c}" stroke="${k}" stroke-width="2"/><path d="M-3 -88 l5 -4 -3 7 5 -3" stroke="#fff" stroke-width="1.6" fill="none"/>`;
+  if (w.type === "hammer") return `<rect x="-2.5" y="-58" width="5" height="72" rx="2" fill="#7a5230" stroke="${k}" stroke-width="1.5"/><rect x="-18" y="-84" width="36" height="26" rx="5" fill="${w.c}" stroke="${k}" stroke-width="2"/><rect x="-18" y="-84" width="36" height="26" rx="5" fill="url(#gSh)"/><path d="M-10 -84 q4 -14 10 -6 q4 -12 10 6z" fill="#ffd54a" stroke="#e8473a" stroke-width="1.5"/>`;
+  if (w.type === "spear") return `<rect x="-2" y="-72" width="4" height="90" rx="2" fill="#8b6b4a" stroke="${k}" stroke-width="1.2"/><path d="M-8 -70 L0 -96 L8 -70z" fill="${w.c}" stroke="${k}" stroke-width="2"/><path d="M-8 -70 L0 -96 L8 -70z" fill="url(#gBl)"/><path d="M-3 -88 l5 -4 -3 7 5 -3" stroke="#fff" stroke-width="1.6" fill="none"/>`;
   if (w.type === "bow") return `<path d="M-4 -86 Q30 -36 -4 14" stroke="${w.c}" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M-4 -86 L-4 14" stroke="#eee" stroke-width="1.5"/><path d="M-14 -36 h30 l-6 -4 m6 4 l-6 4" stroke="${k}" stroke-width="2" fill="none"/><circle cx="12" cy="-36" r="3" fill="#fff8b0"/>`;
   const glow = w.glow ? `<path d="M-9 -2 L-9 -74 L0 -92 L9 -74 L9 -2z" fill="${w.glow}" opacity=".55"/>` : "";
   const rainbow = w.type === "legend" ? `<path d="M-2 -10 V-70" stroke="#ff7b8a" stroke-width="1.5"/><path d="M0 -10 V-74" stroke="#5ab4e6" stroke-width="1.5"/><path d="M2 -10 V-70" stroke="#7cc576" stroke-width="1.5"/>` : `<path d="M-1 -10 V-68" stroke="#fff" stroke-width="1.5" opacity=".8"/>`;
-  return glow + `<rect x="-3" y="0" width="6" height="14" rx="2" fill="#6b4a1e" stroke="${k}" stroke-width="1.2"/><circle cx="0" cy="17" r="3.5" fill="#f2c230" stroke="${k}" stroke-width="1"/><rect x="-13" y="-5" width="26" height="6" rx="2" fill="#f2c230" stroke="${k}" stroke-width="1.5"/><path d="M-5 -5 L-5 -70 L0 -84 L5 -70 L5 -5z" fill="${w.c}" stroke="${k}" stroke-width="2"/>` + rainbow;
+  return glow + `<rect x="-3" y="0" width="6" height="14" rx="2" fill="#6b4a1e" stroke="${k}" stroke-width="1.2"/><circle cx="0" cy="17" r="3.5" fill="#f2c230" stroke="${k}" stroke-width="1"/><rect x="-13" y="-5" width="26" height="6" rx="2" fill="#f2c230" stroke="${k}" stroke-width="1.5"/><path d="M-5 -5 L-5 -70 L0 -84 L5 -70 L5 -5z" fill="${w.c}" stroke="${k}" stroke-width="2"/><path d="M-5 -5 L-5 -70 L0 -84 L5 -70 L5 -5z" fill="url(#gBl)"/>` + rainbow;
 }
 const weaponIcon = (w, size = 54) => `<svg viewBox="-34 -100 68 122" width="${size * 0.56}" height="${size}" aria-hidden="true">${weaponShape(w)}</svg>`;
 // アイテムの のうりょく：ぶき＝こうげき、あたま・からだ・たて＝ぼうぎょ、アクセ＝たいりょく
@@ -1353,6 +1453,28 @@ function me(eq = equipped()) {
 const attack = eq => me(eq).atk;
 
 
+/* ---------- 立体感：かげと ひかり（キャラ・てき・ボス みんなで つかう） ---------- */
+document.body.insertAdjacentHTML("afterbegin", `<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+<radialGradient id="gSh" cx=".36" cy=".28" r=".85"><stop offset="0" stop-color="#fff" stop-opacity=".6"/><stop offset=".32" stop-color="#fff" stop-opacity="0"/><stop offset=".7" stop-color="#000" stop-opacity=".06"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></radialGradient>
+<linearGradient id="gGl" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".9"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
+<radialGradient id="gIr" cx=".5" cy=".3" r=".75"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".5"/></radialGradient>
+<radialGradient id="gGr"><stop offset="0" stop-color="#000" stop-opacity=".45"/><stop offset="1" stop-color="#000" stop-opacity="0"/></radialGradient>
+<radialGradient id="gFace" cx=".45" cy=".38" r=".7"><stop offset="0" stop-color="#fff" stop-opacity=".3"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#a0502a" stop-opacity=".35"/></radialGradient>
+<linearGradient id="gBl" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".75"/><stop offset=".45" stop-color="#fff" stop-opacity=".1"/><stop offset=".55" stop-color="#000" stop-opacity=".12"/><stop offset="1" stop-color="#000" stop-opacity=".4"/></linearGradient>
+<radialGradient id="gGlow"><stop offset="0" stop-color="#ffe9a0" stop-opacity=".95"/><stop offset=".4" stop-color="#ff9a2a" stop-opacity=".6"/><stop offset="1" stop-color="#ff5a00" stop-opacity="0"/></radialGradient>
+</defs></svg><div id="fxl" aria-hidden="true"></div>`);
+// 色を こく／うすく する（k が マイナスで こく）
+const tone = (c, k) => { const n = parseInt(c.slice(1), 16), f = v => Math.round(k < 0 ? v * (1 + k) : v + (255 - v) * k); return "#" + [n >> 16, n >> 8 & 255, n & 255].map(v => f(v).toString(16).padStart(2, "0")).join(""); };
+const OL = `stroke="#1a1418" stroke-width="2.5" stroke-linejoin="round"`;
+const SH = d => `<path d="${d}" fill="url(#gSh)"/>`;
+const EL = (x, y, rx, ry) => `M${x - rx} ${y} a${rx} ${ry} 0 1 0 ${2 * rx} 0 a${rx} ${ry} 0 1 0 ${-2 * rx} 0Z`;
+// かげを つけた かたち（いろ ＋ りんかく ＋ かげ）
+const solid = (d, c) => `<path d="${d}" fill="${c}" ${OL}/>` + SH(d);
+// てきの 目：しろめ・いろの ついた ひとみ・ひかり
+const MEYE = (x, y, r, iris) => `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * 1.1}" fill="#fff" stroke="#1a1418" stroke-width="2"/><circle cx="${x + r * .15}" cy="${y + r * .15}" r="${r * .62}" fill="${iris}"/><circle cx="${x + r * .15}" cy="${y + r * .15}" r="${r * .62}" fill="url(#gIr)"/><circle cx="${x + r * .2}" cy="${y + r * .2}" r="${r * .3}" fill="#120a0a"/><circle cx="${x - r * .2}" cy="${y - r * .3}" r="${r * .26}" fill="#fff"/><circle cx="${x + r * .4}" cy="${y + r * .45}" r="${r * .1}" fill="#fff"/>`;
+const BROW = (x1, y1, x2, y2) => `<path d="M${x1} ${y1} L${x2} ${y2}" stroke="#1a1418" stroke-width="4" stroke-linecap="round"/>`;
+let ORBS = [];
+
 // じぶんの キャラ（そうびで 見た目が かわる）
 // じぶんの キャラ：パーツを くみあわせる。そうびは その うえに かさなる
 const LOOK = {
@@ -1379,7 +1501,7 @@ function avatar(eq, look = myLook()) {
   const body = eq["からだ"], head = eq["あたま"], w = eq["ぶき"], sh = eq["たて"];
   const skin = LOOK.skin.opts[look.skin], hc = LOOK.hairC.opts[look.hairC], hs = LOOK.hair.opts[look.hair];
   const cloth = body.base ? LOOK.cloth.opts[look.cloth] : body.c;
-  let s = `<svg class="ava" viewBox="0 0 100 110" aria-hidden="true">`;
+  let s = `<svg class="ava" viewBox="0 0 100 110" aria-hidden="true"><ellipse cx="50" cy="105" rx="24" ry="4" fill="url(#gGr)"/>`;
   const ac = eq["アクセ"].look;
   if (ac === "wings") s += `<path d="M32 60 q-30 -22 -28 10 q8 -4 12 2 q6 -6 16 0z M68 60 q30 -22 28 10 q-8 -4 -12 2 q-6 -6 -16 0z" fill="#fff" stroke="#9fb4c8" stroke-width="2"/>`;
   if (body.cape) s += `<path d="M30 52 L18 100 L82 100 L70 52 Z" fill="${body.cape}" stroke="#3a3a3a" stroke-width="1"/>`;
@@ -1387,18 +1509,22 @@ function avatar(eq, look = myLook()) {
   if (hs === "ロング") s += `<path d="M26 34 q0 -24 24 -24 q24 0 24 24 V62 q-4 4 -8 0 V40 H34 V62 q-4 4 -8 0z" fill="${hc}"/>`;
   if (hs === "ポニーテール") s += `<path d="M64 16 q22 2 16 34 q-4 -14 -14 -20z" fill="${hc}"/>`;
   if (hs === "ツインテール") s += `<ellipse cx="23" cy="40" rx="7" ry="14" fill="${hc}"/><ellipse cx="77" cy="40" rx="7" ry="14" fill="${hc}"/>`;
-  s += `<rect x="30" y="52" width="40" height="42" rx="12" fill="${cloth}" stroke="#3a3a3a" stroke-width="2"/>`;
-  s += `<rect x="34" y="92" width="10" height="12" rx="3" fill="#3a3a3a"/><rect x="56" y="92" width="10" height="12" rx="3" fill="#3a3a3a"/>`;
-  if (body.armor) s += `<path d="M33 56 h34 v14 q-17 8 -34 0z" fill="${body.armor}" stroke="#3a3a3a" stroke-width="1.5"/><rect x="30" y="76" width="40" height="5" fill="${body.armor}"/><circle cx="50" cy="63" r="4" fill="#5ab4e6" stroke="#3a3a3a" stroke-width="1"/>`;
+  // うで（からだの うしろ）・からだ・あし
+  const arm = "M35 58 Q25 62 22 73 M65 58 Q75 62 79 73";
+  s += `<path d="${arm}" stroke="#3a3a3a" stroke-width="11" stroke-linecap="round" fill="none"/><path d="${arm}" stroke="${cloth}" stroke-width="7.5" stroke-linecap="round" fill="none"/><path d="${arm}" stroke="#000" stroke-opacity=".15" stroke-width="3" stroke-linecap="round" fill="none" transform="translate(1.2 1.6)"/>`;
+  s += `<rect x="34" y="92" width="10" height="12" rx="3" fill="#3a3a3a"/><rect x="56" y="92" width="10" height="12" rx="3" fill="#3a3a3a"/><rect x="35.5" y="93" width="3" height="9" rx="1.5" fill="#fff" opacity=".25"/><rect x="57.5" y="93" width="3" height="9" rx="1.5" fill="#fff" opacity=".25"/>`;
+  s += `<rect x="30" y="52" width="40" height="42" rx="12" fill="${cloth}" stroke="#3a3a3a" stroke-width="2"/><rect x="30" y="52" width="40" height="42" rx="12" fill="url(#gSh)"/><path d="M42 53 l8 7 8 -7" stroke="#000" stroke-opacity=".2" stroke-width="2" fill="none"/>`;
+  if (body.armor) s += `<path d="M33 56 h34 v14 q-17 8 -34 0z" fill="${body.armor}" stroke="#3a3a3a" stroke-width="1.5"/>${SH("M33 56 h34 v14 q-17 8 -34 0z")}<rect x="30" y="76" width="40" height="5" fill="${body.armor}"/><circle cx="50" cy="63" r="4" fill="#5ab4e6" stroke="#3a3a3a" stroke-width="1"/>`;
   if (body.scarf) s += `<path d="M34 52 h32 v6 h-32z M62 56 l10 10 -4 2 -10 -8z" fill="${body.scarf}"/>`;
   if (body.name === "たびびとの ふく") s += `<rect x="30" y="74" width="40" height="5" fill="#5a3d22"/><rect x="47" y="73" width="6" height="7" fill="#f2c230"/>`;
   if (ac === "rocket") s += `<path d="M32 102 h14 v6 h-14z M54 102 h14 v6 h-14z" fill="#ff8a3d" stroke="#3a3a3a" stroke-width="1.2"/><path d="M34 108 l3 6 3 -6z M56 108 l3 6 3 -6z" fill="#ffd54a"/>`;
   if (ac === "speed") s += `<path d="M32 102 h14 v6 h-14z M54 102 h14 v6 h-14z" fill="#3b7bd6" stroke="#3a3a3a" stroke-width="1.2"/><path d="M22 104 h7 M20 108 h9" stroke="#3b7bd6" stroke-width="1.5"/>`;
   if (ac === "unko") s += `<g transform="translate(60 80) scale(.16)"><ellipse cx="50" cy="84" rx="40" ry="13" fill="#8a5a2b"/><ellipse cx="50" cy="66" rx="31" ry="12" fill="#9c6833"/><ellipse cx="50" cy="48" rx="22" ry="11" fill="#ad773d"/></g>`;
-  s += `<circle cx="50" cy="34" r="22" fill="${skin}" stroke="#3a3a3a" stroke-width="2"/>`;
+  s += `<circle cx="28.5" cy="37" r="4.5" fill="${skin}" stroke="#3a3a3a" stroke-width="1.8"/><circle cx="71.5" cy="37" r="4.5" fill="${skin}" stroke="#3a3a3a" stroke-width="1.8"/>`;
+  s += `<circle cx="50" cy="34" r="22" fill="${skin}" stroke="#3a3a3a" stroke-width="2"/><circle cx="50" cy="34" r="21" fill="url(#gFace)"/>`;
   // め
   const ey = {
-    "まる": `<circle cx="42" cy="34" r="2.6" fill="#222"/><circle cx="58" cy="34" r="2.6" fill="#222"/>`,
+    "まる": `<ellipse cx="42" cy="34" rx="2.9" ry="3.5" fill="#2a1a12"/><ellipse cx="58" cy="34" rx="2.9" ry="3.5" fill="#2a1a12"/><circle cx="43" cy="32.6" r="1.15" fill="#fff"/><circle cx="59" cy="32.6" r="1.15" fill="#fff"/>`,
     "にっこり": `<path d="M38.5 35 q3.5 -5 7 0 M54.5 35 q3.5 -5 7 0" stroke="#222" stroke-width="2.4" fill="none" stroke-linecap="round"/>`,
     "キラキラ": `<circle cx="42" cy="34" r="4" fill="#222"/><circle cx="58" cy="34" r="4" fill="#222"/><circle cx="43.3" cy="32.6" r="1.4" fill="#fff"/><circle cx="59.3" cy="32.6" r="1.4" fill="#fff"/>`,
     "ジトめ": `<path d="M38 32 h8 M54 32 h8" stroke="#222" stroke-width="2.4" stroke-linecap="round"/><circle cx="42" cy="34.5" r="2" fill="#222"/><circle cx="58" cy="34.5" r="2" fill="#222"/>`,
@@ -1432,7 +1558,9 @@ function avatar(eq, look = myLook()) {
     "ロング": `<path d="M28 33 q1 -23 22 -23 q21 0 22 23 q-4 -8 -10 -10 q-6 6 -24 6 q-6 0 -10 4z" fill="${hc}"/>`,
     "くるくる": `<g fill="${hc}"><circle cx="30" cy="28" r="6"/><circle cx="35" cy="18" r="7"/><circle cx="45" cy="12" r="7"/><circle cx="56" cy="12" r="7"/><circle cx="66" cy="18" r="7"/><circle cx="71" cy="28" r="6"/></g>`,
   };
-  s += fr[hs];
+  // かみにも かげと つや
+  s += fr[hs] + fr[hs].replaceAll(`fill="${hc}"`, 'fill="url(#gSh)"').replace(/stroke="[^"]*"/g, 'stroke="none"');
+  if (hs !== "ぼうず") s += `<path d="M37 17 q8 -5 18 -4" stroke="#fff" stroke-opacity=".4" stroke-width="2.6" fill="none" stroke-linecap="round"/>`;
   // あたま（そうび）
   const hats = {
     bandana: `<path d="M28 26 q22 -10 44 0 v6 q-22 -8 -44 0z" fill="#e8473a" stroke="#3a3a3a" stroke-width="1"/><path d="M72 28 l10 -4 -2 8z M72 30 l8 6 -6 2z" fill="#e8473a"/><circle cx="40" cy="28" r="1.5" fill="#fff"/><circle cx="56" cy="27" r="1.5" fill="#fff"/>`,
@@ -1442,13 +1570,14 @@ function avatar(eq, look = myLook()) {
     wizard: `<path d="M26 30 L52 -8 L74 30z" fill="#6c5a8a" stroke="#3a3a3a" stroke-width="2"/><path d="M22 30 h56" stroke="#3a3a3a" stroke-width="5" stroke-linecap="round"/><circle cx="56" cy="12" r="3" fill="#ffd54a"/><circle cx="46" cy="20" r="2" fill="#ffd54a"/>`,
     crown: `<path d="M32 16 l4 -12 7 8 7 -10 7 10 7 -8 4 12z" fill="#f2c230" stroke="#b88a12" stroke-width="1.5"/><circle cx="50" cy="10" r="2" fill="#e8473a"/>`,
   };
-  s += hats[head.look] || "";
-  if (ac === "ring") s += `<circle cx="22" cy="74" r="4" fill="none" stroke="#f2c230" stroke-width="2.5"/>`;
+  const hat = hats[head.look] || "";
+  s += hat + hat.replace(/fill="#[0-9a-fA-F]{3,6}"/g, 'fill="url(#gSh)"').replace(/stroke="[^"]*"/g, 'stroke="none"');
   // ぶき（右手）
-  s += `<g transform="translate(80 76) rotate(28) scale(.6)">${weaponShape(w)}</g>`;
+  s += `<g transform="translate(80 76) rotate(28) scale(.6)">${weaponShape(w)}</g><circle cx="79" cy="75" r="4.6" fill="${skin}" stroke="#3a3a3a" stroke-width="1.8"/>`;
+  s += `<circle cx="22" cy="74" r="4.6" fill="${skin}" stroke="#3a3a3a" stroke-width="1.8"/>` + (ac === "ring" ? `<circle cx="22" cy="74" r="5.4" fill="none" stroke="#f2c230" stroke-width="2.2"/>` : "");
   // たて（左手）
-  if (sh.shape === "round") s += `<circle cx="21" cy="72" r="13" fill="${sh.c}" stroke="#3a3a3a" stroke-width="2"/><circle cx="21" cy="72" r="4" fill="#f2c230" stroke="#3a3a3a" stroke-width="1"/>`;
-  if (sh.shape === "kite") s += `<path d="M9 60 h24 v12 q0 14 -12 20 q-12 -6 -12 -20z" fill="${sh.c}" stroke="#3a3a3a" stroke-width="2"/>`;
+  if (sh.shape === "round") s += `<circle cx="21" cy="72" r="13" fill="${sh.c}" stroke="#3a3a3a" stroke-width="2"/><circle cx="21" cy="72" r="12" fill="url(#gSh)"/><circle cx="21" cy="72" r="4" fill="#f2c230" stroke="#3a3a3a" stroke-width="1"/>`;
+  if (sh.shape === "kite") s += `<path d="M9 60 h24 v12 q0 14 -12 20 q-12 -6 -12 -20z" fill="${sh.c}" stroke="#3a3a3a" stroke-width="2"/>${SH("M9 60 h24 v12 q0 14 -12 20 q-12 -6 -12 -20z")}`;
   if (sh.mark === "fire") s += `<path d="M21 64 q6 6 2 12 q-2 -4 -4 -2 q-4 -6 2 -10z" fill="#ffd54a"/>`;
   if (sh.mark === "star") s += `<path d="M21 66 l2 5 5 0 -4 3 2 5 -5 -3 -5 3 2 -5 -4 -3 5 0z" fill="#f2c230"/>`;
   if (sh.shape === "barrier") s += `<circle cx="50" cy="60" r="46" fill="${sh.c}" opacity=".22" stroke="${sh.c}" stroke-width="2"/>`;
@@ -1502,18 +1631,20 @@ const BOSS_ORDER = Object.keys(BOSSES).map(Number);
 function bossFace(stage) {
   const b = typeof stage === "object" ? stage : BOSSES[stage];
   if (b.hat === "unko") {
-    return `<svg class="mon" viewBox="0 0 100 100" aria-hidden="true"><path d="M30 18 L36 6 L44 16 L50 4 L56 16 L64 6 L70 18 Z" fill="#f2c230" stroke="#b88a12" stroke-width="2"/><ellipse cx="50" cy="84" rx="40" ry="13" fill="#8a5a2b"/><ellipse cx="50" cy="66" rx="31" ry="12" fill="#9c6833"/><ellipse cx="50" cy="48" rx="22" ry="11" fill="#ad773d"/><path d="M50 22 q14 6 6 22 h-12 q-8 -14 6 -22z" fill="#ad773d"/><circle cx="41" cy="64" r="6" fill="#fff"/><circle cx="59" cy="64" r="6" fill="#fff"/><circle cx="42" cy="65" r="3" fill="#222"/><circle cx="58" cy="65" r="3" fill="#222"/><path d="M40 78 q10 6 20 0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="34" cy="72" r="3" fill="#e9967a"/><circle cx="66" cy="72" r="3" fill="#e9967a"/></svg>`;
+    return `<svg class="mon" viewBox="0 0 100 100" aria-hidden="true">${solid(EL(50, 84, 40, 13), "#8a5a2b")}${solid(EL(50, 66, 31, 12), "#9c6833")}${solid(EL(50, 48, 22, 11), "#ad773d")}${solid("M50 22 q14 6 6 22 h-12 q-8 -14 6 -22z", "#ad773d")}<path d="M24 80 q26 8 52 0 M30 62 q20 6 40 0" stroke="#fff" stroke-opacity=".3" stroke-width="2.5" fill="none" stroke-linecap="round"/>${solid("M30 18 L36 6 L44 16 L50 4 L56 16 L64 6 L70 18 Z", "#f2c230")}<circle cx="50" cy="12" r="2.5" fill="#e8473a"/><circle cx="41" cy="64" r="6" fill="#fff"/><circle cx="59" cy="64" r="6" fill="#fff"/><circle cx="42" cy="65" r="3" fill="#222"/><circle cx="58" cy="65" r="3" fill="#222"/><path d="M40 78 q10 6 20 0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><circle cx="34" cy="72" r="3" fill="#e9967a"/><circle cx="66" cy="72" r="3" fill="#e9967a"/></svg>`;
   }
   let s = `<svg class="mon" viewBox="0 0 100 100" aria-hidden="true">`;
   if (b.hat === "cape") s += `<path d="M22 50 L8 92 L92 92 L78 50z" fill="#e8473a"/>`;
-  s += `<ellipse cx="50" cy="58" rx="36" ry="33" fill="${b.c}" stroke="#3a3a3a" stroke-width="2.5"/>`;
+  // て・あし・からだ（かげを つけて 立体に）
+  s += solid(EL(33, 89, 11, 6.5), tone(b.c, -.3)) + solid(EL(67, 89, 11, 6.5), tone(b.c, -.3)) + solid(EL(15, 62, 7, 11), b.c) + solid(EL(85, 62, 7, 11), b.c);
+  s += solid(EL(50, 58, 36, 33), b.c) + `<ellipse cx="50" cy="72" rx="20" ry="13" fill="${tone(b.c, .45)}" opacity=".55"/><path d="M24 42 q8 -16 26 -20" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none" opacity=".55"/>`;
   const E = {
     sleep: `<path d="M32 54 q6 4 12 0 M56 54 q6 4 12 0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><text x="74" y="30" font-size="14" font-weight="700" fill="#3b7bd6">z</text><text x="84" y="20" font-size="10" font-weight="700" fill="#3b7bd6">z</text>`,
     kira: `<path d="M38 46 l2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2z M62 46 l2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2z" fill="#fff" stroke="#222" stroke-width="1.5"/>`,
     smug: `<path d="M31 52 h13 M56 52 h13" stroke="#222" stroke-width="3" stroke-linecap="round"/><circle cx="40" cy="55" r="2.5" fill="#222"/><circle cx="64" cy="55" r="2.5" fill="#222"/>`,
-    dot: `<circle cx="39" cy="53" r="4" fill="#222"/><circle cx="61" cy="53" r="4" fill="#222"/>`,
+    dot: `<circle cx="39" cy="53" r="4.5" fill="#222"/><circle cx="61" cy="53" r="4.5" fill="#222"/><circle cx="37.6" cy="51.4" r="1.6" fill="#fff"/><circle cx="59.6" cy="51.4" r="1.6" fill="#fff"/>`,
     cry: `<path d="M32 52 q6 -5 12 0 M56 52 q6 -5 12 0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M36 56 v24 M64 56 v24" stroke="#3b9cff" stroke-width="5" stroke-linecap="round" opacity=".8"/>`,
-    angry: `<circle cx="39" cy="54" r="4" fill="#222"/><circle cx="61" cy="54" r="4" fill="#222"/><path d="M31 44 l12 5 M69 44 l-12 5" stroke="#222" stroke-width="3" stroke-linecap="round"/>`,
+    angry: `${MEYE(39, 54, 6.5, "#ff3a3a")}${MEYE(61, 54, 6.5, "#ff3a3a")}<path d="M31 44 l12 5 M69 44 l-12 5" stroke="#222" stroke-width="3" stroke-linecap="round"/>`,
   };
   const M = {
     yawn: `<ellipse cx="50" cy="72" rx="7" ry="9" fill="#7a2a2a"/>`,
@@ -1620,22 +1751,47 @@ function corridor(fi, boss) {
     + `<path d="M0 0 H300 L182 34 H118z" fill="${f.ceil}"/><path d="M0 0 L118 34 V72 L0 124z" fill="${f.wall}"/><path d="M300 0 L182 34 V72 L300 124z" fill="${f.wall2}"/>`
     + `<path d="M0 124 L118 72 H182 L300 124z" fill="${f.floor}"/><path d="${fl}" stroke="#0003" stroke-width="1.5" fill="none"/><path d="${w}" stroke="#0004" stroke-width="1.5" fill="none"/>`
     + `<rect x="118" y="34" width="64" height="38" fill="url(#bk)"/><path d="M134 72 V50 q16 -16 32 0 V72z" fill="${back}" opacity=".85"/>`
-    + torch(46) + torch(254) + `</g></svg>`;
+    + torch(46) + torch(254) + `<g class="motes">${[0, 1, 2, 3, 4, 5, 6, 7, 8].map(i => `<circle cx="${40 + (i * 37) % 220}" cy="${62 + (i * 23) % 56}" r="${1 + (i % 3) * .6}" fill="${lt}" style="animation-delay:-${(i * .61).toFixed(2)}s"/>`).join("")}</g></g></svg>`;
 }
 // ざこモンスター：こわくない、まるっこい やつら。かいごとに 色が かわる
-const EYES = (y = 62) => `<circle cx="40" cy="${y}" r="5" fill="#222"/><circle cx="60" cy="${y}" r="5" fill="#222"/><circle cx="41.6" cy="${y - 1.6}" r="1.7" fill="#fff"/><circle cx="61.6" cy="${y - 1.6}" r="1.7" fill="#fff"/><path d="M44 ${y + 10} q6 5 12 0" stroke="#222" stroke-width="3" fill="none" stroke-linecap="round"/>`;
-const MK = `stroke="#2a2a2a" stroke-width="3"`;
+// ざこモンスター：パズドラふうに かげと ひかりで 立体に。かいごとに 色が かわる
 const MOBS = [
-  { name: "ぷるぷるスライム", c: ["#7cc5ff", "#9be7ff", "#7cdc8a", "#c39bff", "#ff8a6a"], d: c => `<path d="M12 88 q-4 -42 38 -60 q42 18 38 60z" fill="${c}" ${MK}/><ellipse cx="32" cy="52" rx="6" ry="10" fill="#fff" opacity=".55"/>` + EYES(64) },
-  { name: "パタパタこうもり", c: ["#8a6fb5", "#6f8fb5", "#6f9a5a", "#b56fa8", "#b55a4a"], d: c => `<path d="M42 52 q-18 -26 -38 -12 q10 4 8 14 q8 -6 14 2 q6 -8 16 -4z M58 52 q18 -26 38 -12 q-10 4 -8 14 q-8 -6 -14 2 q-6 -8 -16 -4z" fill="${c}" ${MK} stroke-linejoin="round"/><circle cx="50" cy="60" r="22" fill="${c}" ${MK}/><path d="M36 40 l4 -10 6 8z M64 40 l-4 -10 -6 8z" fill="${c}" ${MK}/>` + EYES(58) + `<path d="M45 72 l2 4 2 -4 M51 72 l2 4 2 -4" stroke="#fff" stroke-width="2"/>` },
-  { name: "キノコン", c: ["#e8473a", "#3b9cff", "#f2a03a", "#b36fe0", "#ff6a3d"], d: c => `<rect x="30" y="52" width="40" height="38" rx="14" fill="#f6e7c8" ${MK}/><path d="M10 56 q2 -42 40 -42 q38 0 40 42z" fill="${c}" ${MK}/><circle cx="32" cy="34" r="6" fill="#fff"/><circle cx="62" cy="28" r="5" fill="#fff"/><circle cx="74" cy="44" r="4" fill="#fff"/>` + EYES(68) },
-  { name: "ゴロンいわ", c: ["#9aa0a8", "#a8c4d8", "#8fa07a", "#a89ab8", "#8a6a5a"], d: c => `<path d="M12 90 L18 52 L38 28 L66 30 L86 52 L90 90z" fill="${c}" ${MK} stroke-linejoin="round"/><path d="M60 36 l-6 10 6 6 M24 74 l8 -4" stroke="#0005" stroke-width="2.5" fill="none"/>` + EYES(64) },
-  { name: "ふわふわおばけ", c: ["#ffffff", "#e6f7ff", "#f0ffe6", "#f6ebff", "#fff0e6"], d: c => `<path d="M20 90 V48 q0 -34 30 -34 q30 0 30 34 V90 l-10 -8 -10 8 -10 -8 -10 8 -10 -8z" fill="${c}" ${MK} stroke-linejoin="round"/><path d="M48 72 q4 8 8 0" fill="#ff7b8a"/>` + EYES(54) + `<circle cx="32" cy="64" r="4" fill="#ffb3b3"/><circle cx="68" cy="64" r="4" fill="#ffb3b3"/>` },
-  { name: "うんこスライム", c: ["#a06a35", "#8a6a4a", "#7a6a35", "#9a6a5a", "#8a4a25"], d: c => `<ellipse cx="50" cy="80" rx="40" ry="13" fill="${c}" ${MK}/><ellipse cx="50" cy="62" rx="31" ry="12" fill="${c}" ${MK}/><ellipse cx="50" cy="45" rx="22" ry="11" fill="${c}" ${MK}/><path d="M50 20 q14 6 6 22 h-12 q-8 -14 6 -22z" fill="${c}" ${MK}/>` + EYES(64).replace(/r="5"/g, 'r="4.5"') + `<path d="M84 30 q4 -6 0 -12 M90 36 q5 -6 0 -12" stroke="#9c6" stroke-width="2.5" fill="none" stroke-linecap="round"/>` },
-  { name: "モグモグラ", c: ["#8a6a4a", "#6a7a8a", "#6a7a4a", "#7a5a7a", "#7a4a3a"], d: c => `<ellipse cx="50" cy="64" rx="34" ry="28" fill="${c}" ${MK}/><ellipse cx="50" cy="72" rx="14" ry="10" fill="#e9c9a0"/><circle cx="50" cy="66" r="5" fill="#ff7b8a" stroke="#2a2a2a" stroke-width="2"/><path d="M14 80 l-6 6 M18 84 l-4 8 M86 80 l6 6 M82 84 l4 8" stroke="#2a2a2a" stroke-width="3" stroke-linecap="round"/><rect x="34" y="28" width="32" height="12" rx="6" fill="#f2c230" ${MK}/><circle cx="50" cy="30" r="5" fill="#fff8b0" ${MK}/>` + `<circle cx="40" cy="54" r="4" fill="#222"/><circle cx="60" cy="54" r="4" fill="#222"/>` },
+  { name: "ぷるぷるスライム", c: ["#4aa8ff", "#5ad0ff", "#4ac86a", "#a06aff", "#ff6a4a"], d: c => { const b = "M10 88 C6 62 22 30 50 12 C78 30 94 62 90 88 C70 96 30 96 10 88Z"; return solid(b, c) + `<circle cx="68" cy="72" r="5" fill="#fff" opacity=".35"/><circle cx="74" cy="60" r="3" fill="#fff" opacity=".3"/><circle cx="28" cy="78" r="3.5" fill="#fff" opacity=".25"/><path d="M24 50 q4 -18 22 -30 q-2 12 -14 32z" fill="url(#gGl)"/>` + MEYE(37, 56, 8.5, "#ffd23a") + MEYE(63, 56, 8.5, "#ffd23a") + BROW(27, 43, 44, 48) + BROW(73, 43, 56, 48) + `<path d="M36 70 q14 12 28 0 q-14 5 -28 0z" fill="#5a0f1a" stroke="#1a1418" stroke-width="2" stroke-linejoin="round"/><path d="M40 71 l3 5 3 -4.2z M60 71 l-3 5 -3 -4.2z" fill="#fff"/>`; } },
+  { name: "パタパタこうもり", fly: 1, c: ["#7a5ab5", "#5a7ab5", "#5a8a4a", "#b55aa0", "#b54a3a"], d: c => {
+    const w = "M40 50 C28 30 12 24 2 32 C8 38 8 46 6 54 C12 49 18 51 20 58 C25 52 31 52 35 60 Z";
+    const wing = `<path d="${w}" fill="${tone(c, -.3)}" ${OL}/>${SH(w)}<path d="M40 50 L9 35 M38 54 L12 51 M36 57 L22 57" stroke="${tone(c, .35)}" stroke-width="1.6" fill="none" opacity=".8"/>`;
+    const ear = `<path d="M36 42 L31 18 L46 36Z" fill="${c}" ${OL}/><path d="M37 37 L34 25 L42 35Z" fill="#ff8aa0"/>`;
+    return wing + `<g transform="translate(100 0) scale(-1 1)">${wing}${ear}</g>` + ear + solid(EL(50, 58, 20, 20), c) + `<ellipse cx="50" cy="66" rx="11" ry="8" fill="${tone(c, .35)}" opacity=".7"/>` + MEYE(42, 53, 6.5, "#ff3a3a") + MEYE(58, 53, 6.5, "#ff3a3a") + BROW(34, 44, 46, 48) + BROW(66, 44, 54, 48) + `<path d="M42 64 q8 6 16 0" stroke="#1a1418" stroke-width="2.5" fill="#5a0f1a"/><path d="M44.5 65 l2 5.5 2 -4.8z M55.5 65 l-2 5.5 -2 -4.8z" fill="#fff" stroke="#1a1418" stroke-width=".8"/>`; } },
+  { name: "キノコン", c: ["#e8473a", "#3b9cff", "#f2a03a", "#b36fe0", "#ff6a3d"], d: c => {
+    const cap = "M8 58 C8 26 28 8 50 8 C72 8 92 26 92 58 C70 50 30 50 8 58Z", stem = "M32 56 C29 74 30 84 34 91 H66 C70 84 71 74 68 56Z", arm = "M32 70 q-12 0 -14 10 M68 70 q12 0 14 10";
+    return `<path d="${arm}" stroke="#1a1418" stroke-width="8" stroke-linecap="round" fill="none"/><path d="${arm}" stroke="#f3e3c3" stroke-width="4.5" stroke-linecap="round" fill="none"/>` + solid(stem, "#f3e3c3") + `<ellipse cx="50" cy="56" rx="34" ry="7" fill="#c9b08a" ${OL}/><path d="M24 56 v4 M32 55 v6 M40 55 v6 M50 55 v6 M60 55 v6 M68 55 v6 M76 56 v4" stroke="#9a8060" stroke-width="1.5"/>` + solid(cap, c) + `<g fill="#fff" stroke="#1a1418" stroke-width="1.5"><ellipse cx="30" cy="30" rx="7" ry="6"/><ellipse cx="56" cy="20" rx="6" ry="4.5"/><ellipse cx="76" cy="38" rx="5.5" ry="5"/><ellipse cx="47" cy="40" rx="4" ry="3.5"/></g><path d="M18 42 q6 -20 26 -28" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none" opacity=".55"/>` + MEYE(41, 70, 6, "#3ad06a") + MEYE(59, 70, 6, "#3ad06a") + BROW(33, 62, 45, 64) + BROW(67, 62, 55, 64) + `<path d="M44 81 q6 4 12 0" stroke="#1a1418" stroke-width="2.5" fill="none" stroke-linecap="round"/>`; } },
+  { name: "ゴロンいわ", c: ["#9aa0a8", "#a8c4d8", "#8fa07a", "#a89ab8", "#8a6a5a"], d: c => {
+    const o = "M10 90 L14 56 L30 30 L56 22 L80 34 L90 58 L88 90Z", crack = "M44 23 l-4 10 6 6 -3 8 M74 64 l-6 8 4 8";
+    return `<path d="${o}" fill="${c}"/><path d="M30 30 L56 22 L80 34 L60 44 L36 42Z" fill="${tone(c, .35)}"/><path d="M14 56 L30 30 L36 42 L26 64Z" fill="${tone(c, .15)}"/><path d="M80 34 L90 58 L72 62 L60 44Z" fill="${tone(c, -.2)}"/><path d="M72 62 L90 58 L88 90 L62 90Z" fill="${tone(c, -.38)}"/><path d="M10 90 L26 64 L40 90Z" fill="${tone(c, -.15)}"/><path d="${o}" fill="none" ${OL}/>`
+      + `<path d="${crack}" stroke="#ff8a1a" stroke-width="5" fill="none" opacity=".35"/><path d="${crack}" stroke="#ffd23a" stroke-width="2" fill="none"/><path d="M56 22 q8 -6 16 2 q-8 2 -16 -2z" fill="#6aa84f" stroke="#2a4a1a" stroke-width="1.2"/>`
+      + `<circle cx="38" cy="60" r="10" fill="url(#gGlow)"/><circle cx="62" cy="60" r="10" fill="url(#gGlow)"/><path d="M31 57 L45 60 L32 63Z M69 57 L55 60 L68 63Z" fill="#fff6c0" stroke="#7a2a00" stroke-width="1.2" stroke-linejoin="round"/><path d="M36 76 L42 71 L48 76 L54 71 L60 76 L64 72" stroke="#1a1418" stroke-width="3" fill="none" stroke-linejoin="round"/>`; } },
+  { name: "ふわふわおばけ", fly: 1, c: ["#ffffff", "#e6f7ff", "#f0ffe6", "#f6ebff", "#fff0e6"], d: c => {
+    const b = "M22 86 C20 60 18 44 24 32 C32 12 68 12 76 32 C82 44 80 60 78 86 L70 79 L62 90 L54 79 L46 90 L38 79 L30 90Z", arm = "M24 52 q-14 -2 -18 -14 M76 52 q14 -2 18 -14";
+    return `<path d="${b}" fill="#9be7ff" opacity=".35" stroke="#9be7ff" stroke-width="7" stroke-linejoin="round"/><path d="${arm}" stroke="#1a1418" stroke-width="9" stroke-linecap="round" fill="none"/><path d="${arm}" stroke="${c}" stroke-width="5.5" stroke-linecap="round" fill="none"/>` + solid(b, c) + `<path d="M30 30 q8 -12 20 -14" stroke="#fff" stroke-width="4" stroke-linecap="round" fill="none"/>`
+      + `<ellipse cx="39" cy="46" rx="6.5" ry="8.5" fill="#1a2a4a"/><ellipse cx="61" cy="46" rx="6.5" ry="8.5" fill="#1a2a4a"/><circle cx="40" cy="48" r="2.6" fill="#9be7ff"/><circle cx="62" cy="48" r="2.6" fill="#9be7ff"/><circle cx="37.5" cy="43" r="1.6" fill="#fff"/><circle cx="59.5" cy="43" r="1.6" fill="#fff"/><ellipse cx="50" cy="63" rx="6" ry="7.5" fill="#1a2a4a"/><path d="M46 67 q4 -4 8 0 q-4 3 -8 0z" fill="#ff7b8a"/><circle cx="30" cy="58" r="4" fill="#ffb3c0" opacity=".7"/><circle cx="70" cy="58" r="4" fill="#ffb3c0" opacity=".7"/>`; } },
+  { name: "うんこスライム", c: ["#a06a35", "#8a6a4a", "#7a6a35", "#9a6a5a", "#8a4a25"], d: c => solid(EL(50, 80, 40, 13), c) + solid(EL(50, 62, 31, 12), tone(c, .08)) + solid(EL(50, 45, 22, 11), tone(c, .16)) + solid("M50 18 q15 6 6 23 h-12 q-9 -15 6 -23z", tone(c, .22))
+    + `<path d="M22 76 q28 8 56 0 M30 58 q20 6 40 0" stroke="#fff" stroke-opacity=".3" stroke-width="2.5" fill="none" stroke-linecap="round"/>` + MEYE(39, 62, 6.5, "#ffd23a") + MEYE(61, 62, 6.5, "#ffd23a") + BROW(31, 52, 44, 56) + BROW(69, 52, 56, 56)
+    + `<path d="M40 76 q10 8 20 0z" fill="#5a0f1a" stroke="#1a1418" stroke-width="2"/><path d="M84 30 q4 -6 0 -12 M90 36 q5 -6 0 -12 M14 34 q-4 -6 0 -12" stroke="#8c6" stroke-width="2.5" fill="none" stroke-linecap="round"/>` },
+  { name: "モグモグラ", c: ["#8a6a4a", "#6a7a8a", "#6a7a4a", "#7a5a7a", "#7a4a3a"], d: c => {
+    const claw = `<path d="M8 74 q-6 4 -4 12 q4 -6 8 -6 q-2 6 2 12 q2 -8 6 -8 q0 6 4 10 q2 -12 -6 -22z" fill="#f3ead8" ${OL}/>`;
+    return solid(EL(50, 64, 34, 28), c) + `<path d="M18 52 l-5 -2 M16 62 l-6 0 M18 74 l-5 2 M82 52 l5 -2 M84 62 l6 0 M82 74 l5 2 M30 88 l-2 4 M70 88 l2 4" stroke="${tone(c, -.4)}" stroke-width="2.5" stroke-linecap="round"/><ellipse cx="50" cy="78" rx="18" ry="11" fill="${tone(c, .45)}"/>`
+      + claw + `<g transform="translate(100 0) scale(-1 1)">${claw}</g>` + solid(EL(50, 68, 13, 9), "#f0c8a8") + solid(EL(50, 63, 6, 4.5), "#ff7b8a")
+      + `<circle cx="38" cy="54" r="4.5" fill="#120a0a"/><circle cx="62" cy="54" r="4.5" fill="#120a0a"/><circle cx="36.8" cy="52.6" r="1.6" fill="#fff"/><circle cx="60.8" cy="52.6" r="1.6" fill="#fff"/>`
+      + solid("M30 40 C30 22 70 22 70 40Z", "#f2c230") + `<rect x="28" y="38" width="44" height="5" rx="2" fill="#b88a12" ${OL}/><circle cx="50" cy="30" r="10" fill="url(#gGlow)"/>` + solid(EL(50, 30, 5, 5), "#fff8b0"); } },
 ];
-const MIMIC = { name: "ミミック", c: ["#c98a3a"], d: () => `<rect x="12" y="50" width="76" height="40" rx="6" fill="#c98a3a" ${MK}/><path d="M14 50 L22 18 Q50 8 78 18 L86 50z" fill="#e0a24e" ${MK}/><path d="M18 50 h64 l-6 8 -6 -8 -6 8 -6 -8 -6 8 -6 -8 -6 8 -6 -8 -6 8 -6 -8z" fill="#fff" stroke="#2a2a2a" stroke-width="2"/><path d="M40 58 q10 20 22 4" fill="#ff7b8a" stroke="#2a2a2a" stroke-width="2"/><circle cx="36" cy="32" r="6" fill="#fff" stroke="#2a2a2a" stroke-width="2"/><circle cx="64" cy="32" r="6" fill="#fff" stroke="#2a2a2a" stroke-width="2"/><circle cx="37" cy="33" r="3" fill="#222"/><circle cx="63" cy="33" r="3" fill="#222"/>` };
-const mobSVG = (m, fi) => `<svg class="mon" viewBox="0 0 100 100" aria-hidden="true">${m.d(m.c[fi % m.c.length])}</svg>`;
+const MIMIC = { name: "ミミック", c: ["#a8682a"], d: () => {
+  const box = "M12 56 H88 V88 Q88 92 84 92 H16 Q12 92 12 88Z", lid = "M18 28 L24 6 Q50 -2 76 6 L82 28Z";
+  return `<path d="M14 56 L20 26 H80 L86 56Z" fill="#2a0508" ${OL}/>` + `<ellipse cx="38" cy="40" rx="7" ry="5" fill="url(#gGlow)"/><ellipse cx="62" cy="40" rx="7" ry="5" fill="url(#gGlow)"/><path d="M33 40 q5 -5 10 0 q-5 4 -10 0z M57 40 q5 -5 10 0 q-5 4 -10 0z" fill="#fff6a0"/><path d="M38 37.5 v5 M62 37.5 v5" stroke="#1a0a00" stroke-width="1.8"/>`
+    + solid(box, "#a8682a") + `<path d="M12 68 H88 M12 80 H88" stroke="#000" stroke-opacity=".25" stroke-width="1.5"/><path d="M24 56 V92 M76 56 V92" stroke="#1a1418" stroke-width="8"/><path d="M24 56 V92 M76 56 V92" stroke="#c9ced6" stroke-width="5"/><circle cx="24" cy="64" r="1.6" fill="#555"/><circle cx="24" cy="84" r="1.6" fill="#555"/><circle cx="76" cy="64" r="1.6" fill="#555"/><circle cx="76" cy="84" r="1.6" fill="#555"/>`
+    + solid(lid, "#c98a3a") + `<path d="M29 27 L33 5 M71 27 L67 5" stroke="#1a1418" stroke-width="7"/><path d="M29 27 L33 5 M71 27 L67 5" stroke="#c9ced6" stroke-width="4"/>`
+    + `<path d="M20 28 l5 9 5 -9 5 9 5 -9 5 9 5 -9 5 9 5 -9 5 9 5 -9 5 9 5 -9z" fill="#fff" stroke="#1a1418" stroke-width="1.5" stroke-linejoin="round"/><path d="M16 56 l5 -8 5 8 5 -8 5 8 5 -8 5 8 5 -8 5 8 5 -8 5 8 5 -8 5 8 5 -8 5 8z" fill="#fff" stroke="#1a1418" stroke-width="1.5" stroke-linejoin="round"/>`
+    + `<path d="M44 56 q-6 16 6 24 q12 6 16 -6 q-8 4 -12 -4 q-3 -6 0 -14z" fill="#ff6a8a" ${OL}/><path d="M50 60 q-2 8 4 14" stroke="#c0405a" stroke-width="1.5" fill="none"/>` + `<rect x="44" y="58" width="12" height="14" rx="2" fill="#f2c230" ${OL}/>`; } };
+const mobSVG = (m, fi) => `<svg class="mon${m.fly ? " fly" : ""}" viewBox="0 0 100 100" aria-hidden="true">${m.d(m.c[fi % m.c.length])}</svg>`;
 
 // たからばこの おたから（5・15・25…95）
 const TREASURES = [
@@ -1950,7 +2106,8 @@ let BT = null;
 function startBattle(foes, fi, bossKey, host = "drill") {
   const P = me();
   foes.forEach(f => { f.max = f.hp; });
-  BT = { foes, k: 0, fi, php: P.hp, pmax: P.hp, atk: P.atk, def: P.def, win: false, dead: false, over: false, host };
+  BT = { foes, k: 0, fi, php: P.hp, pmax: P.hp, atk: P.atk, def: P.def, win: false, dead: false, over: false, host, ms: 1700 };
+  orbClear();
   if (host === "drill") { D.bt = BT; D.mob = null; }
   MB = null;
   const bar = $("bossBar");
@@ -1973,6 +2130,7 @@ function showFoe(walk) {
     if (BT !== myB || myB.k !== k) return;
     dn.classList.remove("walk");
     el.innerHTML = f.boss ? bossFace(f.boss) : mobSVG(f.m, B.fi); el.classList.add("appear");
+    if (!f.boss && !f.m.fly) setTimeout(() => { if (BT === myB && myB.k === k) land(el); }, 430);
     say(f.boss ? f.boss.say : f.m === MIMIC ? "たからばこ…？ と おもったら ミミックだ！" : `${f.name}が あらわれた！（HP ${f.max}）`);
   };
   if (walk && !reduced) { dn.classList.remove("walk"); void dn.offsetWidth; dn.classList.add("walk"); say("おくへ すすむ…"); setTimeout(come, 860); }
@@ -1980,48 +2138,231 @@ function showFoe(walk) {
 }
 function drawBt() {
   const B = BT, f = B.foes[B.k];
-  $("bossHp").style.width = Math.max(0, f.hp) / f.max * 100 + "%";
-  $("pHpBar").style.width = Math.max(0, B.php) / B.pmax * 100 + "%";
+  setHp(Math.max(0, f.hp) / f.max);
+  $("pHpBar").style.width = $("pHpChip").style.width = Math.max(0, B.php) / B.pmax * 100 + "%";
   $("pHpBar").style.background = B.php / B.pmax < 0.3 ? "linear-gradient(#ff8a7a,#e8473a)" : "linear-gradient(#9ff0b0,#3faa5a)";
   $("pHpNum").textContent = `${Math.max(0, B.php)}/${B.pmax}`;
   $("bossAtk").textContent = `こうげき ${B.atk}　ぼうぎょ ${B.def}`;
+}
+/* ---------- アクションの えんしゅつ（パズドラふう） ---------- */
+// 字を かくたびに ひかりの 玉が たまる。ことばを かききると 玉が つぎつぎ てきへ とんで コンボに なる
+const wait = ms => new Promise(r => setTimeout(r, ms));
+const ctr = el => { const r = el.getBoundingClientRect(); return { x: r.left + r.width / 2, y: r.top + r.height / 2, w: r.width, h: r.height }; };
+function fxEl(cls, x, y, html) { const e = document.createElement("div"); e.className = cls; e.style.left = x + "px"; e.style.top = y + "px"; if (html) e.innerHTML = html; $("fxl").appendChild(e); return e; }
+function fxRun(e, kf, o) {
+  if (!reduced && e.animate) e.animate(kf, { fill: "forwards", ...o });
+  setTimeout(() => e.remove(), o.duration + (o.delay || 0) + 60);
+}
+const ORBC = ["#ff4a3a", "#2a9cff", "#2ac85a", "#ffc21a", "#b45aff", "#ff5aa8"];
+function orbCharge(i) {
+  if (reduced) return sfx("ok");
+  const a = ctr($("pad")), p = ctr($("plAva")), n = ORBS.length;
+  const o = fxEl("orb", a.x, a.y); o.style.setProperty("--c", ORBC[i % ORBC.length]);
+  const tx = p.x + p.w * .45 + n * 17, ty = p.y - p.h * .5;
+  o.dataset.x = tx; o.dataset.y = ty;
+  if (o.animate) o.animate([{ transform: "translate(-50%,-50%) scale(3.4)", opacity: 0 }, { transform: "translate(-50%,-50%) scale(2.2)", opacity: 1, offset: .25 }, { transform: `translate(calc(-50% + ${tx - a.x}px), calc(-50% + ${ty - a.y}px)) scale(1)`, opacity: 1 }], { duration: 480, easing: "cubic-bezier(.6,0,.3,1)", fill: "forwards" });
+  ORBS.push(o);
+  sfx("orb" + Math.min(9, n));
+}
+// とんでいる とちゅうでも、いまの ばしょに とめなおす
+function orbPin(o) { if (o.getAnimations) o.getAnimations().forEach(a => a.cancel()); o.style.left = o.dataset.x + "px"; o.style.top = o.dataset.y + "px"; }
+function orbShoot(o, t, dur) {
+  orbPin(o);
+  const x = +o.dataset.x, y = +o.dataset.y;
+  if (o.animate) o.animate([{ transform: "translate(-50%,-50%) scale(1)" }, { transform: `translate(calc(-50% + ${(t.x - x) * .5}px), calc(-50% + ${(t.y - y) * .5 - 50}px)) scale(1.7)`, offset: .5 }, { transform: `translate(calc(-50% + ${t.x - x}px), calc(-50% + ${t.y - y}px)) scale(.7)` }], { duration: dur, easing: "ease-in", fill: "forwards" });
+  return wait(dur).then(() => o.remove());
+}
+function orbClear(fizzle) {
+  for (const o of ORBS) {
+    orbPin(o);
+    if (fizzle && o.animate && !reduced) { o.animate([{ transform: "translate(-50%,-50%) scale(1)", opacity: 1 }, { transform: "translate(-50%,-50%) translateY(20px) scale(.1)", opacity: 0, filter: "grayscale(1)" }], { duration: 420, fill: "forwards" }); setTimeout(() => o.remove(), 440); }
+    else o.remove();
+  }
+  ORBS = [];
+}
+function dmgNum(x, y, n, cls) {
+  const e = fxEl("dnum" + (cls ? " " + cls : ""), x, y); e.textContent = n;
+  fxRun(e, [{ transform: "translate(-50%,-50%) scale(2.8)", opacity: 0 }, { transform: "translate(-50%,-50%) scale(.85)", opacity: 1, offset: .1 }, { transform: "translate(-50%,-50%) scale(1.15)", offset: .18 }, { transform: "translate(-50%,-50%) scale(1)", offset: .26 }, { transform: "translate(-50%,-100%) scale(1)", opacity: 1, offset: .75 }, { transform: "translate(-50%,-140%) scale(.9)", opacity: 0 }], { duration: 1150, easing: "ease-out" });
+}
+function sparks(x, y, c, n = 10, pw = 1) {
+  if (reduced) return;
+  const r = fxEl("fring", x, y); r.style.borderColor = c;
+  fxRun(r, [{ transform: "translate(-50%,-50%) scale(.2)", opacity: 1 }, { transform: `translate(-50%,-50%) scale(${2.2 * pw})`, opacity: 0 }], { duration: 420, easing: "ease-out" });
+  for (let i = 0; i < n; i++) {
+    const a = Math.round(360 * i / n + Math.random() * 30), d = Math.round((46 + Math.random() * 46) * pw), e = fxEl("fspark", x, y);
+    e.style.background = i % 3 ? c : "#fff"; e.style.color = c;
+    fxRun(e, [{ transform: `translate(-50%,-50%) rotate(${a}deg) translateX(0) scaleX(1.8)`, opacity: 1 }, { transform: `translate(-50%,-50%) rotate(${a}deg) translateX(${d}px) scaleX(.2)`, opacity: 0 }], { duration: 360 + Math.random() * 220, easing: "cubic-bezier(.1,.8,.3,1)" });
+  }
+}
+function flashScr(c = "#fff", o = .7, ms = 260) { if (reduced) return; const e = fxEl("sflash", 0, 0); e.style.background = c; fxRun(e, [{ opacity: o }, { opacity: 0 }], { duration: ms, easing: "ease-out" }); }
+// 画面ごと ゆらす
+function quake(p = 1) {
+  const el = $(BT ? BT.host : "drill");
+  if (reduced || !el.animate) return;
+  const k = []; for (let i = 0; i < 6; i++) k.push({ transform: `translate(${((Math.random() - .5) * 16 * p).toFixed(1)}px, ${((Math.random() - .5) * 12 * p).toFixed(1)}px)` });
+  k.push({ transform: "none" }); el.animate(k, { duration: 300 + 120 * p, easing: "ease-out" });
+}
+function slashFx(x, y, c, j) {
+  if (reduced) return;
+  const e = fxEl("slash2", x, y, SLASH(c)), r = j % 2 ? 100 : 0;
+  fxRun(e, [{ transform: `translate(-50%,-50%) rotate(${r}deg) scale(.3)`, opacity: 0 }, { transform: `translate(-50%,-50%) rotate(${r}deg) scale(1.25)`, opacity: 1, offset: .3 }, { transform: `translate(-50%,-50%) rotate(${r}deg) scale(1.5)`, opacity: 0 }], { duration: 420, easing: "ease-out" });
+}
+let comboT = 0;
+function comboTag(n, c) {
+  let e = $("comboTag");
+  if (!e) { e = fxEl("fcombo", 0, 0); e.id = "comboTag"; }
+  e.style.left = Math.min(innerWidth - 66, c.x + c.w * .7 + 10) + "px"; e.style.top = (c.y + c.h * .32) + "px";
+  e.innerHTML = `<b>${n}</b> コンボ`;
+  if (e.animate && !reduced) e.animate([{ transform: "translate(-50%,-50%) scale(1.9)", opacity: .2 }, { transform: "translate(-50%,-50%) scale(.95)", opacity: 1, offset: .5 }, { transform: "translate(-50%,-50%) scale(1)" }], { duration: 220, easing: "ease-out" });
+  clearTimeout(comboT); comboT = setTimeout(() => e.remove(), 1100);
+}
+function onoma(x, y, t) {
+  const e = fxEl("onoma", x, y); e.textContent = t;
+  fxRun(e, [{ transform: "translate(-50%,-50%) rotate(-12deg) scale(2.4)", opacity: 0 }, { transform: "translate(-50%,-50%) rotate(-12deg) scale(1)", opacity: 1, offset: .15 }, { transform: "translate(-50%,-80%) rotate(-12deg) scale(1)", opacity: 1, offset: .75 }, { transform: "translate(-50%,-100%) rotate(-12deg) scale(.9)", opacity: 0 }], { duration: 950, easing: "ease-out" });
+}
+// カットイン：かいしんの いちげき・大コンボ・とどめ
+function cutIn(t, sub) {
+  if (reduced) return Promise.resolve();
+  const e = fxEl("cutin", 0, 0, `<div class="cband"><div class="cava">${avatar(equipped())}</div><div class="ctxt"><b></b><small></small></div></div>`);
+  e.querySelector("b").textContent = t; e.querySelector("small").textContent = sub || "";
+  sfx("cutin"); setTimeout(() => e.remove(), 1050);
+  return wait(880);
+}
+// じぶんが てきに とびこむ
+function dash() {
+  const p = $("plAva");
+  if (reduced || !p.animate) return wait(0);
+  const a = ctr(p), b = ctr($("bossMon")), dx = Math.round((b.x - a.x) * .4);
+  p.animate([{ transform: "none" }, { transform: `translate(${dx}px, -18px) scale(1.25)`, offset: .4 }, { transform: `translate(${dx}px, -18px) scale(1.25)`, offset: .6 }, { transform: "none" }], { duration: 560, easing: "ease-in-out" });
+  return wait(200);
+}
+// あたった しゅんかん：いっしゅん 白く とまって（ヒットストップ）、ふきとぶ
+function foeHit(el, pw) {
+  if (reduced || !el.animate) return;
+  el.animate([{ filter: "brightness(3.2) saturate(0)", transform: "scale(1.08)" }, { filter: "brightness(3.2) saturate(0)", transform: `translate(${8 * pw}px,-3px) scale(1.08)`, offset: .3 }, { filter: "none", transform: `translate(${-6 * pw}px,0) rotate(-3deg)`, offset: .6 }, { filter: "none", transform: "none" }], { duration: 300 + 80 * pw });
+}
+function impact(el, n, j, hits, crit, last, type) {
+  const c = ctr(el), col = crit ? "#ff5a3a" : j ? ORBC[j % ORBC.length] : "#ffd54a";
+  const x = c.x + (Math.random() - .5) * c.w * .35, y = c.y + (Math.random() - .5) * c.h * .3;
+  foeHit(el, last ? 1.6 : 1);
+  if (j) slashFx(x, y, col, j);
+  sparks(x, y, col, last || crit ? 16 : 10, last || crit ? 1.5 : 1);
+  dmgNum(x + (j % 2 ? 14 : -10) - c.w * .1, c.y - c.h * .15 - j * 8, n, crit ? "crit" : "");
+  if (!j) onoma(c.x - c.w * .5, c.y - c.h * .35, crit ? "かいしん！" : pickOne(HITWORD[type] || HITWORD.sword));
+  if (hits > 1) comboTag(j + 1, c);
+  sfx("hit"); if (j) sfx("orb" + Math.min(9, j + 1));
+  quake(last ? (crit ? 1.6 : 1.1) : .55);
+  if (last && crit) flashScr("#fff", .6);
+}
+function setHp(r) { $("bossHp").style.width = $("bossChip").style.width = r * 100 + "%"; }
+function land(el) {
+  if (reduced) return;
+  const c = ctr(el);
+  for (const k of [-1, 1]) { const e = fxEl("dust", c.x + k * c.w * .3, c.y + c.h * .42); fxRun(e, [{ transform: "translate(-50%,-50%) scale(.5)", opacity: .9 }, { transform: `translate(calc(-50% + ${k * 30}px), -70%) scale(1.8)`, opacity: 0 }], { duration: 500, easing: "ease-out" }); }
+  quake(.35); sfx("thud");
+}
+// たおした：くだけちる
+function shatter(c, cols, big) {
+  if (reduced) return;
+  sfx("shatter"); flashScr("#fff", big ? .8 : .5, 300); quake(big ? 2 : 1.2);
+  sparks(c.x, c.y, "#fff", 16, big ? 2.2 : 1.5);
+  for (let i = 0, n = big ? 28 : 18; i < n; i++) {
+    const z = 7 + Math.random() * 12, e = fxEl("shard", c.x + (Math.random() - .5) * c.w * .5, c.y + (Math.random() - .5) * c.h * .5);
+    e.style.width = e.style.height = z + "px"; e.style.background = cols[i % cols.length];
+    const a = Math.random() * Math.PI * 2, v = (70 + Math.random() * 90) * (big ? 1.6 : 1), dx = Math.cos(a) * v, dy = Math.sin(a) * v - 50;
+    fxRun(e, [{ transform: "translate(-50%,-50%) rotate(0deg)", opacity: 1 }, { transform: `translate(calc(-50% + ${dx * .6}px), calc(-50% + ${dy * .6}px)) rotate(${Math.round(Math.random() * 400)}deg)`, opacity: 1, offset: .4 }, { transform: `translate(calc(-50% + ${dx}px), calc(-50% + ${dy + 160}px)) rotate(${Math.round(Math.random() * 800)}deg) scale(.6)`, opacity: 0 }], { duration: 900 + Math.random() * 400, easing: "cubic-bezier(.2,.6,.5,1)" });
+  }
+}
+function victory(t, lose) {
+  const e = fxEl("vict" + (lose ? " lose" : ""), 0, 0, "<b></b>"); e.querySelector("b").textContent = t; setTimeout(() => e.remove(), 1800);
+  if (lose || reduced) return;
+  for (let i = 0; i < 20; i++) {
+    const g = fxEl("gcoin", Math.random() * innerWidth, -20);
+    fxRun(g, [{ transform: "translateY(0) scaleX(1)" }, { transform: `translateY(${innerHeight * .5}px) scaleX(-1)`, offset: .5 }, { transform: `translateY(${innerHeight + 40}px) scaleX(1)` }], { duration: 1200 + Math.random() * 700, delay: Math.random() * 400, easing: "ease-in" });
+  }
+}
+async function killFx(el, f, all) {
+  const B = BT, c = ctr(el), main = f.boss ? f.boss.c : f.m.c[B.fi % f.m.c.length];
+  if (f.boss && !reduced) for (let i = 0; i < 3; i++) {
+    sparks(c.x + (Math.random() - .5) * c.w * .7, c.y + (Math.random() - .5) * c.h * .6, i % 2 ? "#ffb21a" : "#fff", 12, 1.5);
+    sfx("boom"); quake(1.3); flashScr("#fff", .35, 160);
+    await wait(200); if (BT !== B) return;
+  }
+  shatter(c, [main, tone(main, -.35), tone(main, .4), "#fff"], !!f.boss);
+  el.classList.remove("appear", "hit"); void el.offsetWidth; el.classList.add(f.boss ? "ko" : "poof");
+  if (f.boss || all) setTimeout(() => sfx("great"), 200);
+  if (all) { await wait(380); if (BT === B) victory(f.boss ? "ボス げきは！" : "ぜんぶ やっつけた！"); }
+}
+const CLAW = `<svg viewBox="0 0 120 100" aria-hidden="true"><g stroke-linecap="round" fill="none"><path d="M20 10 Q50 50 70 92 M44 6 Q74 46 94 88 M68 4 Q96 40 114 80" stroke="#c0101a" stroke-width="11"/><path d="M20 10 Q50 50 70 92 M44 6 Q74 46 94 88 M68 4 Q96 40 114 80" stroke="#fff" stroke-width="3.5"/></g></svg>`;
+// てきの こうげき：とびかかって ツメで ひっかく（うんこ・おならは くさい けむり）
+async function foeAttack(el, f, dmg, dead) {
+  const B = BT;
+  orbClear(true);
+  sfx("growl");
+  if (!reduced && el.animate) el.animate([{ transform: "none" }, { transform: "translateY(-6px) scale(.9)", offset: .3 }, { transform: "translateY(16px) scale(1.75)", filter: "brightness(1.3)", offset: .62 }, { transform: "none" }], { duration: 600, easing: "ease-in" });
+  await wait(reduced ? 0 : 360);
+  if (BT !== B) return;
+  const a = ctr($("arena"));
+  if (!reduced) {
+    if (/うんこ|おなら/.test(f.name)) { const e = fxEl("claw", a.x, a.y, PUFF.replace('width="50" height="40"', 'width="230" height="184"')); fxRun(e, [{ transform: "translate(-50%,-50%) scale(.3)", opacity: 0 }, { transform: "translate(-50%,-50%) scale(1.2)", opacity: .95, offset: .3 }, { transform: "translate(-50%,-40%) scale(1.5)", opacity: 0 }], { duration: 800 }); sfx("puff"); }
+    else { const e = fxEl("claw", a.x, a.y, CLAW); fxRun(e, [{ transform: "translate(-50%,-50%) scale(.5) rotate(-10deg)", opacity: 0 }, { transform: "translate(-50%,-50%) scale(1.1)", opacity: 1, offset: .25 }, { transform: "translate(-50%,-50%) scale(1.15)", opacity: 1, offset: .6 }, { transform: "translate(-50%,-50%) scale(1.2)", opacity: 0 }], { duration: 650, easing: "ease-out" }); sfx("claw"); }
+    const v = fxEl("vign", 0, 0); fxRun(v, [{ opacity: 1 }, { opacity: 0 }], { duration: 600, easing: "ease-in" });
+  }
+  sfx("thud"); quake(1.5);
+  const pl = $("plAva"), p = ctr(pl);
+  dmgNum(p.x + 18, p.y - p.h * .3, dmg, "hurt");
+  if (!reduced && pl.animate) pl.animate([{ filter: "brightness(1.6) sepia(1) hue-rotate(-50deg) saturate(5)", transform: "translateX(-6px)" }, { filter: "none", transform: "translateX(5px)" }, { filter: "brightness(1.6) sepia(1) hue-rotate(-50deg) saturate(5)", transform: "translateX(-3px)" }, { filter: "none", transform: "none" }], { duration: 500 });
+  drawBt();
+  if (dead) { await wait(450); if (BT === B) { victory("ちからつきた…", true); sfx("miss"); } }
 }
 function rpgTurn(ok, streak = 0, hits = 1) {
   const B = BT, f = B.foes[B.k], el = $("bossMon");
   if (ok) {
     // 3れんぞくで「かいしんの いちげき」
     const crit = streak >= 3 && streak % 3 === 0;
-    // 2字いじょうの ことばは コンボ：字の 数だけ れんぞくで きる（1字ふえるごとに 25% ふえる）
+    // 2字いじょうの ことばは コンボ：字の 数だけ れんぞくで あてる（1字ふえるごとに 25% ふえる）
     const dmg = Math.max(1, Math.round(B.atk * (0.9 + Math.random() * 0.2) * (crit ? 1.6 : 1) * (1 + 0.25 * (hits - 1))));
+    const hp0 = f.hp;
     f.hp -= dmg;
     const kill = f.hp <= 0;
     if (kill) { if (B.k === B.foes.length - 1) { B.win = true; B.over = true; } else B.next = true; }
-    swing(el).then(async type => {
-      // コンボ：1HIT、2HIT… と 字の 数だけ きりつける
-      const part = Math.max(1, Math.round(dmg / hits));
+    const parts = [];
+    for (let j = 0, left = dmg; j < hits; j++) { const p = j === hits - 1 ? left : Math.max(1, Math.round(dmg / hits)); parts.push(p); left -= p; }
+    const cut = !reduced && (crit || hits >= 3 || (kill && !!f.boss));
+    const charge = ORBS.length ? 480 : 0;
+    // つぎへ すすむ までの 時間（えんしゅつの ながさ）
+    B.ms = 1500 + charge + (cut ? 880 : 0) + 280 * (hits - 1) + (kill ? (f.boss ? 1300 : 600) : 0);
+    (async () => {
+      await wait(charge);
+      if (BT !== B) return;
+      if (cut) { await cutIn(crit ? "かいしんの いちげき！" : hits >= 3 ? `${hits}れんげき！` : "とどめだ！", crit && hits > 1 ? `${hits}コンボ` : f.name); if (BT !== B) return; }
+      const first = ORBS.shift();
+      if (first) orbShoot(first, ctr($("plAva")), 180);
+      await dash();
+      const type = await swing(el);
+      if (BT !== B) return;
+      let shown = hp0;
       for (let j = 0; j < hits; j++) {
-        if (j) { await new Promise(r => setTimeout(r, 300)); sfx(j % 2 ? "slash" : "boom"); overlay(el, SLASH(j % 2 ? "#ffd54a" : "#9be7ff"), "slashfx", 400); }
-        el.classList.remove("appear", "hit"); void el.offsetWidth; el.classList.add("hit");
-        if (hits > 1) { pop(el, `${j + 1}HIT！`, "boom"); setTimeout(() => pop(el, `-${j === hits - 1 ? dmg - part * (hits - 1) : part}`, "dmg"), 100); bigShake(); }
+        if (j) { const o = ORBS.shift(); if (o) await orbShoot(o, ctr(el), 230); else await wait(230); if (BT !== B) return; }
+        shown -= parts[j];
+        impact(el, parts[j], j, hits, crit, j === hits - 1, type);
+        setHp(Math.max(0, shown) / f.max);
       }
-      if (f.boss || crit || kill) { flash(); bigShake(); }
-      if (hits > 1) setTimeout(() => pop(el, crit ? "かいしんの コンボ！" : `${hits}れんげき！ ${dmg}ダメージ`, "boom"), 150);
-      else { pop(el, crit ? "かいしんの いちげき！" : pickOne(HITWORD[type] || HITWORD.sword), "boom"); setTimeout(() => pop(el, `-${dmg}`, "dmg"), 120); }
+      orbClear();
       drawBt();
       if (kill) {
-        setTimeout(() => { el.classList.remove("hit"); void el.offsetWidth; el.classList.add(f.boss ? "ko" : "poof"); sfx(f.boss || B.win ? "great" : "kanaok"); }, 300);
         say(f.boss ? f.boss.win : B.win ? `${f.name}を たおした！ ぜんぶ やっつけた！` : `${f.name}を たおした！`);
-      } else say(f.boss ? pickOne(f.boss.hit) : `${f.name}に ${dmg}の ダメージ！ のこり HP ${f.hp}`);
-    });
+        await wait(260);
+        if (BT === B) killFx(el, f, B.win);
+      } else say(f.boss ? pickOne(f.boss.hit) : hits > 1 ? `${hits}れんげき！ ${f.name}に ${dmg}の ダメージ！` : `${f.name}に ${dmg}の ダメージ！ のこり HP ${f.hp}`);
+    })();
   } else {
     const dmg = Math.max(1, Math.round(f.atk * (0.85 + Math.random() * 0.3) - B.def));
     B.php -= dmg;
     if (B.php <= 0) { B.php = 0; B.dead = true; B.over = true; }
-    sfx("puff");
-    fx(el, $("plAva"), PUFF, "puff", 520).then(() => {
-      shake($("plAva")); bigShake(); pop($("plAva"), `-${dmg}`, "dmg"); drawBt();
-      say(B.dead ? "ちからつきた…" : `${f.name}の こうげき！ ${dmg}の ダメージ！ かけるまで にげられないぞ！`);
-    });
+    B.ms = 1700 + (B.dead ? 700 : 0);
+    say(`${f.name}の こうげき！`);
+    foeAttack(el, f, dmg, B.dead).then(() => { if (BT === B) say(B.dead ? "ちからつきた…" : `${f.name}の こうげき！ ${dmg}の ダメージ！ かけるまで にげられないぞ！`); });
   }
 }
 
@@ -2259,13 +2600,14 @@ const isMenu = () => MENU.some(id => !$(id).hidden);
 function show(id) {
   if (!S.stats["アバター"] && MENU.includes(id) && id !== "adult") { if ($("hello").hidden) return startHello(); id = "hello"; }
   for (const s of SCREENS) $(s).hidden = s !== id;
+  orbClear(); $("fxl").textContent = "";
   bgmPlay(id === "drill" || id === "kana" ? "battle" : id === "quest" ? "quest" : "home");
   window.scrollTo(0, 0);
   if (MENU.includes(id)) renderHome();
   if (id === "home") checkUpdate();
 }
 // 新しい版が出ていたら、ホームに いるときだけ 入れかえる（れんしゅうの とちゅうでは しない）
-const VER = "1018-0835";
+const VER = "1018-0904";
 function checkUpdate() {
   fetch("version.txt?" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : "").then(v => {
     v = v.trim();
@@ -2898,7 +3240,7 @@ function charDone() {
   c.setAttribute("cx", 54.5); c.setAttribute("cy", 54.5); c.setAttribute("r", 48); c.setAttribute("class", "maru");
   if (!D.clean) sfx("kanaok");
   if (D.clean) {
-    sfx("ok");
+    if (D.bt) orbCharge(D.si); else sfx("ok");
     $("lTop").appendChild(c);
     if (!reduced && c.animate) { const L = 2 * Math.PI * 48; c.style.strokeDasharray = L; c.animate([{ strokeDashoffset: L }, { strokeDashoffset: 0 }], { duration: 450, fill: "forwards" }); }
   }
@@ -2920,7 +3262,7 @@ function charDone() {
   {
     // ○も △も 自動で つぎへ（△は 少し 長めに 見せる）
     const myD = D, myI = D.i;
-    setTimeout(() => { if (D === myD && D.i === myI && !$("drill").hidden) $("nextBtn").click(); }, D.bt ? (D.bt.over ? 2400 : 1700) + (lastOk ? 300 * (D.slots.length - 1) : 0) : D.boss ? (D.boss.over ? 2200 : 1700) : D.mob ? 1600 : lastOk ? 1100 : 1800);
+    setTimeout(() => { if (D === myD && D.i === myI && !$("drill").hidden) $("nextBtn").click(); }, D.bt ? D.bt.ms + (D.bt.over ? 900 : 0) : D.boss ? (D.boss.over ? 2200 : 1700) : D.mob ? 1600 : lastOk ? 1100 : 1800);
   }
 }
 function finishDrill() {
@@ -3071,7 +3413,7 @@ function answerKana(o, btn) {
   else if (MB) mobTurn(right);
   $("kNext").hidden = false;
   $("kNext").textContent = BT && BT.host === "kana" ? (BT.over ? "けっかを 見る" : K.retry ? "もういちど" : "つぎへ") : K.i + 1 >= K.qs.length ? "けっかを 見る" : "つぎへ";
-  if (right) { const myK = K, myI = K.i; setTimeout(() => { if (K === myK && K.i === myI && !$("kana").hidden) $("kNext").click(); }, 1700); }
+  if (right) { const myK = K, myI = K.i; setTimeout(() => { if (K === myK && K.i === myI && !$("kana").hidden) $("kNext").click(); }, BT && BT.host === "kana" ? BT.ms + (BT.over ? 900 : 0) : 1700); }
 }
 function kanaLabel() { const Qq = K.quest; $("kanaProg").textContent = `${QUESTS[Qq.q].name}　${Qq.boss ? "ボス" : "マス" + (Qq.idx + 1)}${K.retrying ? "　もういちど！" : ""}`; }
 $("kNext").onclick = () => {
