@@ -255,7 +255,21 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .gate .door { animation: doorglow 2.4s ease-in-out infinite alternate; }
 @keyframes doorglow { to { opacity: .55; } }
 .gtitle { font-family: var(--font-k); font-size: 38px; letter-spacing: .08em; color: #3a2a1a; text-shadow: 0 2px 0 #f2c230, 0 4px 0 #b88a12; }
-#enterBtn { width: min(100%, 360px); font-size: 22px; min-height: 64px; animation: pop 1.2s ease-in-out infinite; }
+.whoq { margin: 0; font-weight: 700; font-size: 20px; color: #3a2a1a; }
+.who { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 10px; width: min(100%, 480px); }
+.whocard { border: 3px solid #2a2026; border-radius: 16px; background: #fff8e6; padding: 8px 6px; display: grid; justify-items: center; gap: 2px; box-shadow: inset 0 -4px 0 #0002; min-width: 0; }
+.whocard .ava { width: 64px; height: 70px; display: block; }
+.whocard b { font-size: 17px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.whocard small { font-size: 11px; color: var(--pencil); font-weight: 700; }
+.whocard.new { background: #2e7a57; color: #fff; border-style: dashed; animation: pop 1.2s ease-in-out infinite; }
+.whocard.new i { font-style: normal; font-size: 40px; line-height: 70px; height: 70px; }
+.whocard.new small { color: #e3f1e8; }
+.pname { border: 0; background: none; padding: 0; display: flex; justify-content: space-between; width: 100%; align-items: baseline; gap: 4px; min-width: 0; font: inherit; color: inherit; }
+.pname b { font-size: 16px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pname small { flex: none; font-size: 10px; font-weight: 700; color: #fff; background: var(--green); border-radius: 99px; padding: 1px 7px; }
+.helloname { width: 100%; box-sizing: border-box; font: inherit; font-size: 26px; padding: 10px 12px; border: 3px solid var(--green); border-radius: 12px; text-align: center; }
+.plrow { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+.plrow .btn { min-height: 36px; padding: 4px 14px; font-size: 14px; }
 .gnote { margin: 0; font-size: 13px; }
 .hellotop { display: flex; justify-content: space-between; align-items: center; }
 .hellotop .back { font-size: 12px; }
@@ -596,6 +610,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
   <div class="hero2">
     <button class="avabox" id="goEquip" aria-label="そうびを 見る"><div id="avatar"></div><span>そうび</span><em class="ptbadge" id="ptBadge" hidden></em></button>
     <div class="herostat">
+      <button class="pname" id="pSwitch" aria-label="こうたい する"><b id="pName"></b><small>こうたい</small></button>
       <div class="lvline"><span class="lvbadge"><small>レベル</small><b id="lvNum">1</b></span></div>
       <span class="stats3" id="stats3"></span>
       <div class="xpbar"><i id="xpFill"></i></div>
@@ -696,8 +711,9 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
 <section id="title" class="screen" hidden>
   <div class="gate" id="gateArt"></div>
   <h1 class="gtitle">かんじ ダンジョン</h1>
-  <button class="btn primary big" id="enterBtn">ダンジョンに はいる</button>
-  <p class="muted gnote">おとが でるよ</p>
+  <p class="whoq" id="whoQ">だれが はいる？</p>
+  <div class="who" id="who"></div>
+  <p class="muted gnote">さわると おとが でるよ</p>
 </section>
 
 <!-- アイテムを 手に入れた！ -->
@@ -786,6 +802,10 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
       <div class="muted">スプレッドシートに決めた合言葉を、端末ごとに1回入れてください。</div>
     </div>
     <div>
+      <div style="font-weight:700;margin-bottom:8px">子どもの セーブ（3人まで）</div>
+      <div id="plAdult" style="display:grid;gap:8px"></div>
+    </div>
+    <div>
       <div style="font-weight:700;margin-bottom:8px">効果音</div>
       <div class="seg" id="soundSeg"><button data-s="1">あり</button><button data-s="0">なし</button></div>
     </div>
@@ -803,7 +823,7 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
     </div>
     <p class="muted" style="margin:0">1画ずつ「書き順・向き・だいたいの位置と形」を見ています。トメ・ハネ・ハライまでは判定しません。</p>
   </div>
-  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1018-0915</p>
+  <p class="muted" style="margin:0;font-size:12px">書き順データ：<a href="https://kanjivg.tagaini.net/" style="color:inherit">KanjiVG</a>（Ulrich Apel、CC BY-SA 3.0）・言葉の読み：<a href="https://www.edrdg.org/jmdict/j_jmdict.html" style="color:inherit">JMdict</a>（EDRDG、CC BY-SA 4.0）・版 1018-0929</p>
 </section>
 
 <!-- ボス登場・たからばこ（全画面に かさねる） -->
@@ -955,16 +975,43 @@ if (S.settings.list === "g2") S.settings.list = "all";
 // リリース：この 時こくより まえの 記録（大人の テスト）は すてる。合言葉・学年・音の 設定は のこす
 // シートや ほかの 端末から 古い 記録が とどいても、ここで すてるので もどらない
 const RESET_AT = 1792282553000;
+/* ---------- きょうだい（3人まで）：ひとりずつ べつの セーブ ---------- */
+// 3人ぶんの 記録は S.all に まとめて 共有する。1人目は いままで どおりの 名前、2人目・3人目は「2:」「3:」を つける
+// かなクイズは 番号なので 1000・2000 を たす。アプリの ほかの ところは S.stats（いまの 子の ぶん）だけ 見る
+const PMAX = 3;
+const preS = p => p ? `${p + 1}:` : "";
+const ownS = (k, p) => p ? k.startsWith(preS(p)) : !/^\d:/.test(k);
+const ownK = (k, p) => Math.floor(+k / 1000) === p;
+if (!S.all) S.all = { stats: S.stats || {}, kstats: S.kstats || {} };
+S.player = Math.min(PMAX - 1, S.settings.player || 0);
+function viewOf(p) {
+  const st = {}, ks = {}, pre = preS(p);
+  for (const k in S.all.stats) if (ownS(k, p)) st[k.slice(pre.length)] = S.all.stats[k];
+  for (const k in S.all.kstats) if (ownK(k, p)) ks[+k - p * 1000] = S.all.kstats[k];
+  return { st, ks };
+}
+function useView() { const v = viewOf(S.player); S.stats = v.st; S.kstats = v.ks; }
+function storeView() {
+  const pre = preS(S.player);
+  for (const k in S.stats) S.all.stats[pre + k] = S.stats[k];
+  for (const k in S.kstats) S.all.kstats[+k + S.player * 1000] = S.kstats[k];
+}
+// その 子の「リセット」より まえの 記録は すてる（大人の 画面で けした 子も ここで きえる）
 function dropOld() {
-  for (const m of [S.stats, S.kstats]) for (const k in m) { const t = m[k].last || 0; if (t !== 1 && t < RESET_AT) delete m[k]; }
+  for (let p = 0; p < PMAX; p++) {
+    const r = S.all.stats[preS(p) + "リセット"], cut = Math.max(RESET_AT, r ? r.ok : 0);
+    for (const k in S.all.stats) if (ownS(k, p) && k !== preS(p) + "リセット") { const t = S.all.stats[k].last || 0; if (t !== 1 && t <= cut) delete S.all.stats[k]; }
+    for (const k in S.all.kstats) if (ownK(k, p) && (S.all.kstats[k].last || 0) <= cut) delete S.all.kstats[k];
+  }
   if ((S.listsT || 0) < RESET_AT) { S.lists = []; S.listsT = RESET_AT; }
 }
 dropOld();
+useView();
 try { if (localStorage.getItem("resetAt") !== String(RESET_AT)) { for (const k of ["stageQ", "seenItems"]) localStorage.removeItem(k); localStorage.setItem("resetAt", String(RESET_AT)); S.pending = true; } } catch (e) {}
 let syncing = false, again = false, saveTimer = null;
 
-function local() { try { localStorage.setItem(LSKEY, JSON.stringify(S)); } catch (e) {} }
-function shared() { return { lists: S.lists, listsT: S.listsT, stats: S.stats, kstats: S.kstats }; }
+function local() { storeView(); try { localStorage.setItem(LSKEY, JSON.stringify({ ...S, stats: undefined, kstats: undefined })); } catch (e) {} }
+function shared() { storeView(); return { lists: S.lists, listsT: S.listsT, stats: S.all.stats, kstats: S.all.kstats }; }
 function save() {
   S.pending = true; local();
   clearTimeout(saveTimer);
@@ -995,6 +1042,7 @@ async function pull() {
     setSync("on");
     if (S.pending) push();
     if (isMenu()) renderHome();
+    if (!$("title").hidden) renderWho();
     // べつの 端末で つくった キャラが とどいたら、キャラづくりは おしまい
     if (!$("hello").hidden && S.stats["アバター"]) show("home");
   } catch (e) { setSync(e.message === "key" ? "badkey" : "off"); }
@@ -1007,9 +1055,11 @@ function mergeMap(a, b) {
 function merge(r) {
   if (!r) return;
   if ((r.listsT || 0) > (S.listsT || 0)) { S.lists = r.lists || []; S.listsT = r.listsT; }
-  S.stats = mergeMap(S.stats, r.stats);
-  S.kstats = mergeMap(S.kstats, r.kstats);
+  storeView();
+  S.all.stats = mergeMap(S.all.stats, r.stats);
+  S.all.kstats = mergeMap(S.all.kstats, r.kstats);
   dropOld();
+  useView();
   local();
 }
 function setSync(st) {
@@ -2390,14 +2440,15 @@ function nextGive() {
   if (!it) { el.hidden = true; return; }
   const eq = equipped(), cur = eq[it.slot];
   $("giIcon").innerHTML = avatar({ ...eq, [it.slot]: it });
-  $("giText").textContent = `${it.name}を 手に入れた！`;
+  $("giText").textContent = `${myName()}は ${it.name}を 手に入れた！`;
   $("giStat").textContent = `${it.slot}：${statText(it)}　（いま：${cur ? cur.name + "　" + statText(cur) : "なし"}）`;
   el.hidden = false; sfx("great");
   $("giEquip").onclick = () => { setEquip({ ...equipped(), [it.slot]: it }); markSeen(it); sfx("ok"); nextGive(); };
   $("giBag").onclick = () => { nextGive(); };
 }
-const seenSet = () => { try { return new Set(JSON.parse(localStorage.getItem("seenItems") || "[]")); } catch (e) { return new Set(); } };
-function markSeen(...its) { const s = seenSet(); its.forEach(it => s.add(ITEMS.indexOf(it))); try { localStorage.setItem("seenItems", JSON.stringify([...s])); } catch (e) {} }
+const seenKey = () => "seenItems" + (S.player || "");
+const seenSet = () => { try { return new Set(JSON.parse(localStorage.getItem(seenKey()) || "[]")); } catch (e) { return new Set(); } };
+function markSeen(...its) { const s = seenSet(); its.forEach(it => s.add(ITEMS.indexOf(it))); try { localStorage.setItem(seenKey(), JSON.stringify([...s])); } catch (e) {} }
 
 
 /* ---------- きけんダンジョン（にがてな字だけ。てきが つよく、クリアで レアそうび） ---------- */
@@ -2614,10 +2665,11 @@ function show(id) {
   bgmPlay(id === "drill" || id === "kana" ? "battle" : id === "quest" ? "quest" : "home");
   window.scrollTo(0, 0);
   if (MENU.includes(id)) renderHome();
+  if (id === "adult") renderPlayersAdult();
   if (id === "home") checkUpdate();
 }
 // 新しい版が出ていたら、ホームに いるときだけ 入れかえる（れんしゅうの とちゅうでは しない）
-const VER = "1018-0915";
+const VER = "1018-0929";
 function checkUpdate() {
   fetch("version.txt?" + Date.now(), { cache: "no-store" }).then(r => r.ok ? r.text() : "").then(v => {
     v = v.trim();
@@ -2650,6 +2702,7 @@ function chip(box, cls, id, html, title) {
   box.appendChild(b);
 }
 function renderHome() {
+  $("pName").textContent = myName();
   const g = gradeOf();
   for (const b of $("gradeSeg").children) b.setAttribute("aria-pressed", +b.dataset.g === g);
   const hasU = !!DATA.unko[g];
@@ -2714,7 +2767,8 @@ function renderHome() {
   });
   $("counts").innerHTML = `<span>おぼえた <b>${c.master}</b></span><span>にがて <b>${c.weak}</b></span><span>ぜんぶ <b>${T.kanji.length}</b></span>`;
 }
-$("gradeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.grade = +b.dataset.g; if (S.settings.list === "all" || /^u\d+$/.test(S.settings.list)) S.settings.list = "all"; save(); renderHome(); };
+$("pSwitch").onclick = () => showTitle();
+$("gradeSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.grade = +b.dataset.g; S.stats["学年"] = stamp(S.settings.grade); if (S.settings.list === "all" || /^u\d+$/.test(S.settings.list)) S.settings.list = "all"; save(); renderHome(); };
 $("unkoSeg").onclick = e => { const b = e.target.closest("button"); if (!b || b.disabled) return; S.settings.unko = b.dataset.u === "1"; buildQ(); save(); renderHome(); };
 $("countSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.count = +b.dataset.n; save(); renderHome(); };
 $("bgmSeg").onclick = e => { const b = e.target.closest("button"); if (!b) return; S.settings.bgm = b.dataset.s === "1"; save(); renderHome(); bgmPlay(S.settings.bgm ? "home" : null); };
@@ -2787,22 +2841,88 @@ $("lookSave").onclick = () => {
   sfx("ok");
 };
 
+/* ---------- だれが あそぶ？（名前・学年・こうたい） ---------- */
+// 名前は 1つの 記録に 数字で しまう（3字ずつ 3つの らんに。9字まで）
+function encName(t) { const f = [0, 0, 0]; [...t].map(c => c.codePointAt(0)).filter(c => c < 65536).slice(0, 9).forEach((c, i) => { f[Math.floor(i / 3)] += c * 65536 ** (i % 3); }); return f; }
+function decName(v) { if (!v) return ""; let out = ""; for (let x of [v.ok, v.ng, v.st]) for (let i = 0; i < 3 && x; i++) { out += String.fromCharCode(x % 65536); x = Math.floor(x / 65536); } return out; }
+const myName = () => decName(S.stats["なまえ"]) || "ゆうしゃ";
+const stamp = ok => ({ ok, ng: 0, st: 0, p: 0, last: Date.now() });
+// はじめて：いまの いちばん つよい そうびを つけておく（古い 時こくに して、ほかの 端末で えらんだ ものを うわがき しない）
+function ensureEquip() { if (S.stats["そうび"]) return; const eq = bestEq(); let code = 0; SLOTS.slice().reverse().forEach(slot => { code = code * 100 + (ITEMS.indexOf(eq[slot]) + 1); }); S.stats["そうび"] = { ok: code, ng: 0, st: 0, p: 0, last: 1 }; local(); }
+function switchPlayer(p) {
+  storeView(); S.player = p; S.settings.player = p; useView();
+  if (S.stats["学年"]) S.settings.grade = S.stats["学年"].ok;
+  if (S.stats["アバター"]) ensureEquip();
+  local();
+}
+// ほかの 子の ようすを 見る（そうびや レベルの 計算は いまの 子の 記録を つかうので、いっしゅん いれかえる）
+function asPlayer(p, fn) { storeView(); const keep = [S.player, S.stats, S.kstats]; S.player = p; useView(); try { return fn(); } finally { [S.player, S.stats, S.kstats] = keep; } }
+function playerList() {
+  const out = [];
+  for (let p = 0; p < PMAX; p++) {
+    const info = asPlayer(p, () => S.stats["アバター"] ? { p, name: myName(), ava: avatar(equipped()), L: levelOf(xpTotal()).L, g: gradeOf2() } : null);
+    if (info) out.push(info);
+  }
+  return out;
+}
+const gradeOf2 = () => S.stats["学年"] ? S.stats["学年"].ok : null;
+function renderWho() {
+  const box = $("who"), list = playerList(); box.textContent = "";
+  const go = () => { wakeAudio(); sfx("thud"); BG.name = undefined; bgmPlay("home"); };
+  for (const it of list) {
+    const b = document.createElement("button"); b.className = "whocard";
+    b.innerHTML = it.ava + `<b></b><small>レベル ${it.L}${it.g ? "・" + it.g + "年" : ""}</small>`;
+    b.querySelector("b").textContent = it.name;
+    // 名前が まだの 子（名前の きのうより まえに つくった キャラ）は、名前と 学年だけ きく
+    b.onclick = () => { go(); switchPlayer(it.p); if (S.stats["なまえ"]) show("home"); else startHello(); };
+    box.appendChild(b);
+  }
+  if (list.length < PMAX) {
+    const used = new Set(list.map(it => it.p)), p = [0, 1, 2].find(i => !used.has(i));
+    const b = document.createElement("button"); b.className = "whocard new";
+    b.innerHTML = `<i>＋</i><b>あたらしく つくる</b><small>${list.length ? "べつの 子の セーブ" : "名前と キャラを つくろう"}</small>`;
+    b.onclick = () => { go(); switchPlayer(p); startHello(); };
+    box.appendChild(b);
+  }
+  $("whoQ").textContent = list.length ? "だれが はいる？" : "ようこそ！";
+}
+// 大人の 画面：子どもの セーブを けす
+function renderPlayersAdult() {
+  const box = $("plAdult"); box.textContent = "";
+  for (const it of playerList()) {
+    const row = document.createElement("div"); row.className = "plrow";
+    row.innerHTML = `<span></span><button class="btn danger">けす</button>`;
+    row.querySelector("span").textContent = `${it.name}（レベル ${it.L}）`;
+    row.querySelector("button").onclick = () => {
+      if (!confirm(`${it.name}の セーブを ぜんぶ けします。もとに もどせません。よいですか？`)) return;
+      storeView();
+      S.all.stats[preS(it.p) + "リセット"] = stamp(Date.now());
+      dropOld(); useView(); save(); renderPlayersAdult();
+    };
+    box.appendChild(row);
+  }
+  if (!box.children.length) box.innerHTML = `<p class="muted" style="margin:0">まだ いません</p>`;
+}
 /* ---------- はじめての キャラづくり ---------- */
 // ぜんぶの パーツを 1つずつ えらぶまで ぼうけんは はじまらない
-const HELLO_SAY = ["ようこそ、かんじの ダンジョンへ！ まずは きみの キャラを つくろう！", "はだの いろは どれに する？", "かみがたを えらぼう！", "かみの いろは？", "め は どれに する？", "くちは？", "めがねは かける？", "ほっぺは？", "ふくの いろを えらぼう！", "かっこいい！ これで ぼうけんに でかけよう！"];
-let hstep = 0, hdraft = null, hpicked = {};
-function startHello() { hstep = 0; hdraft = { ...DEFAULT_LOOK }; hpicked = {}; show("hello"); renderHello(); }
+const HELLO_SAY = ["ようこそ、かんじの ダンジョンへ！ まずは きみの なまえと 学年を おしえてね！", "はだの いろは どれに する？", "かみがたを えらぼう！", "かみの いろは？", "め は どれに する？", "くちは？", "めがねは かける？", "ほっぺは？", "ふくの いろを えらぼう！", "かっこいい！ これで ぼうけんに でかけよう！"];
+let hstep = 0, hdraft = null, hpicked = {}, hname = "", hgrade = 0;
+function startHello() { hstep = 0; hdraft = S.stats["アバター"] ? myLook() : { ...DEFAULT_LOOK }; hpicked = {}; hname = ""; hgrade = 0; show("hello"); renderHello(); }
 function renderHello() {
   const eq = equipped(), last = LOOK_KEYS.length + 1, k = LOOK_KEYS[hstep - 1];
   $("helloAva").innerHTML = avatar(eq, hdraft);
   $("helloSay").textContent = HELLO_SAY[hstep];
   $("helloStep").textContent = hstep === 0 ? "キャラづくり" : hstep === last ? "かんせい！" : `キャラづくり ${hstep} / ${LOOK_KEYS.length}`;
   const box = $("helloParts"); box.textContent = "";
-  $("helloBack").hidden = hstep === 0;
+  $("helloBack").textContent = hstep === 0 ? "やめる" : "もどる";
   const nx = $("helloNext");
   if (hstep === 0) {
-    box.innerHTML = `<p class="helloready">かみがた・め・ふくの いろ など、${LOOK_KEYS.length}つを えらぶよ。<br>ぜんぶ えらぶと ぼうけんが はじまる！</p>`;
-    nx.textContent = "キャラを つくる！"; nx.disabled = false;
+    box.innerHTML = `<div class="label">なまえ</div><input class="helloname" id="helloName" maxlength="9" autocomplete="off" placeholder="れい：たろう"><div class="label">なんねんせい？</div><div class="seg grades" id="helloGrade">${[1, 2, 3, 4, 5, 6].map(g => `<button data-g="${g}" aria-pressed="${hgrade === g}">${g}年</button>`).join("")}</div>${S.stats["アバター"] ? "" : `<p class="helloready">つぎに かみがた・め・ふくの いろ など、${LOOK_KEYS.length}つを えらぶよ。</p>`}`;
+    const inp = $("helloName"), ok = () => { nx.disabled = !hname.trim() || !hgrade; nx.textContent = !hname.trim() ? "なまえを いれてね" : !hgrade ? "学年を えらんでね" : S.stats["アバター"] ? "これで はじめる！" : "キャラを つくる！"; };
+    inp.value = hname;
+    inp.oninput = () => { hname = inp.value; ok(); };
+    $("helloGrade").onclick = e => { const b = e.target.closest("button"); if (!b) return; hgrade = +b.dataset.g; for (const x of $("helloGrade").children) x.setAttribute("aria-pressed", x === b); sfx("kanaok"); ok(); };
+    ok();
   } else if (hstep === last) {
     box.innerHTML = `<p class="helloready">あとで「そうび」→「キャラを かえる」から なおせるよ。</p>`;
     nx.textContent = "この キャラで ぼうけんに でる！"; nx.disabled = false;
@@ -2823,13 +2943,18 @@ function renderHello() {
   }
 }
 $("helloNext").onclick = () => {
-  if (hstep === LOOK_KEYS.length + 1) {
-    S.stats["アバター"] = { ok: lookToCode(hdraft), ng: 0, st: 0, p: 0, last: Date.now() }; save();
+  const named = hstep === 0 && S.stats["アバター"];
+  if (hstep === LOOK_KEYS.length + 1 || named) {
+    const nm = encName(hname.trim());
+    S.stats["なまえ"] = { ok: nm[0], ng: nm[1], st: nm[2], p: 0, last: Date.now() };
+    S.stats["学年"] = stamp(hgrade); S.settings.grade = hgrade;
+    if (!named) S.stats["アバター"] = { ok: lookToCode(hdraft), ng: 0, st: 0, p: 0, last: Date.now() };
+    ensureEquip(); save();
     sfx("great"); show("home"); return;
   }
   hstep++; renderHello(); window.scrollTo(0, 0);
 };
-$("helloBack").onclick = () => { if (hstep > 0) { hstep--; renderHello(); } };
+$("helloBack").onclick = () => { if (hstep > 0) { hstep--; renderHello(); } else showTitle(); };
 $("helloAdult").onclick = () => show("adult");
 // いりぐちの え：岩山に 石の アーチ、おくが ぼんやり 光る。たいまつ 2本と じぶんの キャラ
 function gateSVG() {
@@ -2845,8 +2970,7 @@ function gateSVG() {
     + avatar(equipped()).replace('<svg class="ava"', '<svg x="152" y="206" width="56" height="62"')
     + `</svg>`;
 }
-function showTitle() { $("gateArt").innerHTML = gateSVG(); show("title"); }
-$("enterBtn").onclick = () => { wakeAudio(); sfx("thud"); BG.name = undefined; bgmPlay("home"); show("home"); };
+function showTitle() { $("gateArt").innerHTML = gateSVG(); show("title"); renderWho(); }
 function renderEquip() {
   const c = cleared(), eq = equipped(), P = me(eq), seen = seenSet(), pts = pointsLeft();
   $("eqAvatar").innerHTML = avatar(eq);
@@ -3621,7 +3745,7 @@ for (const ev of ["gesturestart", "gesturechange"]) document.addEventListener(ev
 let lastTap = 0;
 document.addEventListener("touchend", e => { const t = Date.now(); if (t - lastTap < 350 && !e.target.closest("input,textarea")) { e.preventDefault(); const b = e.target.closest("button"); if (b && !b.disabled) b.click(); } lastTap = t; }, { passive: false });
 // はじめて：いまの いちばん つよい そうびを つけておく（古い 時こくに して、ほかの 端末で えらんだ ものを うわがき しない）
-if (!S.stats["そうび"]) { const eq = bestEq(); let code = 0; SLOTS.slice().reverse().forEach(slot => { code = code * 100 + (ITEMS.indexOf(eq[slot]) + 1); }); S.stats["そうび"] = { ok: code, ng: 0, st: 0, p: 0, last: 1 }; local(); }
+ensureEquip();
 showTitle();
 setSync();
 pull();
