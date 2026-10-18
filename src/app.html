@@ -301,6 +301,14 @@ button:focus-visible, input:focus-visible, textarea:focus-visible { outline: 3px
 .sheet.stone .cellbtn[data-s="ok"] { background: #a5d6b7; color: #1d2721; }
 .sheet.stone .cellbtn[data-s="master"] { background: radial-gradient(circle at 35% 30%, #fffbe0, #f2c230 70%); border-color: #b88a12; color: #5a3d12; box-shadow: 0 0 10px #ffd54a99; }
 .sheet.stone .cellbtn[data-s="master"]::after { border-color: #e8473a; }
+.sheet.stone .cellbtn[data-n] { opacity: .35; border-style: dashed; }
+.sheet.stone .cellbtn[data-n]::before { content: "まだ"; position: absolute; left: 0; right: 0; bottom: 1px; font-family: var(--font-ui); font-size: 9px; font-weight: 700; }
+.kyo { display: grid; grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); gap: 6px; }
+.kyo button { border: 2px solid var(--rule); background: var(--sheet); border-radius: 8px; padding: 2px 0; display: grid; justify-items: center; font-family: var(--font-k); font-size: 20px; line-height: 1.2; }
+.kyo button small { font-family: var(--font-ui); font-size: 9px; color: var(--pencil); }
+.kyo button[data-on] { background: var(--ok); border-color: var(--green); }
+.kyo button[data-last] { background: var(--green); color: #fff; }
+.kyo button[data-last] small { color: #e3f1e8; }
 .sheet.stone .cellbtn[data-s="weak"] { background: #f3b3a8; border-color: #e8473a; color: #5a1a12; }
 .legend { display: flex; flex-wrap: wrap; gap: 14px; font-size: 13px; color: var(--pencil); }
 .legend i { display: inline-block; width: 14px; height: 14px; border-radius: 4px; border: 1px solid var(--rule); vertical-align: -2px; margin-right: 4px; }
@@ -791,6 +799,12 @@ pre.fmt { background: var(--page); border-radius: 8px; padding: 10px 12px; font-
       <div class="muted">スプレッドシートに決めた合言葉を、端末ごとに1回入れてください。</div>
     </div>
     <div>
+      <div style="font-weight:700">学校で ならった ところ（<span id="kyoWho"></span>）</div>
+      <div class="muted" id="kyoNote"></div>
+      <div class="row" style="margin:8px 0"><button class="btn ghost" id="kyoAll">ぜんぶ 出す</button><button class="btn ghost" id="kyoNone">上巻まで</button></div>
+      <div class="kyo" id="kyoGrid"></div>
+    </div>
+    <div>
       <div style="font-weight:700;margin-bottom:8px">子どもの セーブ（3人まで）</div>
       <div id="plAdult" style="display:grid;gap:8px"></div>
     </div>
@@ -1090,12 +1104,29 @@ function fallbackQ(k) {
   const kata = on.replace(/[\u3041-\u3096]/g, c => String.fromCharCode(c.charCodeAt(0) + 0x60));
   return { w: k, r: kata || kun.replace(".", ""), s: "＿" };
 }
+/* ---------- ならった ところ（学校の 教科書の すすみ ぐあい） ---------- */
+// 教育出版「ひろがる言葉 小学国語 二下」の 巻末（159〜162ページ）の 順番。かずは 教科書の ページ
+// 二上の 104字は もう ならった ものと する。子ごとに「下巻の どこまで」を 大人が えらぶ
+const KYO2 = "北8 魚8 秋8 冬10 広13 食13 帰14 東18 西18 南18 少30 家34 角35 当35 戸36 首37 茶40 引40 毎40 遠41 後46 教56 交56 多60 晴66 社66 歩66 売67 計67 肉67 船67 台74 買89 店91 原92 来92 風92 雪93 米97 歌99 止99 池104 里104 寺104 麦104 京107 番111 雲111 走115 直116 用119 鳴120 明122 刀122 午132 黒142".split(" ").map(x => ({ k: x[0], pg: +x.slice(1) }));
+// まだ ならっていない 字（せっていが ない・2年いがいの ときは なし）
+function notYet() {
+  const st = S.stats["ならった"];
+  if (gradeOf() !== 2 || !st || st.ok < 0) return new Set();
+  return new Set(KYO2.slice(st.ok).map(x => x.k));
+}
+// ステージ・くんれん・きけんダンジョンには、まだの 字が 入った ことばを 出さない（大人が つくった リストは そのまま）
 function targetsOf(listId) {
+  const T = targets0(listId), U = notYet();
+  if (!U.size || !(listId === "all" || listId === "weak" || /^u\d+$/.test(listId))) return T;
+  const ok = q => !kanjiOf(q.w).some(k => U.has(k));
+  return { ...T, pool: T.pool.filter(ok), limit: T.limit && T.limit.filter(k => !U.has(k)) };
+}
+function targets0(listId) {
   const g = gradeOf();
   if (listId === "all") return { name: `${g}年生の字`, kanji: GK[g], pool: ALLQ.filter(q => q.g === g) };
   if (/^u\d+$/.test(listId)) {
     const i = +listId.slice(1), ks = GK[g].slice(i * STEP, i * STEP + STEP);
-    if (!ks.length) return targetsOf("all");
+    if (!ks.length) return targets0("all");
     return { name: `${g}年生 ステップ${i + 1}`, kanji: ks, pool: poolFor(ks, []), limit: ks };
   }
   if (listId === "weak") {
@@ -1103,7 +1134,7 @@ function targetsOf(listId) {
     return { name: "にがてな字", kanji: ks, pool: poolFor(ks, []), limit: ks };
   }
   const L = S.lists.find(l => l.id === listId);
-  if (!L) return targetsOf("all");
+  if (!L) return targets0("all");
   const words = L.items.filter(i => i.w), chars = L.items.filter(i => i.k).flatMap(i => [...i.k]);
   const ks = [...new Set([...chars, ...words.flatMap(i => kanjiOf(i.w))])];
   return { name: L.name, kanji: ks, pool: poolFor(chars, words), limit: ks };
@@ -2654,7 +2685,7 @@ function show(id) {
   bgmPlay(id === "drill" || id === "kana" ? "battle" : id === "quest" ? "quest" : "home");
   window.scrollTo(0, 0);
   if (MENU.includes(id)) renderHome();
-  if (id === "adult") renderPlayersAdult();
+  if (id === "adult") { renderPlayersAdult(); renderKyo(); }
   if (id === "home") checkUpdate();
 }
 // 新しい版が出ていたら、ホームに いるときだけ 入れかえる（れんしゅうの とちゅうでは しない）
@@ -2723,12 +2754,12 @@ function renderHome() {
   $("startBtn").disabled = !T.pool.length;
   $("startBtn").textContent = T.pool.length ? `${Math.min(n, T.pool.length)}もん はじめる` : "にがてな字は ありません";
   $("gridTitle").textContent = T.name;
-  const grid = $("grid"); grid.textContent = "";
+  const grid = $("grid"), NY = notYet(); grid.textContent = "";
   const c = { master: 0, ok: 0, weak: 0 };
   for (const k of T.kanji) {
     const st = status(k); if (c[st] !== undefined) c[st]++;
     const b = document.createElement("button");
-    b.className = "cellbtn"; b.textContent = k; b.dataset.s = st;
+    b.className = "cellbtn"; b.textContent = k; b.dataset.s = st; if (NY.has(k)) b.dataset.n = "1";
     b.setAttribute("aria-label", k + "を れんしゅう");
     b.onclick = () => startDrill([qFor(k)[0] || fallbackQ(k)], "prac", [k]);
     grid.appendChild(b);
@@ -2875,6 +2906,25 @@ function renderWho() {
   }
   $("whoQ").textContent = list.length ? "だれが はいる？" : "ようこそ！";
 }
+// 大人の 画面：下巻の どこまで ならったか（いまの 子）
+function renderKyo() {
+  const st = S.stats["ならった"], n = st && st.ok >= 0 ? Math.min(st.ok, KYO2.length) : -1, box = $("kyoGrid");
+  $("kyoWho").textContent = myName();
+  const two = gradeOf() === 2;
+  $("kyoNote").textContent = !two ? "2年生（教育出版の 教科書）の ときだけ つかえます。" : n < 0 ? "いまは ぜんぶの 字が 出ます。下巻で さいごに ならった 字を おしてください（教科書 二下の 159〜162ページの 順）。" : n === 0 ? "上巻（二上）の 字だけ 出ます。" : `下巻は「${KYO2[n - 1].k}」（${KYO2[n - 1].pg}ページ）まで。まだの ${KYO2.length - n}字は 出ません。`;
+  box.textContent = ""; $("kyoAll").disabled = $("kyoNone").disabled = !two;
+  KYO2.forEach((x, i) => {
+    const b = document.createElement("button"); b.disabled = !two;
+    b.innerHTML = `${x.k}<small>${x.pg}p</small>`;
+    if (i < n) b.dataset.on = "1";
+    if (i === n - 1) b.dataset.last = "1";
+    b.onclick = () => setKyo(i + 1);
+    box.appendChild(b);
+  });
+}
+function setKyo(n) { S.stats["ならった"] = stamp(n); save(); renderKyo(); }
+$("kyoAll").onclick = () => setKyo(-1);
+$("kyoNone").onclick = () => setKyo(0);
 // 大人の 画面：子どもの セーブを けす
 function renderPlayersAdult() {
   const box = $("plAdult"); box.textContent = "";
